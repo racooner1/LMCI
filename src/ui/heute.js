@@ -17,7 +17,7 @@ import { totalXP, levelInfo, dailyGoals, xpToday, motivation, XP, badgeExtra } f
 import { weeklyChallenges } from '../engine/challenges.js';
 import { badgeStatus } from '../engine/achievements.js';
 import { icon } from './icons.js';
-import { confetti, pop } from './celebrate.js';
+import { confetti, pop, medal } from './celebrate.js';
 import { animateAll } from './motion.js';
 import { recordBoard, RECORD_STREAK_MILESTONES } from '../engine/records.js';
 import { recordsWeekLine } from './records.js';
@@ -99,7 +99,10 @@ export function renderHeute(root) {
             <div class="small">${WEEKDAYS_LONG[wd]}, ${formatDate(today, { weekday: false })}${new Date().getFullYear()}</div>
             <h1>${greet}${profile.name ? `, ${profile.name}` : ''}</h1>
           </div>
-          <div class="streak-pill ${activeToday ? '' : 'cold'}" title="Tage in Folge aktiv">${raw(icon('flame', { size: 22 }))} ${streak}</div>
+          <div class="hero-pills">
+            <div class="streak-pill ${activeToday ? '' : 'cold'}" title="Tage in Folge aktiv">${raw(icon('flame', { size: 22 }))} ${streak}</div>
+            ${board.overall ? html`<a class="rank-pill" href="#/fortschritt" title="Kraft-Rang · ${board.overall.score} Punkte">${raw(medal(board.overall, { size: 's' }))} ${board.overall.name}</a>` : ''}
+          </div>
         </div>
         <div class="level-row"><span>Level ${lvl.level} · ${lvl.title}</span><span class="xp-chip">${raw(icon('bolt', { size: 14 }))} <span data-count="${xp}" data-from="${Math.min(prevXp, xp)}">${xp}</span> XP</span></div>
         <div class="xp-bar"><div style="width:${(lvl.progress * 100).toFixed(0)}%"></div></div>

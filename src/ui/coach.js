@@ -4,7 +4,8 @@ import * as store from '../state.js';
 import { GOALS, EXPERIENCE, planWeek, effectiveSets } from '../engine/plan.js';
 import { getExercise } from '../data/exercises.js';
 import { MUSCLE_BY_ID } from '../data/muscles.js';
-import { personalRecords, totalSets, totalTonnage, weeklyVolume } from '../engine/analytics.js';
+import { totalSets, totalTonnage, weeklyVolume } from '../engine/analytics.js';
+import { recordBoard } from '../engine/records.js';
 import { weightTrend } from '../engine/nutrition.js';
 import { weeklyReview } from '../engine/food.js';
 import { dailyTargets } from './ernaehrung.js';
@@ -44,8 +45,11 @@ function buildContext(s) {
     const name = w.dayId === 'frei' ? 'Frei' : w.dayId === 'schnell' ? 'Schnelltraining' : plan.days.find((x) => x.id === w.dayId)?.name || 'Training';
     lines.push(`- ${w.date} ${name}${w.mode === 'leicht' ? ' (leicht)' : ''}: ${totalSets(w)} Sätze, ${totalTonnage(w)} kg${w.feedback ? `, RPE ${w.feedback.rpe}, Leistung ${w.feedback.performance}${w.feedback.sore?.length ? `, nicht erholt: ${w.feedback.sore.join(',')}` : ''}` : ''}. ${w.entries.slice(0, 5).map((e) => `${getExercise(e.exId)?.name || e.exId} ${e.sets.map((x) => `${x.weight ? `${x.weight}×` : ''}${x.reps}${x.rir != null ? `@${x.rir}` : ''}`).join(',')}`).join('; ')}`);
   }
-  const prs = personalRecords(s.workouts).slice(0, 6);
-  if (prs.length) lines.push(`Bestleistungen (e1RM): ${prs.map((r) => `${getExercise(r.exId)?.name || r.exId} ${r.e1rm || `${r.reps} Wdh`}`).join(', ')}`);
+  const board = recordBoard(s, today);
+  if (board.records.length) {
+    lines.push(`Bestleistungen: ${board.records.slice(0, 8).map((r) => `${r.name} ${r.mode === 'kg' ? `${r.weight}×${r.reps} (e1RM ${r.e1rm})` : `${r.reps} Wdh`}${r.rank ? `, Rang ${r.rank.name} ${r.score} P.` : ''}`).join('; ')}.`);
+    lines.push(`Kraft-Rang gesamt: ${board.overall ? `${board.overall.name} (${board.overall.score} Punkte; 100 = Fortgeschritten, Ränge: Silber ab 55, Gold 80, Platin 105, Diamant 130)` : 'noch keiner'}. Rekord-Serie: ${board.streak.weeks} Wochen in Folge mit Steigerung${board.streak.atRisk ? ' (diese Woche noch keine – Serie in Gefahr)' : ''}. Steigerungen gesamt ${board.improvements}, diese Woche ${board.thisWeek}.${board.targets.length ? ` Nächste Ziele: ${board.targets.map((t) => `${t.name} ${t.kind === 'rank' ? `Rang ${t.label}` : t.label} bei ${t.target} ${t.unit}`).join('; ')}.` : ''}`);
+  }
   const cardio = s.cardioLogs.filter((c) => c.date >= startOfWeek(today));
   lines.push(`Cardio diese Woche: ${cardio.length} Einheiten, ${cardio.reduce((a, c) => a + c.minutes, 0)} min (Plan: ${plan.cardio.sessionsPerWeek}).`);
   const ci = (s.checkins || []).slice(-7);

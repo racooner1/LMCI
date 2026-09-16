@@ -737,4 +737,16 @@ details.group .chips { margin-top: 10px; }
 .reward.highlight.flame .ico { color: var(--flame); animation: flame 1.6s ease-in-out infinite; }
 @media (max-width: 400px) { .records-stat strong { font-size: 1.15rem; } .chronicle li { grid-template-columns: 56px 1fr auto; } }
 
+/* Rekorde im Training, in der Bibliothek, im Kalender und im Hero */
+.hero-pills { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex: none; }
+.rank-pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, 0.16); border-radius: 999px; padding: 3px 10px 3px 4px; font-weight: 800; font-size: 0.82rem; color: #fff; text-decoration: none; white-space: nowrap; }
+.rank-pill:hover { background: rgba(255, 255, 255, 0.26); }
+.record-hint { display: flex; gap: 8px; align-items: flex-start; font-size: 0.88rem; padding: 8px 10px; border-radius: var(--radius-xs); background: var(--xp-soft); line-height: 1.35; }
+.record-hint .medal { margin-top: 1px; }
+.record-hint.beaten { background: var(--ok-soft); }
+.pr-banner { display: flex; align-items: center; gap: 8px; background: linear-gradient(90deg, var(--xp), #ff7a1a); color: #fff; font-weight: 800; padding: 8px 12px; border-radius: var(--radius-xs); font-size: 0.9rem; box-shadow: 0 8px 20px -10px rgba(245, 166, 35, 0.8); }
+.set-row.pr input, .set-row.pr select { background: var(--xp-soft); color: var(--xp-deep); }
+.set-row.pr .set-done { background: var(--xp); border-color: var(--xp); border-bottom-color: var(--xp-deep); color: #fff; }
+.d-pr { background: var(--xp); }
+
 .boot-hint { color: var(--muted); text-align: center; padding: 40px 0; }

@@ -747,6 +747,18 @@ details.group .chips { margin-top: 10px; }
 .reward.highlight.flame .ico { color: var(--flame); animation: flame 1.6s ease-in-out infinite; }
 @media (max-width: 400px) { .records-stat strong { font-size: 1.15rem; } .chronicle li { grid-template-columns: 56px 1fr auto; } }
 
+/* Rekorde im Training, in der Bibliothek, im Kalender und im Hero */
+.hero-pills { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex: none; }
+.rank-pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, 0.16); border-radius: 999px; padding: 3px 10px 3px 4px; font-weight: 800; font-size: 0.82rem; color: #fff; text-decoration: none; white-space: nowrap; }
+.rank-pill:hover { background: rgba(255, 255, 255, 0.26); }
+.record-hint { display: flex; gap: 8px; align-items: flex-start; font-size: 0.88rem; padding: 8px 10px; border-radius: var(--radius-xs); background: var(--xp-soft); line-height: 1.35; }
+.record-hint .medal { margin-top: 1px; }
+.record-hint.beaten { background: var(--ok-soft); }
+.pr-banner { display: flex; align-items: center; gap: 8px; background: linear-gradient(90deg, var(--xp), #ff7a1a); color: #fff; font-weight: 800; padding: 8px 12px; border-radius: var(--radius-xs); font-size: 0.9rem; box-shadow: 0 8px 20px -10px rgba(245, 166, 35, 0.8); }
+.set-row.pr input, .set-row.pr select { background: var(--xp-soft); color: var(--xp-deep); }
+.set-row.pr .set-done { background: var(--xp); border-color: var(--xp); border-bottom-color: var(--xp-deep); color: #fff; }
+.d-pr { background: var(--xp); }
+
 .boot-hint { color: var(--muted); text-align: center; padding: 40px 0; }
 
 </style>
@@ -7829,6 +7841,39 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       targets: records.filter((r) => r.targets.length).map((r) => ({ ...r.targets[0], exId: r.exId, name: r.name, mode: r.mode })).sort((a2, b2) => a2.gapPct - b2.gapPct).slice(0, 3)
     };
   }
+  function repsToBeat(e1rm, weight) {
+    if (!weight || weight <= 0) return null;
+    for (let r = 1; r <= 12; r++) if (estimate1RM(weight, r) > e1rm + 0.05) return r;
+    return null;
+  }
+  function weightToBeat(e1rm, reps, inc = 2.5) {
+    const r = Math.min(12, Math.max(1, reps || 1));
+    const step2 = inc || 0.5;
+    const w = Math.ceil((e1rm + 0.05) / (1 + r / 30) / step2) * step2;
+    return Math.round(w * 100) / 100;
+  }
+  function recordAttempts(rec, plan, target = null) {
+    if (!rec) return null;
+    if (rec.mode === "reps") return { reps: rec.reps + 1, target: target && target > rec.reps + 1 ? Math.ceil(target) : null };
+    const out = { sameWeight: null, moreWeight: null, target: null };
+    const w = plan.weight;
+    const maxReps = (plan.repMax || 12) + 2;
+    if (w > 0) {
+      const r = repsToBeat(rec.e1rm, w);
+      if (r && r <= maxReps) out.sameWeight = { weight: w, reps: r };
+    }
+    const reps = plan.reps || rec.reps || 8;
+    const inc = plan.inc || 2.5;
+    const mw = weightToBeat(rec.e1rm, reps, inc);
+    if (mw > (w || 0)) out.moreWeight = { weight: mw, reps };
+    if (target && target > rec.e1rm) {
+      const tw = w > 0 ? w : mw;
+      const tr2 = repsToBeat(target - 0.1, tw);
+      if (tr2 && tr2 <= maxReps) out.target = { weight: tw, reps: tr2 };
+      else out.target = { weight: weightToBeat(target - 0.1, reps, inc), reps };
+    }
+    return out;
+  }
   function rankLadder(ex2, profile) {
     if (!ex2 || !profile) return [];
     const isReps = ["bw", "time", "band"].includes(ex2.load);
@@ -8546,6 +8591,12 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     animateBars(root2);
     animateRings(root2);
     animateCounts(root2);
+  }
+  function stamp(el2) {
+    if (!el2 || reduced()) return;
+    el2.classList.remove("stamp");
+    void el2.offsetWidth;
+    el2.classList.add("stamp");
   }
 
   // src/ui/foodpicker.js
@@ -9904,6 +9955,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const hist = historyFor(s.workouts, exId, 5);
     const e1 = e1rmHistory(s.workouts, exId);
     const pr2 = personalRecords(s.workouts).find((r) => r.exId === exId);
+    const rec = pr2 ? recordBoard(s).records.find((r) => r.exId === exId) : null;
     const alts = alternativesFor(exId, s.profile).slice(0, 8);
     const gear = ex2.gear.map((g2) => GEAR_BY_ID[g2]?.name || g2).join(", ");
     const m = openModal(
@@ -9913,7 +9965,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
      ${ex2.cue ? `<p class="cue">${esc(ex2.cue)}</p>` : ""}
      ${ex2.contra.length ? `<p class="muted small">Vorsicht bei: ${ex2.contra.map((c) => ({ knie: "Knie", schulter: "Schulter", ruecken_unten: "unterer R\xFCcken", handgelenk: "Handgelenk", huefte: "H\xFCfte" })[c] || c).join(", ")}</p>` : ""}
      <a class="btn btn-small" href="${videoSearchUrl(ex2)}" target="_blank" rel="noopener">Technik-Videos ansehen \u2197</a>
-     ${pr2 ? `<h3>Deine Bestleistung</h3><p>${pr2.e1rm ? `${fmtKg(pr2.weight)} \xD7 ${pr2.reps} (gesch\xE4tztes 1RM ${pr2.e1rm} kg)` : `${pr2.reps} Wiederholungen`} \xB7 ${formatDate(pr2.date)}</p>` : ""}
+     ${pr2 ? `<h3>Deine Bestleistung</h3><div class="record-hint">${medal(rec?.rank || null, { size: "s" })}<span>${pr2.e1rm ? `${fmtKg(pr2.weight)} \xD7 ${pr2.reps} \xB7 e1RM ${String(pr2.e1rm).replace(".", ",")} kg` : `${pr2.reps} Wiederholungen`} \xB7 ${formatDate(pr2.date)}${rec?.rank ? `<br><span class="muted">Rang ${esc(rec.rank.name)} \xB7 ${rec.score} Punkte${rec.rank.next ? ` \xB7 noch ${rec.rank.toNext} bis ${esc(rec.rank.next.name)}` : ""}${rec.improvements ? ` \xB7 ${rec.improvements}\xD7 gesteigert` : ""}</span>` : rec ? `<br><span class="muted">${rec.improvements ? `${rec.improvements}\xD7 gesteigert` : "Erster Eintrag"}</span>` : ""}</span></div>` : ""}
      ${hist.length ? `<h3>Letzte Einheiten</h3><ul class="bullets small">${hist.slice().reverse().map((h2) => `<li>${formatDate(h2.date)}: ${h2.sets.map((x) => `${x.weight ? `${x.weight} kg \xD7 ` : ""}${x.reps}${x.rir != null ? ` @${x.rir}` : ""}`).join(", ")}</li>`).join("")}</ul>` : ""}
      ${e1.length > 1 ? `<p class="muted small">Entwicklung gesch\xE4tztes 1RM: ${e1[0].e1rm} \u2192 ${e1[e1.length - 1].e1rm} kg</p>` : ""}
      <h3>${esc(pickLabel)}</h3>
@@ -10139,7 +10191,10 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
             <div class="small">${WEEKDAYS_LONG[wd]}, ${formatDate(today, { weekday: false })}${(/* @__PURE__ */ new Date()).getFullYear()}</div>
             <h1>${greet}${profile.name ? `, ${profile.name}` : ""}</h1>
           </div>
-          <div class="streak-pill ${activeToday ? "" : "cold"}" title="Tage in Folge aktiv">${raw(icon("flame", { size: 22 }))} ${streak}</div>
+          <div class="hero-pills">
+            <div class="streak-pill ${activeToday ? "" : "cold"}" title="Tage in Folge aktiv">${raw(icon("flame", { size: 22 }))} ${streak}</div>
+            ${board.overall ? html`<a class="rank-pill" href="#/fortschritt" title="Kraft-Rang · ${board.overall.score} Punkte">${raw(medal(board.overall, { size: "s" }))} ${board.overall.name}</a>` : ""}
+          </div>
         </div>
         <div class="level-row"><span>Level ${lvl.level} · ${lvl.title}</span><span class="xp-chip">${raw(icon("bolt", { size: 14 }))} <span data-count="${xp}" data-from="${Math.min(prevXp, xp)}">${xp}</span> XP</span></div>
         <div class="xp-bar"><div style="width:${(lvl.progress * 100).toFixed(0)}%"></div></div>
@@ -10604,11 +10659,13 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const today = toISODate();
     const checkin = s.checkins.find((c) => c.date === today);
     const readiness = readinessScore(checkin);
+    const recs = Object.fromEntries(recordBoard(s, today).records.map((r) => [r.exId, r]));
     const allSets = aw.entries.reduce((a2, e) => a2 + e.sets.length, 0);
     const doneSets = aw.entries.reduce((a2, e) => a2 + e.sets.filter((x) => x.done).length, 0);
+    const prCount2 = aw.entries.filter((e) => e.pr).length;
     root2.innerHTML = String(html`
     <section class="page workout">
-      <div class="workout-progress"><div class="bar"><div id="wp-fill" style="width:${allSets ? (doneSets / allSets * 100).toFixed(0) : 0}%"></div></div><div class="meta"><span id="wp-text">Satz ${doneSets} von ${allSets}</span><span id="wp-xp">+${50 + doneSets * 8} XP bisher</span></div></div>
+      <div class="workout-progress"><div class="bar"><div id="wp-fill" style="width:${allSets ? (doneSets / allSets * 100).toFixed(0) : 0}%"></div></div><div class="meta"><span id="wp-text">Satz ${doneSets} von ${allSets}</span><span id="wp-xp">+${XP.workoutBase + doneSets * XP.perSet + prCount2 * XP.pr} XP bisher</span></div></div>
       <header class="page-head">
         <div><h1>${day.name}</h1><p class="muted">${free2 ? "" : `Woche ${week} \xB7 `}${rir} Wdh. in Reserve${deload ? " \xB7 Deload" : ""}${aw.mode === "leicht" ? " \xB7 leichte Version" : ""}${aw.shortMinutes ? ` \xB7 Kurzversion ${aw.shortMinutes} min` : ""} · seit ${aw.startedAt.slice(11, 16)}</p></div>
         <button class="btn btn-small" data-act="abort">Abbrechen</button>
@@ -10619,7 +10676,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         ${readiness && readiness.level === "niedrig" && aw.mode !== "leicht" ? html`<span class="muted small">Check-in: niedrige Bereitschaft – leichte Version empfohlen.</span>` : ""}
       </div>` : ""}
       <div class="note small">Aufwärmen: 5 min locker, dann die Aufwärmsätze der ersten Übung. Arbeitssätze abhaken – der Pausentimer startet automatisch.</div>
-      ${aw.entries.map((e, ei2) => renderEntry(e, ei2, s, plan, rir, deload, aw.entries.length))}
+      ${aw.entries.map((e, ei2) => renderEntry(e, ei2, s, plan, rir, deload, aw.entries.length, recs))}
       ${aw.entries.length === 0 ? html`<div class="card"><p class="muted">Noch keine Übung. Füge Übungen hinzu – Vorschläge und Historie kommen automatisch.</p></div>` : ""}
       <div class="row gap wrap">
         <button class="btn" data-act="add-ex">Übung hinzufügen</button>
@@ -10630,10 +10687,10 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       <div class="rest-fill"></div>
       <div class="rest-content"><span class="rest-label">Pause</span><span class="rest-time">0:00</span><button class="btn btn-small" data-act="rest-add">+30 s</button><button class="btn btn-small" data-act="rest-skip">Weiter</button></div>
     </div>`);
-    bind(root2, dayId);
+    bind(root2, dayId, recs);
     if (timer.end > Date.now()) tickRest();
   }
-  function bind(root2, dayId) {
+  function bind(root2, dayId, recs = {}) {
     root2.querySelectorAll("input[data-field]").forEach((inp) => {
       inp.addEventListener("input", () => {
         const { ei: ei2, si: si2, field } = inp.dataset;
@@ -10677,16 +10734,20 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         const set = get().activeWorkout.entries[ei2].sets[si2];
         btn.closest(".set-row").classList.toggle("done", !!set.done);
         btn.setAttribute("aria-pressed", String(!!set.done));
-        if (set.done) pop(btn);
+        if (set.done) {
+          pop(btn);
+          checkRecord(ei2, si2, recs, btn);
+        }
         const entries = get().activeWorkout.entries;
         const all = entries.reduce((a2, e2) => a2 + e2.sets.length, 0);
         const done = entries.reduce((a2, e2) => a2 + e2.sets.filter((x) => x.done).length, 0);
+        const prs = entries.filter((x) => x.pr).length;
         const fill = document.getElementById("wp-fill");
         if (fill) fill.style.width = `${all ? done / all * 100 : 0}%`;
         const txt = document.getElementById("wp-text");
         if (txt) txt.textContent = `Satz ${done} von ${all}`;
         const xpEl = document.getElementById("wp-xp");
-        if (xpEl) xpEl.textContent = `+${50 + done * 8} XP bisher`;
+        if (xpEl) xpEl.textContent = `+${XP.workoutBase + done * XP.perSet + prs * XP.pr} XP bisher`;
         const card = btn.closest(".ex-card");
         const e = entries[ei2];
         card?.classList.toggle("complete", e.sets.every((x) => x.done));
@@ -10807,11 +10868,70 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       })
     };
   }
-  function renderEntry(e, ei2, s, plan, rir, deload, count) {
+  var fmt12 = (v) => (Math.round(v * 10) / 10).toString().replace(".", ",");
+  var prText = (ex2, pr2) => pr2.mode === "kg" ? `${fmt12(pr2.weight)} kg \xD7 ${pr2.reps} (e1RM ${fmt12(pr2.e1rm)} kg)` : `${pr2.reps} ${ex2.load === "time" ? "s" : "Wdh."}`;
+  function recordHint(ex2, rec, e) {
+    const sug = e.suggestion || {};
+    const planned = e.sets.find((x) => !x.done)?.weight ?? sug.weight ?? rec.weight ?? 0;
+    const plannedReps = sug.reps || e.repMin || 8;
+    const target = rec.targets?.[0] || null;
+    const a2 = recordAttempts(rec, { weight: planned, reps: plannedReps, repMax: e.repMax, inc: incrementFor(ex2) || (ex2.load === "dumbbell" || ex2.load === "kettlebell" ? 1 : 2.5) }, target ? target.target : null);
+    const tName = target ? target.kind === "rank" ? `Rang ${target.label}` : target.label : "";
+    let best;
+    let how = "";
+    if (rec.mode === "kg") {
+      best = `${fmt12(rec.weight)} kg \xD7 ${rec.reps} \xB7 e1RM ${fmt12(rec.e1rm)} kg`;
+      const opts = [];
+      if (a2.sameWeight) opts.push(`${fmt12(a2.sameWeight.weight)} kg \xD7 ${a2.sameWeight.reps}`);
+      if (a2.moreWeight) opts.push(`${fmt12(a2.moreWeight.weight)} kg \xD7 ${a2.moreWeight.reps}`);
+      if (opts.length) how = `Knacken: ${opts.join(" oder ")}`;
+      if (a2.target && target) how += `${how ? " \xB7 " : ""}${tName}: ${fmt12(a2.target.weight)} kg \xD7 ${a2.target.reps}`;
+    } else {
+      const unit = ex2.load === "time" ? "s" : "Wdh.";
+      best = `${rec.reps} ${unit}`;
+      how = `Knacken: ${a2.reps} ${unit}`;
+      if (a2.target && target) how += ` \xB7 ${tName}: ${a2.target} ${unit}`;
+    }
+    return html`<div class="record-hint ${e.pr ? "beaten" : ""}">${raw(medal(rec.rank, { size: "s" }))}<span><strong>Rekord</strong> ${best}${rec.rank ? ` \xB7 ${rec.rank.name}` : ""}${how ? html`<br><span class="muted">${how}</span>` : ""}</span></div>`;
+  }
+  function checkRecord(ei2, si2, recs, btn) {
+    const aw = get().activeWorkout;
+    const e = aw.entries[ei2];
+    const set = e.sets[si2];
+    const ex2 = getExercise(e.exId);
+    const rec = recs[e.exId];
+    if (!rec || !ex2 || !set.reps) return;
+    const cur = e.pr || rec;
+    let pr2 = null;
+    if (set.weight > 0) {
+      const e1rm = Math.round(estimate1RM(set.weight, Math.min(set.reps, 12)) * 10) / 10;
+      if (e1rm > (cur.e1rm || 0) + 0.05) pr2 = { mode: "kg", weight: set.weight, reps: set.reps, e1rm };
+    } else if (rec.mode === "reps" && !(cur.e1rm > 0) && set.reps > cur.reps) {
+      pr2 = { mode: "reps", weight: 0, reps: set.reps, e1rm: 0 };
+    }
+    if (!pr2) return;
+    const first = !aw.entries.some((x) => x.pr);
+    update((st2) => st2.activeWorkout.entries[ei2].pr = pr2, { silent: true });
+    btn.closest(".set-row").classList.add("pr");
+    const card = btn.closest(".ex-card");
+    let banner = card.querySelector(".pr-banner");
+    if (!banner) {
+      banner = document.createElement("div");
+      banner.className = "pr-banner";
+      card.querySelector(".set-table").before(banner);
+    }
+    banner.innerHTML = `${icon("trophy", { size: 16 })} Neue Bestleistung: ${esc(prText(ex2, pr2))}`;
+    stamp(banner);
+    card.querySelector(".record-hint")?.classList.add("beaten");
+    toast(`Bestleistung geknackt: ${ex2.name} \xB7 ${prText(ex2, pr2)} \xB7 +${XP.pr} XP`, "ok");
+    if (first) confetti({ count: 60, duration: 1400 });
+  }
+  function renderEntry(e, ei2, s, plan, rir, deload, count, recs = {}) {
     const ex2 = getExercise(e.exId);
     const loadable = !["bw", "time", "band"].includes(ex2.load);
     const sug = e.suggestion || {};
     const unit = ex2.load === "time" ? "s" : "Wdh.";
+    const rec = recs[e.exId];
     return html`<div class="card ex-card" data-ei="${ei2}">
     <div class="row between top">
       <div>
@@ -10829,6 +10949,8 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       </div>
     </div>
     ${sug.note ? html`<div class="suggestion ${sug.kind}">${sug.estimated ? html`<span class="badge">Schätzung</span>` : ""}<span>${sug.note}</span>${sug.prev ? html`<span class="muted">Letztes Mal: ${sug.prev}</span>` : ""}</div>` : ""}
+    ${rec ? recordHint(ex2, rec, e) : ""}
+    ${e.pr ? html`<div class="pr-banner">${raw(icon("trophy", { size: 16 }))} Neue Bestleistung: ${prText(ex2, e.pr)}</div>` : ""}
     ${e.warmup?.length ? html`<button class="link small muted" data-act="warmup-toggle">Aufwärmsätze anzeigen</button>
       <div class="warmup-list" hidden>${e.warmup.map((w, i) => html`<div class="warmup-row"><span>Aufwärmen ${i + 1}</span><span>${w.weight ? `${w.weight} kg \xD7 ${w.reps}` : `${w.reps} \xD7 ${w.note || "leicht"}`}</span>${w.note && w.weight ? html`<span class="muted small">${w.note}</span>` : ""}</div>`)}</div>` : ""}
     ${e.note ? html`<div class="muted small">Notiz: ${e.note}</div>` : ""}
@@ -11092,7 +11214,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       }
       const mins = Math.round((new Date(workout.finishedAt) - new Date(workout.startedAt)) / 6e4);
       const streakAfter = recordStreak(recordEvents(after.workouts, after.profile), aw.date);
-      const fmt12 = (v) => (Math.round(v * 10) / 10).toString().replace(".", ",");
+      const fmt13 = (v) => (Math.round(v * 10) / 10).toString().replace(".", ",");
       const highlights = [];
       if (streakAfter.weeks > streakBefore && streakAfter.weeks >= 2) highlights.push({ icon: "flame", cls: "flame", text: `Rekord-Serie: ${streakAfter.weeks} Wochen in Folge st\xE4rker geworden!` });
       else if (streakAfter.weeks >= 2 && records.some((r) => r.kind === "improve")) highlights.push({ icon: "flame", cls: "flame", text: `Rekord-Serie gesichert \u2013 ${streakAfter.weeks} Wochen in Folge.` });
@@ -11105,7 +11227,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         highlights,
         records: records.map((r) => ({
           title: r.name,
-          text: r.mode === "kg" ? `e1RM ${fmt12(r.e1rm)} kg${r.kind === "improve" ? ` (+${fmt12(r.delta)} kg)` : ""}` : `${r.reps} ${getExercise(r.exId)?.load === "time" ? "Sekunden" : "Wiederholungen"}${r.kind === "improve" ? ` (+${r.delta})` : ""}`,
+          text: r.mode === "kg" ? `e1RM ${fmt13(r.e1rm)} kg${r.kind === "improve" ? ` (+${fmt13(r.delta)} kg)` : ""}` : `${r.reps} ${getExercise(r.exId)?.load === "time" ? "Sekunden" : "Wiederholungen"}${r.kind === "improve" ? ` (+${r.delta})` : ""}`,
           sub: r.rankUp ? `Aufstieg auf ${r.rank.name} \xB7 +${XP.rankUp} XP` : r.kind === "first" ? `Erster Eintrag${r.rank ? ` \xB7 Rang ${r.rank.name}` : ""} \xB7 +${XP.pr} XP` : `${r.rank ? `Rang ${r.rank.name}${r.rank.next ? ` \xB7 ${r.rank.toNext} Punkte bis ${r.rank.next.name}` : ""} \xB7 ` : ""}+${XP.pr} XP`,
           rank: r.rank,
           rankUp: r.rankUp
@@ -11337,7 +11459,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
   function buildICS(plan, { time = "18:00", durationMin = 60, weeks = 5, startDate = plan.startDate } = {}) {
     const [hh, mm] = time.split(":").map(Number);
     const pad = (n) => String(n).padStart(2, "0");
-    const stamp = (iso, h2, m) => `${iso.replace(/-/g, "")}T${pad(h2)}${pad(m)}00`;
+    const stamp2 = (iso, h2, m) => `${iso.replace(/-/g, "")}T${pad(h2)}${pad(m)}00`;
     const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//LMCI//Trainingsplan//DE", "CALSCALE:GREGORIAN"];
     const first = addDays(startDate, -weekdayIndex(startDate));
     for (let w = 0; w < weeks; w++) {
@@ -11348,7 +11470,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         const endM = mm + durationMin;
         const endH = hh + Math.floor(endM / 60);
         const desc = d.exercises.map((pe) => pe.exId).join(", ");
-        lines.push("BEGIN:VEVENT", `UID:lmci-${plan.id}-${d.id}-${iso}@lmci`, `DTSTAMP:${stamp(toISODate(), 0, 0)}Z`, `DTSTART:${stamp(iso, hh, mm)}`, `DTEND:${stamp(iso, endH, endM % 60)}`, `SUMMARY:LMCI: ${d.name}${w === weeks - 1 ? " (Deload)" : ""}`, `DESCRIPTION:${desc}`, "END:VEVENT");
+        lines.push("BEGIN:VEVENT", `UID:lmci-${plan.id}-${d.id}-${iso}@lmci`, `DTSTAMP:${stamp2(toISODate(), 0, 0)}Z`, `DTSTART:${stamp2(iso, hh, mm)}`, `DTEND:${stamp2(iso, endH, endM % 60)}`, `SUMMARY:LMCI: ${d.name}${w === weeks - 1 ? " (Deload)" : ""}`, `DESCRIPTION:${desc}`, "END:VEVENT");
       }
     }
     lines.push("END:VCALENDAR");
@@ -11386,8 +11508,11 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       const name = w.dayId === "frei" ? "Frei" : w.dayId === "schnell" ? "Schnelltraining" : plan.days.find((x) => x.id === w.dayId)?.name || "Training";
       lines.push(`- ${w.date} ${name}${w.mode === "leicht" ? " (leicht)" : ""}: ${totalSets(w)} S\xE4tze, ${totalTonnage(w)} kg${w.feedback ? `, RPE ${w.feedback.rpe}, Leistung ${w.feedback.performance}${w.feedback.sore?.length ? `, nicht erholt: ${w.feedback.sore.join(",")}` : ""}` : ""}. ${w.entries.slice(0, 5).map((e) => `${getExercise(e.exId)?.name || e.exId} ${e.sets.map((x) => `${x.weight ? `${x.weight}\xD7` : ""}${x.reps}${x.rir != null ? `@${x.rir}` : ""}`).join(",")}`).join("; ")}`);
     }
-    const prs = personalRecords(s.workouts).slice(0, 6);
-    if (prs.length) lines.push(`Bestleistungen (e1RM): ${prs.map((r) => `${getExercise(r.exId)?.name || r.exId} ${r.e1rm || `${r.reps} Wdh`}`).join(", ")}`);
+    const board = recordBoard(s, today);
+    if (board.records.length) {
+      lines.push(`Bestleistungen: ${board.records.slice(0, 8).map((r) => `${r.name} ${r.mode === "kg" ? `${r.weight}\xD7${r.reps} (e1RM ${r.e1rm})` : `${r.reps} Wdh`}${r.rank ? `, Rang ${r.rank.name} ${r.score} P.` : ""}`).join("; ")}.`);
+      lines.push(`Kraft-Rang gesamt: ${board.overall ? `${board.overall.name} (${board.overall.score} Punkte; 100 = Fortgeschritten, R\xE4nge: Silber ab 55, Gold 80, Platin 105, Diamant 130)` : "noch keiner"}. Rekord-Serie: ${board.streak.weeks} Wochen in Folge mit Steigerung${board.streak.atRisk ? " (diese Woche noch keine \u2013 Serie in Gefahr)" : ""}. Steigerungen gesamt ${board.improvements}, diese Woche ${board.thisWeek}.${board.targets.length ? ` N\xE4chste Ziele: ${board.targets.map((t3) => `${t3.name} ${t3.kind === "rank" ? `Rang ${t3.label}` : t3.label} bei ${t3.target} ${t3.unit}`).join("; ")}.` : ""}`);
+    }
     const cardio = s.cardioLogs.filter((c) => c.date >= startOfWeek(today));
     lines.push(`Cardio diese Woche: ${cardio.length} Einheiten, ${cardio.reduce((a2, c) => a2 + c.minutes, 0)} min (Plan: ${plan.cardio.sessionsPerWeek}).`);
     const ci2 = (s.checkins || []).slice(-7);
@@ -11691,6 +11816,7 @@ ${buildContext(get())}` }
   var MONTHS = ["Januar", "Februar", "M\xE4rz", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
   var view2 = null;
   function renderKalender(root2) {
+    var _a2;
     const s = get();
     const today = toISODate();
     if (!view2) {
@@ -11704,7 +11830,10 @@ ${buildContext(get())}` }
     for (let i = 0; i < offset; i++) cells.push(null);
     for (let d = 1; d <= daysInMonth; d++) cells.push(toISODate(new Date(view2.y, view2.m, d)));
     while (cells.length % 7) cells.push(null);
+    const prByDay = {};
+    for (const ev of recordEvents(s.workouts, s.profile)) if (ev.kind === "improve") (prByDay[_a2 = ev.date] || (prByDay[_a2] = [])).push(ev);
     const byDay = (iso) => ({
+      prs: prByDay[iso] || [],
       workouts: s.workouts.filter((w) => w.date === iso),
       cardio: s.cardioLogs.filter((c) => c.date === iso),
       checkin: (s.checkins || []).find((c) => c.date === iso),
@@ -11732,15 +11861,15 @@ ${buildContext(get())}` }
       const any = d.workouts.length || d.cardio.length || d.checkin || d.food || d.weight;
       return html`<button class="cal-cell ${iso === today ? "today" : ""} ${iso > today ? "future" : ""} ${planned && !d.workouts.length && iso < today ? "missed" : ""}" data-day="${iso}" ${any ? "" : 'data-empty="1"'}>
               <span class="cal-num">${Number(iso.slice(8))}</span>
-              <span class="cal-dots">${d.workouts.length ? html`<i class="d-strength" title="Krafttraining"></i>` : ""}${d.cardio.length ? html`<i class="d-cardio" title="Cardio"></i>` : ""}${d.food ? html`<i class="d-food" title="Ernährung"></i>` : ""}${d.checkin ? html`<i class="d-checkin" title="Check-in"></i>` : ""}</span>
+              <span class="cal-dots">${d.workouts.length ? html`<i class="d-strength" title="Krafttraining"></i>` : ""}${d.cardio.length ? html`<i class="d-cardio" title="Cardio"></i>` : ""}${d.food ? html`<i class="d-food" title="Ernährung"></i>` : ""}${d.checkin ? html`<i class="d-checkin" title="Check-in"></i>` : ""}${d.prs.length ? html`<i class="d-pr" title="Bestleistung"></i>` : ""}</span>
             </button>`;
     })}
         </div>
-        <div class="cal-legend"><span><i class="d-strength"></i> Kraft</span><span><i class="d-cardio"></i> Cardio</span><span><i class="d-food"></i> Ernährung</span><span><i class="d-checkin"></i> Check-in</span><span class="missed-legend">Rahmen = geplant, nicht trainiert</span></div>
+        <div class="cal-legend"><span><i class="d-strength"></i> Kraft</span><span><i class="d-cardio"></i> Cardio</span><span><i class="d-food"></i> Ernährung</span><span><i class="d-checkin"></i> Check-in</span><span><i class="d-pr"></i> Rekord</span><span class="missed-legend">Rahmen = geplant, nicht trainiert</span></div>
       </div>
       <div class="card">
         <div class="card-title">${MONTHS[view2.m]} in Zahlen</div>
-        <p><strong>${monthWorkouts.length}</strong> Trainings · <strong>${monthWorkouts.reduce((a2, w) => a2 + totalSets(w), 0)}</strong> Sätze · <strong>${monthWorkouts.reduce((a2, w) => a2 + totalTonnage(w), 0).toLocaleString("de-DE")}</strong> kg · <strong>${monthCardio.reduce((a2, c) => a2 + (c.minutes || 0), 0)}</strong> Cardio-Minuten</p>
+        <p><strong>${monthWorkouts.length}</strong> Trainings · <strong>${monthWorkouts.reduce((a2, w) => a2 + totalSets(w), 0)}</strong> Sätze · <strong>${monthWorkouts.reduce((a2, w) => a2 + totalTonnage(w), 0).toLocaleString("de-DE")}</strong> kg · <strong>${monthCardio.reduce((a2, c) => a2 + (c.minutes || 0), 0)}</strong> Cardio-Minuten · <strong>${Object.entries(prByDay).filter(([d]) => d.startsWith(`${view2.y}-${String(view2.m + 1).padStart(2, "0")}`)).reduce((a2, [, l2]) => a2 + l2.length, 0)}</strong> Bestleistungen</p>
       </div>
     </section>`);
     root2.querySelector('[data-act="prev"]').addEventListener("click", () => {
@@ -11758,6 +11887,7 @@ ${buildContext(get())}` }
     const food = dayTotals(s.foodLog?.[iso] || []);
     openModal(
       `${d.workouts.length ? `<h3>Krafttraining</h3>${d.workouts.map((w) => `<p><strong>${esc(dayName2(w))}</strong> \xB7 ${totalSets(w)} S\xE4tze \xB7 ${totalTonnage(w).toLocaleString("de-DE")} kg${w.feedback ? ` \xB7 RPE ${w.feedback.rpe}` : ""}</p><ul class="bullets small">${w.entries.map((e) => `<li>${esc(getExercise(e.exId)?.name || e.exId)}: ${e.sets.map((x) => `${x.weight ? `${x.weight}\xD7` : ""}${x.reps}`).join(", ")}</li>`).join("")}</ul>`).join("")}` : ""}
+     ${d.prs.length ? `<h3>Bestleistungen</h3><ul class="bullets small">${d.prs.map((ev) => `<li>${esc(ev.name)}: ${ev.mode === "kg" ? `e1RM ${String(ev.e1rm).replace(".", ",")} kg (+${String(ev.delta).replace(".", ",")} kg)` : `${ev.reps} Wdh. (+${ev.delta})`}${ev.rankUp ? ` \xB7 Aufstieg auf ${esc(ev.rank.name)}` : ""}</li>`).join("")}</ul>` : ""}
      ${d.cardio.length ? `<h3>Cardio</h3><ul class="bullets small">${d.cardio.map((c) => `<li>${esc(ACTIVITY_BY_ID[c.activity]?.name || c.activity)} \xB7 ${c.minutes} min${c.km ? ` \xB7 ${c.km} km` : ""}${c.avgHr ? ` \xB7 \xD8 ${c.avgHr} bpm` : ""}</li>`).join("")}</ul>` : ""}
      ${d.checkin ? `<h3>Check-in</h3><p class="small">Schlaf ${d.checkin.sleep} h \xB7 Qualit\xE4t ${d.checkin.sleepQuality}/5 \xB7 Stress ${d.checkin.stress}/5 \xB7 Energie ${d.checkin.energy}/5</p>` : ""}
      ${d.food ? `<h3>Ern\xE4hrung</h3><p class="small">${food.kcal} kcal \xB7 Protein ${food.protein} g \xB7 KH ${food.carbs} g \xB7 Fett ${food.fat} g</p>` : ""}

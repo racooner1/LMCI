@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { bestSet, recordEvents, newRecordEvents, recordStreak, recordWeeks, strengthScore, rankInfo, nextTargets, overallRank, recordBoard, rankLadder, RANKS } from '../src/engine/records.js';
+import { bestSet, recordEvents, newRecordEvents, recordStreak, recordWeeks, strengthScore, rankInfo, nextTargets, overallRank, recordBoard, rankLadder, RANKS, repsToBeat, weightToBeat, recordAttempts } from '../src/engine/records.js';
 import { personalRecords, newRecords } from '../src/engine/analytics.js';
 import { badgeStatus } from '../src/engine/achievements.js';
 import { getExercise } from '../src/data/exercises.js';
@@ -186,4 +186,27 @@ test('Abzeichen für Bestleistungen: Ränge, Clubs, Rekord-Serie, Rekordtag', ()
   assert.equal(st.kraft_gold, true);
   const none = Object.fromEntries(badgeStatus({ ...empty, profile: null }, '2026-08-25').map((b) => [b.id, b.earned]));
   assert.equal(Object.values(none).some(Boolean), false);
+});
+
+test('Rekord knacken: nötige Wiederholungen bzw. Gewicht nach Epley', () => {
+  // Rekord 70 × 8 → e1RM 88,7
+  assert.equal(repsToBeat(88.7, 70), 9);
+  assert.equal(repsToBeat(88.7, 72.5), 7);
+  assert.equal(repsToBeat(88.7, 60), null); // 60 × 12 = 84 < 88,7
+  assert.equal(repsToBeat(88.7, 0), null);
+  assert.equal(weightToBeat(88.7, 8, 2.5), 72.5);
+  assert.equal(weightToBeat(88.7, 8, 1), 71); // 70 × 8 wäre nur Gleichstand
+  assert.ok(weightToBeat(88.7, 8, 1) * (1 + 8 / 30) > 88.7);
+  const a = recordAttempts({ mode: 'kg', e1rm: 88.7, reps: 8 }, { weight: 70, reps: 8, repMax: 10, inc: 2.5 }, 96);
+  assert.deepEqual(a.sameWeight, { weight: 70, reps: 9 });
+  assert.deepEqual(a.moreWeight, { weight: 72.5, reps: 8 });
+  assert.deepEqual(a.target, { weight: 70, reps: 12 }); // 70 × 12 = 98 ≥ 96
+  const far = recordAttempts({ mode: 'kg', e1rm: 88.7, reps: 8 }, { weight: 70, reps: 8, repMax: 10, inc: 2.5 }, 120);
+  assert.equal(far.target.weight, 95); // 90 × 8 = 114 < 120, also 95 kg
+  const bw = recordAttempts({ mode: 'reps', reps: 15 }, { weight: 0, reps: 12 }, 20);
+  assert.deepEqual(bw, { reps: 16, target: 20 });
+  assert.equal(recordAttempts(null, {}), null);
+  const noWeight = recordAttempts({ mode: 'kg', e1rm: 50, reps: 5 }, { weight: 0, reps: 5, inc: 2.5 });
+  assert.equal(noWeight.sameWeight, null);
+  assert.equal(noWeight.moreWeight.weight, 45);
 });

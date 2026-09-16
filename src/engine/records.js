@@ -249,6 +249,46 @@ export function recordBoard(s, today = toISODate()) {
   };
 }
 
+// Kleinste Wiederholungszahl, mit der ein Gewicht ein e1RM übertrifft (Epley, ab 12 Wdh. zählt nicht mehr). null = unerreichbar.
+export function repsToBeat(e1rm, weight) {
+  if (!weight || weight <= 0) return null;
+  for (let r = 1; r <= 12; r++) if (estimate1RM(weight, r) > e1rm + 0.05) return r;
+  return null;
+}
+
+// Kleinstes Gewicht in Schritten von inc, das bei reps Wiederholungen ein e1RM übertrifft.
+export function weightToBeat(e1rm, reps, inc = 2.5) {
+  const r = Math.min(12, Math.max(1, reps || 1));
+  const step = inc || 0.5;
+  const w = Math.ceil(((e1rm + 0.05) / (1 + r / 30)) / step) * step;
+  return Math.round(w * 100) / 100;
+}
+
+// Wie knackt man heute den Rekord? Vorschläge mit dem geplanten Gewicht (mehr Wdh.) und mit mehr Gewicht (geplante Wdh.).
+// rec: Bestleistung {mode, e1rm, reps}; plan: {weight, reps, repMax, inc}; target: optionales Ziel-e1RM (z. B. nächster Rang).
+export function recordAttempts(rec, plan, target = null) {
+  if (!rec) return null;
+  if (rec.mode === 'reps') return { reps: rec.reps + 1, target: target && target > rec.reps + 1 ? Math.ceil(target) : null };
+  const out = { sameWeight: null, moreWeight: null, target: null };
+  const w = plan.weight;
+  const maxReps = (plan.repMax || 12) + 2;
+  if (w > 0) {
+    const r = repsToBeat(rec.e1rm, w);
+    if (r && r <= maxReps) out.sameWeight = { weight: w, reps: r };
+  }
+  const reps = plan.reps || rec.reps || 8;
+  const inc = plan.inc || 2.5;
+  const mw = weightToBeat(rec.e1rm, reps, inc);
+  if (mw > (w || 0)) out.moreWeight = { weight: mw, reps };
+  if (target && target > rec.e1rm) {
+    const tw = w > 0 ? w : mw;
+    const tr = repsToBeat(target - 0.1, tw);
+    if (tr && tr <= maxReps) out.target = { weight: tw, reps: tr };
+    else out.target = { weight: weightToBeat(target - 0.1, reps, inc), reps };
+  }
+  return out;
+}
+
 // Rangleiter einer Übung: die Schwelle jedes Rangs in kg bzw. Wiederholungen.
 export function rankLadder(ex, profile) {
   if (!ex || !profile) return [];

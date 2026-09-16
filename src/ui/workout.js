@@ -4,14 +4,15 @@ import * as store from '../state.js';
 import { planWeek, effectiveSets, rirForWeek, alternativesFor, shortenDay, warmupSets, availableExercises } from '../engine/plan.js';
 import { suggestNext, muscleDeltasFromFeedback, plates, incrementFor } from '../engine/progression.js';
 import { historyFor, totalSets, totalTonnage } from '../engine/analytics.js';
-import { newRecordEvents, recordStreak, recordEvents } from '../engine/records.js';
+import { newRecordEvents, recordStreak, recordEvents, recordBoard, recordAttempts } from '../engine/records.js';
 import { readinessScore } from '../engine/recovery.js';
 import { getExercise } from '../data/exercises.js';
 import { MUSCLE_BY_ID } from '../data/muscles.js';
-import { toISODate, uid, clamp } from '../engine/util.js';
+import { toISODate, uid, clamp, estimate1RM } from '../engine/util.js';
 import { openExerciseInfo } from './uebungen.js';
 import { icon } from './icons.js';
-import { showCelebration, pop } from './celebrate.js';
+import { showCelebration, pop, medal, confetti } from './celebrate.js';
+import { stamp } from './motion.js';
 import { totalXP, levelInfo, xpForWorkout, badgeExtra, XP } from '../engine/gamification.js';
 import { badgeStatus } from '../engine/achievements.js';
 
@@ -50,12 +51,15 @@ export function renderWorkout(root, dayId) {
   const today = toISODate();
   const checkin = s.checkins.find((c) => c.date === today);
   const readiness = readinessScore(checkin);
+  // Bestleistungen vor dieser Einheit (gespeicherte Trainings) – für Rekord-Hinweise und Live-Erkennung.
+  const recs = Object.fromEntries(recordBoard(s, today).records.map((r) => [r.exId, r]));
 
   const allSets = aw.entries.reduce((a, e) => a + e.sets.length, 0);
   const doneSets = aw.entries.reduce((a, e) => a + e.sets.filter((x) => x.done).length, 0);
+  const prCount = aw.entries.filter((e) => e.pr).length;
   root.innerHTML = String(html`
     <section class="page workout">
-      <div class="workout-progress"><div class="bar"><div id="wp-fill" style="width:${allSets ? ((doneSets / allSets) * 100).toFixed(0) : 0}%"></div></div><div class="meta"><span id="wp-text">Satz ${doneSets} von ${allSets}</span><span id="wp-xp">+${50 + doneSets * 8} XP bisher</span></div></div>
+      <div class="workout-progress"><div class="bar"><div id="wp-fill" style="width:${allSets ? ((doneSets / allSets) * 100).toFixed(0) : 0}%"></div></div><div class="meta"><span id="wp-text">Satz ${doneSets} von ${allSets}</span><span id="wp-xp">+${XP.workoutBase + doneSets * XP.perSet + prCount * XP.pr} XP bisher</span></div></div>
       <header class="page-head">
         <div><h1>${day.name}</h1><p class="muted">${free ? '' : `Woche ${week} · `}${rir} Wdh. in Reserve${deload ? ' · Deload' : ''}${aw.mode === 'leicht' ? ' · leichte Version' : ''}${aw.shortMinutes ? ` · Kurzversion ${aw.shortMinutes} min` : ''} · seit ${aw.startedAt.slice(11, 16)}</p></div>
         <button class="btn btn-small" data-act="abort">Abbrechen</button>
@@ -66,7 +70,7 @@ export function renderWorkout(root, dayId) {
         ${readiness && readiness.level === 'niedrig' && aw.mode !== 'leicht' ? html`<span class="muted small">Check-in: niedrige Bereitschaft – leichte Version empfohlen.</span>` : ''}
       </div>` : ''}
       <div class="note small">Aufwärmen: 5 min locker, dann die Aufwärmsätze der ersten Übung. Arbeitssätze abhaken – der Pausentimer startet automatisch.</div>
-      ${aw.entries.map((e, ei) => renderEntry(e, ei, s, plan, rir, deload, aw.entries.length))}
+      ${aw.entries.map((e, ei) => renderEntry(e, ei, s, plan, rir, deload, aw.entries.length, recs))}
       ${aw.entries.length === 0 ? html`<div class="card"><p class="muted">Noch keine Übung. Füge Übungen hinzu – Vorschläge und Historie kommen automatisch.</p></div>` : ''}
       <div class="row gap wrap">
         <button class="btn" data-act="add-ex">Übung hinzufügen</button>
@@ -78,11 +82,11 @@ export function renderWorkout(root, dayId) {
       <div class="rest-content"><span class="rest-label">Pause</span><span class="rest-time">0:00</span><button class="btn btn-small" data-act="rest-add">+30 s</button><button class="btn btn-small" data-act="rest-skip">Weiter</button></div>
     </div>`);
 
-  bind(root, dayId);
+  bind(root, dayId, recs);
   if (timer.end > Date.now()) tickRest();
 }
 
-function bind(root, dayId) {
+function bind(root, dayId, recs = {}) {
   root.querySelectorAll('input[data-field]').forEach((inp) => {
     inp.addEventListener('input', () => {
       const { ei, si, field } = inp.dataset;
@@ -126,16 +130,20 @@ function bind(root, dayId) {
       const set = store.get().activeWorkout.entries[ei].sets[si];
       btn.closest('.set-row').classList.toggle('done', !!set.done);
       btn.setAttribute('aria-pressed', String(!!set.done));
-      if (set.done) pop(btn);
+      if (set.done) {
+        pop(btn);
+        checkRecord(ei, si, recs, btn);
+      }
       const entries = store.get().activeWorkout.entries;
       const all = entries.reduce((a, e) => a + e.sets.length, 0);
       const done = entries.reduce((a, e) => a + e.sets.filter((x) => x.done).length, 0);
+      const prs = entries.filter((x) => x.pr).length;
       const fill = document.getElementById('wp-fill');
       if (fill) fill.style.width = `${all ? (done / all) * 100 : 0}%`;
       const txt = document.getElementById('wp-text');
       if (txt) txt.textContent = `Satz ${done} von ${all}`;
       const xpEl = document.getElementById('wp-xp');
-      if (xpEl) xpEl.textContent = `+${50 + done * 8} XP bisher`;
+      if (xpEl) xpEl.textContent = `+${XP.workoutBase + done * XP.perSet + prs * XP.pr} XP bisher`;
       const card = btn.closest('.ex-card');
       const e = entries[ei];
       card?.classList.toggle('complete', e.sets.every((x) => x.done));
@@ -259,11 +267,75 @@ function buildWorkout(st, day) {
   };
 }
 
-function renderEntry(e, ei, s, plan, rir, deload, count) {
+const fmt1 = (v) => (Math.round(v * 10) / 10).toString().replace('.', ',');
+const prText = (ex, pr) => (pr.mode === 'kg' ? `${fmt1(pr.weight)} kg × ${pr.reps} (e1RM ${fmt1(pr.e1rm)} kg)` : `${pr.reps} ${ex.load === 'time' ? 's' : 'Wdh.'}`);
+
+// Rekord-Hinweis je Übung: aktuelle Bestleistung mit Rang und wie man sie heute knackt.
+function recordHint(ex, rec, e) {
+  const sug = e.suggestion || {};
+  const planned = e.sets.find((x) => !x.done)?.weight ?? sug.weight ?? rec.weight ?? 0;
+  const plannedReps = sug.reps || e.repMin || 8;
+  const target = rec.targets?.[0] || null;
+  const a = recordAttempts(rec, { weight: planned, reps: plannedReps, repMax: e.repMax, inc: incrementFor(ex) || (ex.load === 'dumbbell' || ex.load === 'kettlebell' ? 1 : 2.5) }, target ? target.target : null);
+  const tName = target ? (target.kind === 'rank' ? `Rang ${target.label}` : target.label) : '';
+  let best;
+  let how = '';
+  if (rec.mode === 'kg') {
+    best = `${fmt1(rec.weight)} kg × ${rec.reps} · e1RM ${fmt1(rec.e1rm)} kg`;
+    const opts = [];
+    if (a.sameWeight) opts.push(`${fmt1(a.sameWeight.weight)} kg × ${a.sameWeight.reps}`);
+    if (a.moreWeight) opts.push(`${fmt1(a.moreWeight.weight)} kg × ${a.moreWeight.reps}`);
+    if (opts.length) how = `Knacken: ${opts.join(' oder ')}`;
+    if (a.target && target) how += `${how ? ' · ' : ''}${tName}: ${fmt1(a.target.weight)} kg × ${a.target.reps}`;
+  } else {
+    const unit = ex.load === 'time' ? 's' : 'Wdh.';
+    best = `${rec.reps} ${unit}`;
+    how = `Knacken: ${a.reps} ${unit}`;
+    if (a.target && target) how += ` · ${tName}: ${a.target} ${unit}`;
+  }
+  return html`<div class="record-hint ${e.pr ? 'beaten' : ''}">${raw(medal(rec.rank, { size: 's' }))}<span><strong>Rekord</strong> ${best}${rec.rank ? ` · ${rec.rank.name}` : ''}${how ? html`<br><span class="muted">${how}</span>` : ''}</span></div>`;
+}
+
+// Live-Erkennung beim Abhaken: schlägt der Satz die Bestleistung vor dieser Einheit (oder die schon heute geknackte)?
+function checkRecord(ei, si, recs, btn) {
+  const aw = store.get().activeWorkout;
+  const e = aw.entries[ei];
+  const set = e.sets[si];
+  const ex = getExercise(e.exId);
+  const rec = recs[e.exId];
+  if (!rec || !ex || !set.reps) return; // die erste Leistung einer Übung wird beim Abschluss gefeiert
+  const cur = e.pr || rec;
+  let pr = null;
+  if (set.weight > 0) {
+    const e1rm = Math.round(estimate1RM(set.weight, Math.min(set.reps, 12)) * 10) / 10;
+    if (e1rm > (cur.e1rm || 0) + 0.05) pr = { mode: 'kg', weight: set.weight, reps: set.reps, e1rm };
+  } else if (rec.mode === 'reps' && !(cur.e1rm > 0) && set.reps > cur.reps) {
+    pr = { mode: 'reps', weight: 0, reps: set.reps, e1rm: 0 };
+  }
+  if (!pr) return;
+  const first = !aw.entries.some((x) => x.pr);
+  store.update((st) => (st.activeWorkout.entries[ei].pr = pr), { silent: true });
+  btn.closest('.set-row').classList.add('pr');
+  const card = btn.closest('.ex-card');
+  let banner = card.querySelector('.pr-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.className = 'pr-banner';
+    card.querySelector('.set-table').before(banner);
+  }
+  banner.innerHTML = `${icon('trophy', { size: 16 })} Neue Bestleistung: ${esc(prText(ex, pr))}`;
+  stamp(banner);
+  card.querySelector('.record-hint')?.classList.add('beaten');
+  toast(`Bestleistung geknackt: ${ex.name} · ${prText(ex, pr)} · +${XP.pr} XP`, 'ok');
+  if (first) confetti({ count: 60, duration: 1400 });
+}
+
+function renderEntry(e, ei, s, plan, rir, deload, count, recs = {}) {
   const ex = getExercise(e.exId);
   const loadable = !['bw', 'time', 'band'].includes(ex.load);
   const sug = e.suggestion || {};
   const unit = ex.load === 'time' ? 's' : 'Wdh.';
+  const rec = recs[e.exId];
   return html`<div class="card ex-card" data-ei="${ei}">
     <div class="row between top">
       <div>
@@ -281,6 +353,8 @@ function renderEntry(e, ei, s, plan, rir, deload, count) {
       </div>
     </div>
     ${sug.note ? html`<div class="suggestion ${sug.kind}">${sug.estimated ? html`<span class="badge">Schätzung</span>` : ''}<span>${sug.note}</span>${sug.prev ? html`<span class="muted">Letztes Mal: ${sug.prev}</span>` : ''}</div>` : ''}
+    ${rec ? recordHint(ex, rec, e) : ''}
+    ${e.pr ? html`<div class="pr-banner">${raw(icon('trophy', { size: 16 }))} Neue Bestleistung: ${prText(ex, e.pr)}</div>` : ''}
     ${e.warmup?.length ? html`<button class="link small muted" data-act="warmup-toggle">Aufwärmsätze anzeigen</button>
       <div class="warmup-list" hidden>${e.warmup.map((w, i) => html`<div class="warmup-row"><span>Aufwärmen ${i + 1}</span><span>${w.weight ? `${w.weight} kg × ${w.reps}` : `${w.reps} × ${w.note || 'leicht'}`}</span>${w.note && w.weight ? html`<span class="muted small">${w.note}</span>` : ''}</div>`)}</div>` : ''}
     ${e.note ? html`<div class="muted small">Notiz: ${e.note}</div>` : ''}

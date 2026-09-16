@@ -7,6 +7,8 @@ import { isAvailable, alternativesFor } from '../engine/plan.js';
 import { historyFor, e1rmHistory, personalRecords } from '../engine/analytics.js';
 import { bodyMap } from './bodymap.js';
 import { formatDate } from '../engine/util.js';
+import { recordBoard } from '../engine/records.js';
+import { medal } from './celebrate.js';
 
 const LOAD_NAMES = { barbell: 'Langhantel', dumbbell: 'Kurzhantel', machine: 'Maschine', cable: 'Kabelzug', bw: 'Körpergewicht', band: 'Band', time: 'Zeit', kettlebell: 'Kettlebell' };
 const TIER_NAMES = { 1: 'Grundübung', 2: 'Mehrgelenkig', 3: 'Isolation' };
@@ -79,6 +81,7 @@ export function openExerciseInfo(exId, { onPick = null, pickLabel = 'Alternative
   const hist = historyFor(s.workouts, exId, 5);
   const e1 = e1rmHistory(s.workouts, exId);
   const pr = personalRecords(s.workouts).find((r) => r.exId === exId);
+  const rec = pr ? recordBoard(s).records.find((r) => r.exId === exId) : null;
   const alts = alternativesFor(exId, s.profile).slice(0, 8);
   const gear = ex.gear.map((g) => GEAR_BY_ID[g]?.name || g).join(', ');
   const m = openModal(
@@ -88,7 +91,7 @@ export function openExerciseInfo(exId, { onPick = null, pickLabel = 'Alternative
      ${ex.cue ? `<p class="cue">${esc(ex.cue)}</p>` : ''}
      ${ex.contra.length ? `<p class="muted small">Vorsicht bei: ${ex.contra.map((c) => ({ knie: 'Knie', schulter: 'Schulter', ruecken_unten: 'unterer Rücken', handgelenk: 'Handgelenk', huefte: 'Hüfte' })[c] || c).join(', ')}</p>` : ''}
      <a class="btn btn-small" href="${videoSearchUrl(ex)}" target="_blank" rel="noopener">Technik-Videos ansehen ↗</a>
-     ${pr ? `<h3>Deine Bestleistung</h3><p>${pr.e1rm ? `${fmtKg(pr.weight)} × ${pr.reps} (geschätztes 1RM ${pr.e1rm} kg)` : `${pr.reps} Wiederholungen`} · ${formatDate(pr.date)}</p>` : ''}
+     ${pr ? `<h3>Deine Bestleistung</h3><div class="record-hint">${medal(rec?.rank || null, { size: 's' })}<span>${pr.e1rm ? `${fmtKg(pr.weight)} × ${pr.reps} · e1RM ${String(pr.e1rm).replace('.', ',')} kg` : `${pr.reps} Wiederholungen`} · ${formatDate(pr.date)}${rec?.rank ? `<br><span class="muted">Rang ${esc(rec.rank.name)} · ${rec.score} Punkte${rec.rank.next ? ` · noch ${rec.rank.toNext} bis ${esc(rec.rank.next.name)}` : ''}${rec.improvements ? ` · ${rec.improvements}× gesteigert` : ''}</span>` : rec ? `<br><span class="muted">${rec.improvements ? `${rec.improvements}× gesteigert` : 'Erster Eintrag'}</span>` : ''}</span></div>` : ''}
      ${hist.length ? `<h3>Letzte Einheiten</h3><ul class="bullets small">${hist.slice().reverse().map((h) => `<li>${formatDate(h.date)}: ${h.sets.map((x) => `${x.weight ? `${x.weight} kg × ` : ''}${x.reps}${x.rir != null ? ` @${x.rir}` : ''}`).join(', ')}</li>`).join('')}</ul>` : ''}
      ${e1.length > 1 ? `<p class="muted small">Entwicklung geschätztes 1RM: ${e1[0].e1rm} → ${e1[e1.length - 1].e1rm} kg</p>` : ''}
      <h3>${esc(pickLabel)}</h3>

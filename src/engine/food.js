@@ -11,8 +11,9 @@ export const MEALS = [
 
 const r1 = (x) => Math.round(x * 10) / 10;
 
-export function macrosFor(per100, grams) {
-  const f = grams / 100;
+export function macrosFor(per100 = {}, grams = 0) {
+  const f = (grams || 0) / 100;
+  per100 = per100 || {};
   return {
     kcal: Math.round((per100.kcal || 0) * f),
     protein: r1((per100.protein || 0) * f),

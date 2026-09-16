@@ -9,6 +9,10 @@ import { getExercise } from '../data/exercises.js';
 import { MUSCLE_BY_ID } from '../data/muscles.js';
 import { toISODate, uid, clamp } from '../engine/util.js';
 import { openExerciseInfo } from './uebungen.js';
+import { icon } from './icons.js';
+import { showCelebration, pop } from './celebrate.js';
+import { totalXP, levelInfo, xpForWorkout } from '../engine/gamification.js';
+import { badgeStatus } from '../engine/achievements.js';
 
 let timer = { end: 0, total: 0, handle: null };
 
@@ -46,10 +50,13 @@ export function renderWorkout(root, dayId) {
   const checkin = s.checkins.find((c) => c.date === today);
   const readiness = readinessScore(checkin);
 
+  const allSets = aw.entries.reduce((a, e) => a + e.sets.length, 0);
+  const doneSets = aw.entries.reduce((a, e) => a + e.sets.filter((x) => x.done).length, 0);
   root.innerHTML = String(html`
     <section class="page workout">
+      <div class="workout-progress"><div class="bar"><div id="wp-fill" style="width:${allSets ? ((doneSets / allSets) * 100).toFixed(0) : 0}%"></div></div><div class="meta"><span id="wp-text">Satz ${doneSets} von ${allSets}</span><span id="wp-xp">+${50 + doneSets * 8} XP bisher</span></div></div>
       <header class="page-head">
-        <div><h1>${day.name}</h1><p class="muted">${free ? '' : `Woche ${week} · `}${rir} Wdh. in Reserve${deload ? ' · Deload' : ''}${aw.mode === 'leicht' ? ' · leichte Version' : ''}${aw.shortMinutes ? ` · Kurzversion ${aw.shortMinutes} min` : ''} · begonnen ${aw.startedAt.slice(11, 16)}</p></div>
+        <div><h1>${day.name}</h1><p class="muted">${free ? '' : `Woche ${week} · `}${rir} Wdh. in Reserve${deload ? ' · Deload' : ''}${aw.mode === 'leicht' ? ' · leichte Version' : ''}${aw.shortMinutes ? ` · Kurzversion ${aw.shortMinutes} min` : ''} · seit ${aw.startedAt.slice(11, 16)}</p></div>
         <button class="btn btn-small" data-act="abort">Abbrechen</button>
       </header>
       ${!free && !aw.entries.some((e) => e.sets.some((x) => x.done)) ? html`<div class="row gap wrap options">
@@ -117,8 +124,20 @@ function bind(root, dayId) {
       if (!ok) return toast('Bitte Wiederholungen eintragen.', 'warn');
       const set = store.get().activeWorkout.entries[ei].sets[si];
       btn.closest('.set-row').classList.toggle('done', !!set.done);
-      btn.textContent = set.done ? '✓' : '○';
       btn.setAttribute('aria-pressed', String(!!set.done));
+      if (set.done) pop(btn);
+      const entries = store.get().activeWorkout.entries;
+      const all = entries.reduce((a, e) => a + e.sets.length, 0);
+      const done = entries.reduce((a, e) => a + e.sets.filter((x) => x.done).length, 0);
+      const fill = document.getElementById('wp-fill');
+      if (fill) fill.style.width = `${all ? (done / all) * 100 : 0}%`;
+      const txt = document.getElementById('wp-text');
+      if (txt) txt.textContent = `Satz ${done} von ${all}`;
+      const xpEl = document.getElementById('wp-xp');
+      if (xpEl) xpEl.textContent = `+${50 + done * 8} XP bisher`;
+      const card = btn.closest('.ex-card');
+      const e = entries[ei];
+      card?.classList.toggle('complete', e.sets.every((x) => x.done));
       if (startRest && store.get().settings.restTimer) startRestTimer(store.get().activeWorkout.entries[ei].restSec);
     });
   });
@@ -250,14 +269,14 @@ function renderEntry(e, ei, s, plan, rir, deload, count) {
         <div class="ex-title">${ex.name}</div>
         <div class="muted small">${ex.primary.map((m) => MUSCLE_BY_ID[m].short).join(', ')} · Ziel ${e.sets.length} × ${e.repMin}–${e.repMax} ${unit} · ${rir} RIR · Pause ${Math.round(e.restSec / 60 * 10) / 10} min</div>
       </div>
-      <div class="row gap-s">
-        <button class="btn-icon" data-act="move" data-ei="${ei}" data-dir="-1" title="Nach oben" aria-label="Nach oben" ${ei === 0 ? 'disabled' : ''}>↑</button>
-        <button class="btn-icon" data-act="move" data-ei="${ei}" data-dir="1" title="Nach unten" aria-label="Nach unten" ${ei === count - 1 ? 'disabled' : ''}>↓</button>
-        <button class="btn-icon" data-act="info" data-ex="${ex.id}" title="Info" aria-label="Übungsinfo">i</button>
-        ${ex.load === 'barbell' ? html`<button class="btn-icon" data-act="plates" data-ei="${ei}" title="Scheiben" aria-label="Scheibenrechner">⚖</button>` : ''}
-        <button class="btn-icon" data-act="note" data-ei="${ei}" title="Notiz" aria-label="Notiz">✎</button>
-        <button class="btn-icon" data-act="swap" data-ei="${ei}" title="Tauschen" aria-label="Übung tauschen">⇄</button>
-        <button class="btn-icon" data-act="remove-ex" data-ei="${ei}" title="Entfernen" aria-label="Übung entfernen">✕</button>
+      <div class="ex-tools">
+        <button class="btn-icon" data-act="move" data-ei="${ei}" data-dir="-1" title="Nach oben" aria-label="Nach oben" ${ei === 0 ? 'disabled' : ''}>${raw(icon('up', { size: 18 }))}</button>
+        <button class="btn-icon" data-act="move" data-ei="${ei}" data-dir="1" title="Nach unten" aria-label="Nach unten" ${ei === count - 1 ? 'disabled' : ''}>${raw(icon('down', { size: 18 }))}</button>
+        <button class="btn-icon" data-act="info" data-ex="${ex.id}" title="Info" aria-label="Übungsinfo">${raw(icon('info', { size: 18 }))}</button>
+        ${ex.load === 'barbell' ? html`<button class="btn-icon" data-act="plates" data-ei="${ei}" title="Scheiben" aria-label="Scheibenrechner">${raw(icon('weight', { size: 18 }))}</button>` : ''}
+        <button class="btn-icon" data-act="note" data-ei="${ei}" title="Notiz" aria-label="Notiz">${raw(icon('note', { size: 18 }))}</button>
+        <button class="btn-icon" data-act="swap" data-ei="${ei}" title="Tauschen" aria-label="Übung tauschen">${raw(icon('swap', { size: 18 }))}</button>
+        <button class="btn-icon" data-act="remove-ex" data-ei="${ei}" title="Entfernen" aria-label="Übung entfernen">${raw(icon('close', { size: 18 }))}</button>
       </div>
     </div>
     ${sug.note ? html`<div class="suggestion ${sug.kind}">${sug.estimated ? html`<span class="badge">Schätzung</span>` : ''}<span>${sug.note}</span>${sug.prev ? html`<span class="muted">Letztes Mal: ${sug.prev}</span>` : ''}</div>` : ''}
@@ -273,7 +292,7 @@ function renderEntry(e, ei, s, plan, rir, deload, count) {
           : html`<span class="muted small">–</span>`}
         <input type="number" inputmode="numeric" min="0" data-field="reps" data-ei="${ei}" data-si="${si}" value="${set.reps ?? ''}" placeholder="${sug.reps ?? e.repMin}" aria-label="Wiederholungen Satz ${si + 1}">
         <select data-field="rir" data-ei="${ei}" data-si="${si}" aria-label="RIR Satz ${si + 1}"><option value="">–</option>${[0, 1, 2, 3, 4].map((r) => html`<option value="${r}" ${set.rir === r ? 'selected' : ''}>${r}${r === 4 ? '+' : ''}</option>`)}</select>
-        <button class="set-done" data-act="done" data-ei="${ei}" data-si="${si}" aria-pressed="${!!set.done}" aria-label="Satz ${si + 1} abhaken">${set.done ? '✓' : '○'}</button>
+        <button class="set-done" data-act="done" data-ei="${ei}" data-si="${si}" aria-pressed="${!!set.done}" aria-label="Satz ${si + 1} abhaken">${raw(icon('check', { size: 22 }))}</button>
       </div>`)}
     </div>
     <div class="row gap-s"><button class="btn btn-small" data-act="add-set" data-ei="${ei}">+ Satz</button><button class="btn btn-small btn-ghost" data-act="remove-set" data-ei="${ei}">− Satz</button></div>
@@ -501,6 +520,9 @@ function finishWorkout(root) {
     const deltas = aw.dayId === 'frei' || aw.dayId === 'schnell' ? {} : muscleDeltasFromFeedback(feedback, trained);
     const workout = { id: aw.id, planId: aw.planId, dayId: aw.dayId, week: aw.week, date: aw.date, startedAt: aw.startedAt, finishedAt: new Date().toISOString(), mode: aw.mode, entries, feedback };
     const records = newRecords(workout, s.workouts);
+    workout.xp = xpForWorkout(workout, records.length);
+    const xpBefore = totalXP(s);
+    const badgesBefore = new Set(badgeStatus(s, aw.date).filter((b) => b.earned).map((b) => b.id));
     stopRestTimer();
     let applied = [];
     store.update((st) => {
@@ -518,18 +540,28 @@ function finishWorkout(root) {
       }
     });
     closeModal();
+    const after = store.get();
+    const xpAfter = totalXP(after);
+    const lvlBefore = levelInfo(xpBefore);
+    const lvlAfter = levelInfo(xpAfter);
+    const newBadges = badgeStatus(after, aw.date).filter((b) => b.earned && !badgesBefore.has(b.id));
+    if (lvlAfter.level > lvlBefore.level || newBadges.length) {
+      store.update((st) => {
+        st.meta.celebrated.level = lvlAfter.level;
+        st.meta.celebrated.badges = [...new Set([...(st.meta.celebrated.badges || []), ...newBadges.map((b) => b.id)])];
+      }, { silent: true });
+    }
     const mins = Math.round((new Date(workout.finishedAt) - new Date(workout.startedAt)) / 60000);
-    window.__lmci.afterRoute(() => openModal(
-      `<div class="summary">
-        <div class="stat"><span class="stat-num">${totalSets(workout)}</span><span class="stat-unit">Sätze</span></div>
-        <div class="stat"><span class="stat-num">${totalTonnage(workout).toLocaleString('de-DE')}</span><span class="stat-unit">kg bewegt</span></div>
-        <div class="stat"><span class="stat-num">${mins}</span><span class="stat-unit">min</span></div>
-      </div>
-      ${records.length ? `<h3>Neue Bestleistungen</h3><ul class="bullets">${records.map((r) => `<li>${esc(r.name)}: ${r.e1rm ? `geschätztes 1RM ${r.e1rm} kg` : `${r.reps} Wiederholungen`}</li>`).join('')}</ul>` : ''}
-      <p class="${applied.length ? 'note' : 'muted'}">${applied.length ? `Volumen angepasst (Sätze pro Übung): ${esc(applied.join(', '))}.` : 'Volumen bleibt – passt.'}</p>
-      <div class="row end"><a class="btn btn-primary" href="#/heute" data-close-modal>Fertig</a></div>`,
-      { title: 'Stark – Training gespeichert' },
-    ));
+    window.__lmci.afterRoute(() => showCelebration({
+      title: lvlAfter.level > lvlBefore.level ? 'Level up!' : records.length ? 'Neue Bestleistung!' : 'Training geschafft!',
+      subtitle: `${totalSets(workout)} Sätze · ${totalTonnage(workout).toLocaleString('de-DE')} kg bewegt · ${mins} min`,
+      xp: xpAfter - xpBefore,
+      level: lvlAfter,
+      levelUp: lvlAfter.level > lvlBefore.level,
+      records: records.map((r) => `${r.name}: ${r.e1rm ? `geschätztes 1RM ${r.e1rm} kg` : `${r.reps} Wiederholungen`}`),
+      badges: newBadges,
+      note: applied.length ? `Volumen angepasst (Sätze pro Übung): ${applied.join(', ')}.` : aw.dayId === 'frei' || aw.dayId === 'schnell' ? '' : 'Volumen bleibt – passt.',
+    }));
     location.hash = '#/heute';
   });
 }

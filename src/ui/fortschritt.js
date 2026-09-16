@@ -8,6 +8,8 @@ import { getExercise } from '../data/exercises.js';
 import { MUSCLES } from '../data/muscles.js';
 import { toISODate, startOfWeek, formatDate, fromISODate, uid } from '../engine/util.js';
 import { badgeStatus, dailyStreak } from '../engine/achievements.js';
+import { totalXP, levelInfo, LEVEL_TITLES } from '../engine/gamification.js';
+import { icon } from './icons.js';
 import { num } from './dom.js';
 
 const MEASURES = [['taille', 'Taille'], ['huefte', 'Hüfte'], ['brust', 'Brust'], ['arm', 'Oberarm'], ['oberschenkel', 'Oberschenkel'], ['schulter', 'Schulterumfang']];
@@ -44,9 +46,24 @@ export function renderFortschritt(root) {
   const latestM = measures[measures.length - 1];
   const mSeries = measures.filter((m) => m[selectedMeasure] != null).map((m) => ({ label: formatDate(m.date, { weekday: false }), y: m[selectedMeasure] }));
 
+  const xp = totalXP(s);
+  const lvl = levelInfo(xp);
+  const nextTitle = LEVEL_TITLES.find(([l]) => l > lvl.level);
   root.innerHTML = String(html`
     <section class="page">
-      <header class="page-head"><div><h1>Fortschritt</h1><p class="muted">${workouts.length} Trainings · ${cardioLogs.length} Cardio-Einheiten · Streak ${streak} Tag${streak === 1 ? '' : 'e'}</p></div><a class="btn btn-small" href="#/kalender">Kalender</a></header>
+      <header class="page-head"><div><h1>Erfolge</h1><p class="muted">${workouts.length} Trainings · ${cardioLogs.length} Cardio-Einheiten · Streak ${streak} Tag${streak === 1 ? '' : 'e'}</p></div><a class="btn btn-small" href="#/kalender">${raw(icon('calendar', { size: 16 }))} Kalender</a></header>
+
+      <div class="card">
+        <div class="level-card">
+          <div class="level-num">${lvl.level}</div>
+          <div style="flex:1;min-width:0">
+            <div class="row between"><strong>${lvl.title}</strong><span class="xp-chip">${raw(icon('bolt', { size: 14 }))} ${xp} XP</span></div>
+            <div class="xp-bar" style="margin-top:6px"><div style="width:${(lvl.progress * 100).toFixed(0)}%"></div></div>
+            <div class="muted small" style="margin-top:4px">${lvl.toNext} XP bis Level ${lvl.level + 1}${nextTitle ? ` · „${nextTitle[1]}“ ab Level ${nextTitle[0]}` : ''}</div>
+          </div>
+        </div>
+        <p class="muted small">XP gibt es für jedes Training (50 + 8 pro Satz, +25 je Bestleistung), Cardio (2 pro Minute), Check-ins, erfasste Ernährung, Trinken, Wiegen, Mobilität und perfekte Tage.</p>
+      </div>
 
       <div class="card">
         <div class="row between"><div class="card-title">Abzeichen</div><span class="muted small">${earned.length} / ${badges.length}</span></div>

@@ -20,11 +20,12 @@ const EMPTY = () => ({
   favorites: [],
   recents: [],
   measurements: [],
+  mobilityLogs: [],
   quickPrefs: null,
   coach: { apiKey: '', model: 'claude-opus-5', history: [] },
   activeWorkout: null,
   settings: { barWeight: 20, plates: [25, 20, 15, 10, 5, 2.5, 1.25], restTimer: true, sound: true, kcalAdjust: 0, targetOverride: null, reminders: { enabled: false, time: '18:00', lastFired: null } },
-  meta: { createdAt: toISODate(), lastOpened: toISODate() },
+  meta: { createdAt: toISODate(), lastOpened: toISODate(), celebrated: { level: 1, badges: [] } },
 });
 
 let state = EMPTY();
@@ -77,6 +78,8 @@ function migrate(s) {
   if (s.settings.targetOverride === undefined) s.settings.targetOverride = null;
   if (!s.settings.reminders) s.settings.reminders = { enabled: false, time: '18:00', lastFired: null };
   if (!Array.isArray(s.measurements)) s.measurements = [];
+  if (!Array.isArray(s.mobilityLogs)) s.mobilityLogs = [];
+  if (!s.meta.celebrated) s.meta.celebrated = { level: 1, badges: [] };
   if (!s.coach) s.coach = { apiKey: '', model: 'claude-opus-5', history: [] };
   if (!Array.isArray(s.coach.history)) s.coach.history = [];
   if (s.plan && !s.plan.muscleAdjust) s.plan.muscleAdjust = {};

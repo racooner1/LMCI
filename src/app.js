@@ -14,17 +14,18 @@ import { renderSchnell } from './ui/schnell.js';
 import { startReminderLoop } from './engine/reminders.js';
 import { generatePlan, availableExercises } from './engine/plan.js';
 import { closeModal } from './ui/dom.js';
+import { icon } from './ui/icons.js';
 
 // Für Views, die Engine-Funktionen ohne zyklische Importe brauchen.
 let afterRoute = null;
 window.__lmci = { generatePlan, availableExercises, afterRoute: (fn) => (afterRoute = fn) };
 
 const NAV = [
-  ['#/heute', 'Heute', 'M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z'],
-  ['#/plan', 'Plan', 'M5 3h14a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm3 5h8M8 12h8M8 16h5'],
-  ['#/fortschritt', 'Fortschritt', 'M4 19h16M6 16V9m6 7V5m6 11v-6'],
-  ['#/ernaehrung', 'Ernährung', 'M6 3v7a3 3 0 0 0 6 0V3M9 3v18M17 3c-2 2-2 6-2 9h2v9'],
-  ['#/mehr', 'Mehr', 'M5 12h.01M12 12h.01M19 12h.01'],
+  ['#/heute', 'Heute', 'home'],
+  ['#/plan', 'Plan', 'plan'],
+  ['#/fortschritt', 'Erfolge', 'trophy'],
+  ['#/ernaehrung', 'Ernährung', 'food'],
+  ['#/mehr', 'Mehr', 'more'],
 ];
 
 const root = document.getElementById('app');
@@ -86,7 +87,7 @@ function route() {
 }
 
 function renderNav() {
-  nav.innerHTML = NAV.map(([href, label, d]) => `<a href="${href}" aria-label="${label}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg><span>${label}</span></a>`).join('');
+  nav.innerHTML = NAV.map(([href, label, name]) => `<a href="${href}" aria-label="${label}">${icon(name, { size: 24 })}<span>${label}</span></a>`).join('');
 }
 
 // Radio-Karten: „selected“-Klasse mitführen.

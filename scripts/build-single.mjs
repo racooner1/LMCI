@@ -18,7 +18,7 @@ const js = result.outputFiles[0].text.replace(/<\/script/gi, '<\\/script');
 const css = readFileSync('styles.css', 'utf8');
 const html = readFileSync('index.html', 'utf8');
 
-const fonts = '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">';
+const fonts = '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap">';
 const bodyMarkup = html.match(/<body>([\s\S]*?)<script/)[1].trim();
 
 const standalone = `<!doctype html>

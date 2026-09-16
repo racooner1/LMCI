@@ -6,6 +6,7 @@ import { ACTIVITY_LEVELS } from '../engine/nutrition.js';
 import { LIMITATIONS, GEAR, PRIORITY_OPTIONS, MUSCLE_BY_ID } from '../data/muscles.js';
 import { WEEKDAYS_LONG } from '../engine/util.js';
 import * as store from '../state.js';
+import { icon } from './icons.js';
 
 const STEPS = ['Über dich', 'Ziel', 'Training', 'Ausrüstung', 'Cardio & Fokus'];
 
@@ -34,7 +35,7 @@ export function renderOnboarding(root, { edit = false } = {}) {
   root.innerHTML = String(html`
     <section class="onb">
       <header class="onb-head">
-        <div class="brand">LMCI</div>
+        <div class="brand"><span class="brand-mark">${raw(icon('dumbbell', { size: 26 }))}</span>LMCI</div>
         <p class="lede">${edit ? 'Profil anpassen – danach wird dein Plan neu berechnet.' : 'Dein Trainingsplan, auf dich zugeschnitten. Ohne Abo, ohne Konto – alles bleibt auf deinem Gerät.'}</p>
         <ol class="steps">${STEPS.map((t, i) => html`<li class="${i === step ? 'active' : i < step ? 'done' : ''}"><span>${i + 1}</span>${t}</li>`)}</ol>
       </header>

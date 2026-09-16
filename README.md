@@ -32,9 +32,15 @@ Alle Regeln sind bewusst einfach, nachvollziehbar und aus der Trainingswissensch
 - Wochenrückblick: Ø Kalorien und Protein gegen Ziel, Gewichtstrend, konkrete Zielanpassung per Klick.
 - Zielgewicht mit Fortschrittsbalken, realistischer Prognose und gesundem Tempo.
 
-**Fortschritt & Motivation**
+**Motivation & Belohnungen**
+- XP für alles, was du tust: Training (50 + 8 pro Satz, +25 je Bestleistung), Cardio (2 pro Minute), Check-in, erfasste Ernährung, Trinken, Wiegen, Mobilität und perfekte Tage.
+- Level mit Titeln von „Neuling“ bis „Legende“, Streak-Flamme für aktive Tage in Folge, 16 Abzeichen.
+- Tägliche Ziel-Checkliste auf der Startseite (Check-in, Training oder Bewegung, Ernährung, Trinken, Mobilität, optional Wiegen) mit Bonus für den perfekten Tag.
+- Feier nach jedem Training mit Konfetti, XP-Zähler, neuen Bestleistungen, Abzeichen und Level-ups.
+
+**Fortschritt**
 - Wochenvolumen je Muskel gegen Ziel, Sätze und Cardio-Minuten pro Woche, geschätztes 1RM je Übung, Körpergewicht mit 7-Tage-Schnitt, Körpermaße, Bestleistungen, Trainingshistorie.
-- Kalender mit Training, Cardio, Ernährung und Check-ins; Tages-Streak; 16 Abzeichen.
+- Kalender mit Training, Cardio, Ernährung und Check-ins.
 - Erinnerungen an Trainingstagen (bei geöffneter App) und Kalender-Export (.ics) für zuverlässige Termine.
 
 **Optional: KI-Coach**
@@ -136,9 +142,11 @@ src/engine/analytics.js       Auswertungen (Volumen, 1RM, Rekorde, Konstanz)
 src/engine/achievements.js    Streaks, Abzeichen, Zielgewicht-Prognose
 src/engine/reminders.js       Erinnerungen, iCalendar-Export
 src/engine/quick.js           Schnelltraining: Ausrüstung + Fokus + Zeit → Aufgabenliste
+src/engine/gamification.js    XP, Level, Tagesziele, perfekte Tage
 src/ui/*.js                   Ansichten: Onboarding, Heute, Schnelltraining, Plan, Training, Übungen, Fortschritt, Kalender, Ernährung, Coach, Mehr
 src/ui/foodpicker.js          Lebensmittel-Auswahl, Portionen, eigene Lebensmittel, Rezepte, Barcode
 src/ui/bodymap.js, timer.js   Körperkarte, Intervall-Timer
+src/ui/icons.js, celebrate.js Icon-Set, Konfetti und Feier-Dialog
 vendor/anthropic-sdk.js       Gebündeltes Anthropic-SDK (nur für den Coach, wird bei Bedarf geladen)
 tests/*.test.js               Unit-Tests (node --test)
 scripts/                      Icon-Generator, Einzeldatei-Build, SDK-Bündelung

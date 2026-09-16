@@ -1,4 +1,4 @@
-// Dashboard „Heute“.
+// Dashboard „Heute“: Hero mit Streak & Level, Tagesziele, Wochenring, Training, Schnellaktionen.
 import { html, raw, toast, openModal, closeModal, num, fmtKg } from './dom.js';
 import * as store from '../state.js';
 import { planWeek, isMesoFinished, effectiveSets, rirForWeek, generatePlan, nextSession, dayDuration } from '../engine/plan.js';
@@ -12,7 +12,17 @@ import { toISODate, weekdayIndex, startOfWeek, WEEKDAYS, WEEKDAYS_LONG, formatDa
 import { openIntervalTimer } from './timer.js';
 import { dayTotals } from '../engine/food.js';
 import { dailyTargets } from './ernaehrung.js';
-import { dailyStreak, badgeStatus } from '../engine/achievements.js';
+import { dailyStreak } from '../engine/achievements.js';
+import { totalXP, levelInfo, dailyGoals, xpToday, motivation, XP } from '../engine/gamification.js';
+import { icon } from './icons.js';
+import { confetti, pop } from './celebrate.js';
+
+export function ring(value, max, { label = '', cls = '' } = {}) {
+  const r = 36;
+  const c = 2 * Math.PI * r;
+  const p = max ? Math.min(1, value / max) : 0;
+  return `<div class="ring ${cls} ${p >= 1 ? 'ok' : ''}"><svg viewBox="0 0 84 84"><circle class="track" cx="42" cy="42" r="${r}"/><circle class="fill" cx="42" cy="42" r="${r}" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${(c * (1 - p)).toFixed(1)}"/></svg><div class="ring-label"><strong>${value}<span style="font-size:.7em;color:var(--muted)">/${max}</span></strong><span>${label}</span></div></div>`;
+}
 
 export function renderHeute(root) {
   const s = store.get();
@@ -27,113 +37,123 @@ export function renderHeute(root) {
   const next = nextSession(plan, s.workouts, today);
   const nutrition = dailyTargets(s);
   const eaten = dayTotals(s.foodLog[today] || []);
-  const streak = streakWeeks(plan, s.workouts, today);
-  const dayStreak = dailyStreak(s, today);
-  const earnedBadges = badgeStatus(s, today).filter((b) => b.earned).length;
   const lastWeight = [...s.bodyLogs].sort((a, b) => (a.date < b.date ? 1 : -1))[0];
   const cardioThisWeek = s.cardioLogs.filter((c) => c.date >= ws);
   const checkin = s.checkins.find((c) => c.date === today);
   const readiness = readinessScore(checkin);
   const advice = readinessAdvice(readiness, checkin?.sore?.length || 0);
+  const streak = dailyStreak(s, today);
+  const activeToday = streak > 0 && [...s.workouts, ...s.cardioLogs, ...s.checkins].some((x) => x.date === today);
+  const xp = totalXP(s);
+  const lvl = levelInfo(xp);
+  const goals = dailyGoals(s, today);
+  const required = goals.filter((g) => !g.optional);
+  const doneCount = required.filter((g) => g.done).length;
+  const perfect = doneCount === required.length;
+  const todayXp = xpToday(s, today);
   const hour = new Date().getHours();
   const greet = hour < 11 ? 'Guten Morgen' : hour < 18 ? 'Hallo' : 'Guten Abend';
-  const sessionTitle = { heute: 'Heute', nachholen: 'Nachholen', erledigt: 'Heute erledigt ✓', naechste: 'Nächste Einheit' }[next.kind];
+  const sessionTitle = { heute: 'Heute dran', nachholen: 'Nachholen', erledigt: 'Heute erledigt', naechste: 'Nächste Einheit' }[next.kind];
 
   root.innerHTML = String(html`
     <section class="page">
-      <header class="page-head">
-        <div>
-          <h1>${greet}${profile.name ? `, ${profile.name}` : ''}</h1>
-          <p class="muted">${WEEKDAYS_LONG[wd]}, ${formatDate(today, { weekday: false })}${new Date().getFullYear()}</p>
+      <div class="card card-hero hero">
+        <div class="hero-top">
+          <div>
+            <div class="small">${WEEKDAYS_LONG[wd]}, ${formatDate(today, { weekday: false })}${new Date().getFullYear()}</div>
+            <h1>${greet}${profile.name ? `, ${profile.name}` : ''}</h1>
+          </div>
+          <div class="streak-pill ${activeToday ? '' : 'cold'}" title="Tage in Folge aktiv">${raw(icon('flame', { size: 22 }))} ${streak}</div>
         </div>
-        <div class="week-chip ${deload ? 'deload' : ''}">
-          <span class="week-chip-label">${deload ? 'Deload' : 'Aufbau'}</span>
-          <span class="week-chip-week">Woche ${week}/${plan.weeks}</span>
-        </div>
-      </header>
-
-      ${finished ? html`<div class="banner">
-        <strong>Mesozyklus abgeschlossen.</strong> Zeit für den nächsten Block: neue Übungsvarianten, Volumen anhand deines Feedbacks angepasst.
-        <button class="btn btn-primary" data-act="new-meso">Neuen Mesozyklus starten</button>
-      </div>` : ''}
-
-      <div class="week-dots" aria-label="Einheiten diese Woche">
-        ${WEEKDAYS.map((n, i) => {
-          const d = plan.days.find((x) => x.weekday === i);
-          const done = d && ad.dayIds.has(d.id);
-          return html`<div class="dot-day ${i === wd ? 'today' : ''} ${done ? 'done' : d ? 'planned' : ''}"><span>${n}</span><i></i></div>`;
-        })}
-        <div class="dot-sum">${ad.done}/${ad.planned}</div>
+        <div class="level-row"><span>Level ${lvl.level} · ${lvl.title}</span><span class="xp-chip">${raw(icon('bolt', { size: 14 }))} ${xp} XP</span></div>
+        <div class="xp-bar"><div style="width:${(lvl.progress * 100).toFixed(0)}%"></div></div>
+        <div class="small">${lvl.toNext} XP bis Level ${lvl.level + 1}${todayXp ? ` · heute schon +${todayXp} XP` : ''}</div>
       </div>
 
-      <div class="card ${checkin ? '' : 'card-accent'} checkin-card">
-        <div class="row between">
-          <div class="card-title">Check-in</div>
-          ${readiness ? html`<span class="readiness ${readiness.level}">Bereitschaft ${readiness.score} %</span>` : ''}
-        </div>
-        <p class="small">${advice.text}</p>
-        ${checkin ? html`<p class="muted small">Schlaf ${checkin.sleep} h · Qualität ${checkin.sleepQuality}/5 · Stress ${checkin.stress}/5 · Energie ${checkin.energy}/5${checkin.sore?.length ? ` · Muskelkater: ${checkin.sore.map((m) => MUSCLE_BY_ID[m]?.short).join(', ')}` : ''}</p>` : ''}
-        <button class="btn ${checkin ? 'btn-ghost btn-small' : ''}" data-act="checkin">${checkin ? 'Check-in ändern' : 'Check-in ausfüllen (30 Sekunden)'}</button>
+      ${finished ? html`<div class="banner">
+        <strong>Block geschafft!</strong> Zeit für den nächsten: neue Übungen, Volumen aus deinem Feedback.
+        <button class="btn btn-primary" data-act="new-meso">Neuen Block starten</button>
+      </div>` : ''}
+
+      <div class="card">
+        <div class="row between"><div class="card-title">Tagesziele</div><span class="xp-chip">${raw(icon('bolt', { size: 14 }))} +${XP.perfectDay} XP für alle</span></div>
+        <div class="goals-progress"><div class="xp-bar"><div style="width:${((doneCount / required.length) * 100).toFixed(0)}%"></div></div><strong>${doneCount}/${required.length}</strong></div>
+        <ul class="goals">
+          ${goals.map((g) => html`<li><button class="goal ${g.done ? 'done' : ''} ${g.optional ? 'optional' : ''}" data-goal="${g.id}" data-href="${g.href}" data-goal-act="${g.act || ''}">
+            <span class="goal-check">${raw(icon('check', { size: 20 }))}</span>
+            <span class="goal-text"><strong>${g.label}</strong><span>${g.hint}${g.optional ? ' · optional' : ''}</span></span>
+            <span class="xp-chip">+${g.xp}</span>
+          </button></li>`)}
+        </ul>
+        <p class="small ${perfect ? '' : 'muted'}">${perfect ? raw(`${icon('star', { size: 16 })} `) : ''}${motivation(s, { streak, goals, today })}</p>
       </div>
 
       ${s.activeWorkout ? html`<div class="card card-accent">
         <div class="card-title">Laufendes Training</div>
-        <p>${s.activeWorkout.dayId === 'frei' ? 'Freies Training' : s.activeWorkout.dayId === 'schnell' ? 'Schnelltraining' : dayName(plan, s.activeWorkout.dayId)} – begonnen ${s.activeWorkout.startedAt.slice(11, 16)} Uhr</p>
-        <div class="row gap"><a class="btn btn-primary" href="#/workout/${s.activeWorkout.dayId}">Weitermachen</a><button class="btn" data-act="discard">Verwerfen</button></div>
+        <p><strong>${s.activeWorkout.dayId === 'frei' ? 'Freies Training' : s.activeWorkout.dayId === 'schnell' ? 'Schnelltraining' : dayName(plan, s.activeWorkout.dayId)}</strong> – begonnen ${s.activeWorkout.startedAt.slice(11, 16)} Uhr</p>
+        <div class="row gap"><a class="btn btn-primary" href="#/workout/${s.activeWorkout.dayId}">${raw(icon('play', { size: 18 }))} Weitermachen</a><button class="btn" data-act="discard">Verwerfen</button></div>
       </div>` : html`<div class="card ${next.kind === 'erledigt' ? '' : 'card-accent'}">
-        <div class="card-title">${sessionTitle}${next.kind === 'naechste' ? ` · ${WEEKDAYS_LONG[next.day.weekday]}` : ''}</div>
-        <h2 class="session-name">${next.day.name}</h2>
-        <p class="muted">${next.day.exercises.length} Übungen · ca. ${dayDuration(plan, next.day, week, profile)} min · ${rirForWeek(plan, week)} Wdh. in Reserve${deload ? ' · Deload: halbe Satzzahl' : ''}</p>
-        ${next.kind === 'nachholen' ? html`<p class="small">Diese Einheit ist diese Woche noch offen. Nachholen ist besser als auslassen – die Reihenfolge wird automatisch fortgesetzt.</p>` : ''}
-        ${next.kind === 'naechste' ? html`<p class="small">Heute kein Krafttraining geplant – guter Tag für Cardio oder Mobilität. Du kannst die Einheit trotzdem vorziehen.</p>` : ''}
-        <ul class="ex-preview">${next.day.exercises.map((pe) => html`<li><span>${getExercise(pe.exId)?.name || pe.exId}</span><span class="muted">${effectiveSets(plan, next.day, pe, week)} × ${pe.repMin}–${pe.repMax}</span></li>`)}</ul>
+        <div class="row between top">
+          <div>
+            <div class="card-title">${sessionTitle}${next.kind === 'naechste' ? ` · ${WEEKDAYS_LONG[next.day.weekday]}` : ''}</div>
+            <h2 class="session-name">${next.day.name}</h2>
+            <p class="muted">${next.day.exercises.length} Übungen · ca. ${dayDuration(plan, next.day, week, profile)} min · ${rirForWeek(plan, week)} Wdh. in Reserve${deload ? ' · Deload' : ''}</p>
+          </div>
+          <div class="week-chip ${deload ? 'deload' : ''}"><span class="week-chip-label">${deload ? 'Deload' : 'Woche'}</span><span class="week-chip-week">${week}/${plan.weeks}</span></div>
+        </div>
+        ${next.kind === 'nachholen' ? html`<p class="small">Noch offen von dieser Woche. Nachholen schlägt auslassen.</p>` : ''}
+        ${next.kind === 'naechste' ? html`<p class="small">Heute ist frei – ein guter Tag für Cardio oder Mobilität. Vorziehen geht auch.</p>` : ''}
+        <ul class="ex-preview">${next.day.exercises.slice(0, 5).map((pe) => html`<li><span>${getExercise(pe.exId)?.name || pe.exId}</span><span class="muted">${effectiveSets(plan, next.day, pe, week)} × ${pe.repMin}–${pe.repMax}</span></li>`)}${next.day.exercises.length > 5 ? html`<li class="muted">+ ${next.day.exercises.length - 5} weitere</li>` : ''}</ul>
         <div class="row gap wrap">
-          <a class="btn btn-primary" href="#/workout/${next.day.id}">${next.kind === 'erledigt' ? 'Nochmal trainieren' : next.kind === 'naechste' ? 'Vorziehen' : 'Training starten'}</a>
-          <button class="btn" data-act="other">Andere Einheit</button>
-          <a class="btn btn-ghost" href="#/schnell">Schnelltraining</a>
+          <a class="btn btn-primary btn-big" href="#/workout/${next.day.id}">${raw(icon('play', { size: 18 }))} ${next.kind === 'erledigt' ? 'Nochmal' : next.kind === 'naechste' ? 'Vorziehen' : 'Training starten'}</a>
+          <button class="btn" data-act="other">Andere</button>
         </div>
       </div>`}
 
-      <div class="card quick-card">
-        <div class="card-title">Kein Plan, keine Zeit, andere Ausrüstung?</div>
-        <p class="small">Wähle, was du gerade hast und was du trainieren willst – du bekommst sofort eine Aufgabenliste.</p>
-        <a class="btn" href="#/schnell">Schnelltraining zusammenstellen</a>
+      <div class="actions">
+        <a class="action" href="#/schnell">${raw(icon('zap', { size: 26 }))}Schnell­training</a>
+        <button class="action flame" data-act="log-cardio">${raw(icon('run', { size: 26 }))}Cardio</button>
+        <button class="action ok" data-act="mobility">${raw(icon('stretch', { size: 26 }))}Mobilität</button>
+        <a class="action xp" href="#/coach">${raw(icon('chat', { size: 26 }))}Coach</a>
+      </div>
+
+      <div class="card">
+        <div class="row between"><div class="card-title">Diese Woche</div><a class="btn btn-small btn-ghost" href="#/kalender">${raw(icon('calendar', { size: 16 }))} Kalender</a></div>
+        <div class="week-row">
+          ${raw(ring(ad.done, ad.planned, { label: 'Kraft' }))}
+          <div class="week-dots" aria-label="Einheiten diese Woche">
+            ${WEEKDAYS.map((n, i) => {
+              const d = plan.days.find((x) => x.weekday === i);
+              const done = d && ad.dayIds.has(d.id);
+              return html`<div class="dot-day ${i === wd ? 'today' : ''} ${done ? 'done' : d ? 'planned' : ''}"><span>${n}</span><i></i></div>`;
+            })}
+          </div>
+        </div>
+        <div class="row between wrap gap">
+          <span class="small">${raw(icon('run', { size: 16 }))} Cardio ${cardioThisWeek.length}/${plan.cardio.sessionsPerWeek}${plan.cardio.sessions.length ? html` · nächste: ${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length]?.name} ${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length]?.minutesByWeek[week - 1]} min` : ''}</span>
+          ${plan.cardio.sessions.length ? html`<button class="btn btn-small" data-timer="${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length].id}">${raw(icon('timer', { size: 16 }))} Timer</button>` : ''}
+        </div>
+        <p class="muted small">${streakWeeks(plan, s.workouts, today)} Woche${streakWeeks(plan, s.workouts, today) === 1 ? '' : 'n'} in Folge dran · ${s.workouts.length} Trainings gesamt</p>
       </div>
 
       <div class="grid2">
         <div class="card">
-          <div class="card-title">Cardio diese Woche</div>
-          ${plan.cardio.sessions.length ? html`<ul class="list">${plan.cardio.sessions.map((c, i) => {
-            const done = cardioThisWeek[i];
-            return html`<li class="${done ? 'done' : ''}"><div><strong>${c.name}</strong><div class="muted">${ACTIVITY_BY_ID[c.activity]?.name || c.activity} · ${c.minutesByWeek[week - 1]} min${c.intervals ? ` · ${c.intervals.roundsByWeek[week - 1]} × ${c.intervals.work}s hart / ${c.intervals.rest}s locker` : ''}</div></div><div class="row gap-s">${done ? html`<span class="check">✓</span>` : ''}<button class="btn-icon" data-timer="${c.id}" title="Timer" aria-label="Timer starten">▶</button></div></li>`;
-          })}</ul>` : html`<p class="muted">Kein Cardio geplant.</p>`}
-          <p class="muted small">${cardioThisWeek.length} Einheit${cardioThisWeek.length === 1 ? '' : 'en'} eingetragen</p>
-          <button class="btn" data-act="log-cardio">Cardio eintragen</button>
-        </div>
-        <div class="card">
-          <div class="card-title">Mobilität · 10 min</div>
-          <p class="muted">${next.kind === 'heute' || next.kind === 'nachholen' ? 'Nach dem Training oder abends.' : 'Ruhetag-Routine für Hüfte, Schultern und Brustwirbelsäule.'}</p>
-          <button class="btn" data-act="mobility">Routine anzeigen</button>
+          <div class="row between"><div class="card-title">Check-in</div>${readiness ? html`<span class="readiness ${readiness.level}">${readiness.score} %</span>` : ''}</div>
+          <p class="small">${advice.text}</p>
+          <button class="btn ${checkin ? 'btn-ghost btn-small' : 'btn-primary'}" data-act="checkin">${raw(icon('sun', { size: 16 }))} ${checkin ? 'Check-in ändern' : 'Check-in (30 Sekunden)'}</button>
         </div>
         <div class="card">
           <div class="card-title">Ernährung heute</div>
           <div class="stat"><span class="stat-num">${eaten.kcal}</span><span class="stat-unit">/ ${nutrition.target} kcal</span></div>
           <div class="mini-bar"><div style="width:${Math.min(100, (eaten.kcal / nutrition.target) * 100).toFixed(0)}%"></div></div>
-          <p class="muted">Protein ${eaten.protein} / ${nutrition.protein} g · ${nutrition.target - eaten.kcal > 0 ? `${nutrition.target - eaten.kcal} kcal übrig` : `${eaten.kcal - nutrition.target} kcal über dem Ziel`}</p>
-          <a class="btn btn-ghost" href="#/ernaehrung">Tagebuch</a>
+          <p class="muted small">Protein ${eaten.protein} / ${nutrition.protein} g · ${nutrition.target - eaten.kcal > 0 ? `${nutrition.target - eaten.kcal} kcal übrig` : `${eaten.kcal - nutrition.target} kcal drüber`}</p>
+          <a class="btn btn-ghost btn-small" href="#/ernaehrung">${raw(icon('food', { size: 16 }))} Tagebuch</a>
         </div>
         <div class="card">
           <div class="card-title">Gewicht</div>
           <div class="stat"><span class="stat-num">${lastWeight ? fmtKg(lastWeight.weightKg).replace(' kg', '') : '–'}</span><span class="stat-unit">kg${lastWeight ? ` · ${formatDate(lastWeight.date)}` : ''}</span></div>
-          <form class="row gap" id="weight-form"><input id="weight-input" type="number" step="0.1" inputmode="decimal" placeholder="Heute in kg" aria-label="Gewicht heute" value="${lastWeight?.date === today ? lastWeight.weightKg : ''}"><button class="btn" type="submit">Speichern</button></form>
+          <form class="row gap" id="weight-form"><input id="weight-input" type="number" step="0.1" inputmode="decimal" placeholder="Heute in kg" aria-label="Gewicht heute" value="${lastWeight?.date === today ? lastWeight.weightKg : ''}"><button class="btn" type="submit">${raw(icon('check', { size: 16 }))}</button></form>
         </div>
-      </div>
-
-      <div class="card">
-        <div class="row between"><div class="card-title">Konstanz</div><a class="btn btn-small btn-ghost" href="#/kalender">Kalender</a></div>
-        <div class="summary"><div class="stat"><span class="stat-num">${dayStreak}</span><span class="stat-unit">Tage aktiv in Folge</span></div><div class="stat"><span class="stat-num">${streak}</span><span class="stat-unit">Wochen dran</span></div><div class="stat"><span class="stat-num">${earnedBadges}</span><span class="stat-unit">Abzeichen</span></div></div>
-        <p class="muted small">Regelmäßigkeit schlägt jedes perfekte Programm. Zwei Drittel der Einheiten reichen, damit der Fortschritt weiterläuft.${s.coach?.apiKey ? '' : ''}</p>
-        <a class="btn btn-ghost btn-small" href="#/coach">Coach fragen</a>
       </div>
     </section>`);
 
@@ -144,11 +164,18 @@ export function renderHeute(root) {
     toast('Training verworfen.');
   });
   root.querySelectorAll('[data-act="other"]').forEach((b) => b.addEventListener('click', () => pickOtherSession(plan)));
-  root.querySelector('[data-act="log-cardio"]').addEventListener('click', () => openCardioLog(plan, week));
-  root.querySelector('[data-act="mobility"]').addEventListener('click', () => openMobility(plan, next.kind === 'heute' || next.kind === 'nachholen' ? next.day : null));
+  root.querySelectorAll('[data-act="log-cardio"]').forEach((b) => b.addEventListener('click', () => openCardioLog(plan, week)));
+  root.querySelectorAll('[data-act="mobility"]').forEach((b) => b.addEventListener('click', () => openMobility(plan, next.kind === 'heute' || next.kind === 'nachholen' ? next.day : null)));
   root.querySelectorAll('[data-timer]').forEach((b) => b.addEventListener('click', () => {
     const c = plan.cardio.sessions.find((x) => x.id === b.dataset.timer);
     if (c) openIntervalTimer(c, week);
+  }));
+  root.querySelectorAll('[data-goal]').forEach((b) => b.addEventListener('click', () => {
+    const act = b.dataset.goalAct;
+    if (act === 'checkin') return openCheckin(checkin);
+    if (act === 'mobility') return openMobility(plan, next.kind === 'heute' || next.kind === 'nachholen' ? next.day : null);
+    if (act === 'weight') return root.querySelector('#weight-input')?.focus();
+    location.hash = b.dataset.href;
   }));
   root.querySelector('#weight-form').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -159,8 +186,19 @@ export function renderHeute(root) {
       st.bodyLogs.push({ date: today, weightKg: v });
       st.profile.weightKg = v;
     });
-    toast('Gewicht gespeichert.', 'ok');
+    toast(`Gewicht gespeichert · +${XP.weight} XP`, 'ok');
   });
+  celebrateIfPerfect(s, today, perfect);
+}
+
+// Perfekter Tag: einmal pro Tag Konfetti.
+function celebrateIfPerfect(s, today, perfect) {
+  if (!perfect) return;
+  if (s.meta.celebrated?.perfectDay === today) return;
+  store.update((st) => (st.meta.celebrated.perfectDay = today), { silent: true });
+  store.saveNow();
+  confetti({ count: 90 });
+  toast(`Perfekter Tag! +${XP.perfectDay} XP`, 'ok');
 }
 
 function dayName(plan, dayId) {
@@ -179,7 +217,8 @@ export function startNewMeso() {
     st.plan = generatePlan({ ...st.profile }, { mesoIndex: st.plan.mesoIndex + 1 });
     st.plan.muscleAdjust = carry;
   });
-  toast('Neuer Mesozyklus erstellt – viel Erfolg!', 'ok');
+  confetti();
+  toast('Neuer Block erstellt – viel Erfolg!', 'ok');
   location.hash = '#/plan';
 }
 
@@ -202,7 +241,7 @@ export function openCheckin(existing) {
       ${SLIDER('ci-energy', 'Energie', 1, 5, 1, c.energy, (v) => ['', 'leer', 'wenig', 'okay', 'gut', 'voll da'][v])}
       <fieldset class="field"><legend>Muskelkater / noch nicht erholt</legend>
         <div class="chips">${MUSCLES.map((mu) => `<label class="chip"><input type="checkbox" name="sore[]" value="${mu.id}" ${c.sore?.includes(mu.id) ? 'checked' : ''}><span>${mu.short}</span></label>`).join('')}</div></fieldset>
-      <div class="row end"><button class="btn btn-primary" type="submit">Speichern</button></div>
+      <div class="row end"><button class="btn btn-primary" type="submit">Speichern · +${XP.checkin} XP</button></div>
     </form>`,
     { title: 'Check-in' },
   );
@@ -219,12 +258,13 @@ export function openCheckin(existing) {
       energy: num(m.querySelector('#ci-energy').value),
       sore: [...m.querySelectorAll('input[name="sore[]"]:checked')].map((x) => x.value),
     };
+    const first = !store.get().checkins.some((x) => x.date === today);
     store.update((st) => {
       st.checkins = st.checkins.filter((x) => x.date !== today);
       st.checkins.push(entry);
     });
     closeModal();
-    toast('Check-in gespeichert.', 'ok');
+    toast(first ? `Check-in gespeichert · +${XP.checkin} XP` : 'Check-in aktualisiert.', 'ok');
   });
 }
 
@@ -263,7 +303,7 @@ export function openCardioLog(plan, week) {
       st.cardioLogs.push({ id: uid(), date: f.date.value || toISODate(), sessionId: f.sessionId.value || null, activity: f.activity.value, minutes, avgHr: num(f.avgHr.value) || null, km: num(f.km.value) || null });
     });
     closeModal();
-    toast('Cardio gespeichert.', 'ok');
+    toast(`Cardio gespeichert · +${Math.round(Math.min(120, minutes) * XP.cardioPerMin)} XP`, 'ok');
   });
 }
 
@@ -273,9 +313,21 @@ export function openMobility(plan, todayDay) {
   const key = lower ? 'unterkoerper' : upper ? 'oberkoerper' : 'ruhetag';
   const titles = { unterkoerper: 'Unterkörper-Routine', oberkoerper: 'Oberkörper-Routine', ruhetag: 'Ruhetag-Routine' };
   const items = (plan.mobility[key] || []).map((m) => MOBILITY_BY_ID[m]).filter(Boolean);
-  openModal(
-    `<ol class="mob-list">${items.map((m) => `<li><div><strong>${m.name}</strong><div class="muted">${m.cue}</div></div><span class="pill">${m.seconds}s${m.perSide ? ' / Seite' : ''}</span></li>`).join('')}</ol>
-     <p class="hint">Ruhig atmen, nichts erzwingen. Regelmäßigkeit (mehrmals pro Woche) zählt mehr als Dauer.</p>`,
+  const today = toISODate();
+  const done = (store.get().mobilityLogs || []).includes(today);
+  const m = openModal(
+    `<ol class="mob-list">${items.map((it) => `<li><div><strong>${it.name}</strong><div class="muted">${it.cue}</div></div><span class="pill">${it.seconds}s${it.perSide ? ' / Seite' : ''}</span></li>`).join('')}</ol>
+     <p class="hint">Ruhig atmen, nichts erzwingen. Regelmäßigkeit zählt mehr als Dauer.</p>
+     <button class="btn ${done ? 'btn-ghost' : 'btn-ok'} btn-big" id="mob-done">${done ? 'Heute schon erledigt ✓' : `Erledigt · +${XP.mobility} XP`}</button>`,
     { title: titles[key] },
   );
+  m.querySelector('#mob-done').addEventListener('click', () => {
+    if (!done) {
+      store.update((st) => {
+        if (!st.mobilityLogs.includes(today)) st.mobilityLogs.push(today);
+      });
+      toast(`Mobilität erledigt · +${XP.mobility} XP`, 'ok');
+    }
+    closeModal();
+  });
 }

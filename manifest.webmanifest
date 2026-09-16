@@ -1,0 +1,17 @@
+{
+  "name": "LMCI – Dein Trainingsplan",
+  "short_name": "LMCI",
+  "description": "Individueller Kraft-, Cardio-, Mobilitäts- und Ernährungsplan – ohne Abo, komplett offline.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F2F5FB",
+  "theme_color": "#2F6BFF",
+  "lang": "de",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

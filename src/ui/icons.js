@@ -1,0 +1,54 @@
+// Kleines Icon-Set (24×24, Strich-Icons). icon('name', { size, cls }) → SVG-String.
+const P = {
+  home: 'M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+  plan: 'M5 3h14a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm3 5h8M8 12h8M8 16h5',
+  chart: 'M4 19h16M6 16V9m6 7V5m6 11v-6',
+  food: 'M6 3v7a3 3 0 0 0 6 0V3M9 3v18M17 3c-2 2-2 6-2 9h2v9',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
+  flame: 'M12 3c1 3 4 4.5 4 8.5a4 4 0 0 1-8 0c0-1.5.5-2.5 1-3.5.5 1 1 1.5 2 2 0-3 .5-5 1-7z',
+  bolt: 'M13 2L4 14h6l-1 8 9-12h-6l1-8z',
+  check: 'M5 12l4 4L19 7',
+  plus: 'M12 5v14M5 12h14',
+  minus: 'M5 12h14',
+  swap: 'M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4',
+  info: 'M12 8h.01M11 12h1v4h1M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z',
+  note: 'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z',
+  trash: 'M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14',
+  up: 'M12 19V5m0 0l-6 6m6-6l6 6',
+  down: 'M12 5v14m0 0l6-6m-6 6l-6-6',
+  weight: 'M6 8v8M18 8v8M3 10v4M21 10v4M6 12h12',
+  timer: 'M12 22a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm0-8V9m-3-7h6',
+  calendar: 'M3 5h18v16H3zM3 10h18M8 3v4m8-4v4',
+  search: 'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zm10 2l-4.5-4.5',
+  left: 'M15 6l-6 6 6 6',
+  right: 'M9 6l6 6-6 6',
+  close: 'M6 6l12 12M18 6L6 18',
+  play: 'M6 4l14 8-14 8z',
+  trophy: 'M8 21h8m-4-4v4M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v2a3 3 0 0 0 3 3m10-5h3v2a3 3 0 0 1-3 3',
+  lock: 'M6 11V8a6 6 0 0 1 12 0v3M5 11h14v10H5z',
+  drop: 'M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z',
+  moon: 'M21 13A8 8 0 0 1 11 3a8 8 0 1 0 10 10z',
+  zap: 'M13 2L4 14h6l-1 8 9-12h-6l1-8z',
+  scale: 'M12 3v18M5 7l7-4 7 4M3 12l2-5 2 5a2 2 0 0 1-4 0zm14 0l2-5 2 5a2 2 0 0 1-4 0z',
+  scan: 'M4 7V4h3m10 0h3v3m0 10v3h-3M7 20H4v-3M8 8v8m4-8v8m4-8v8',
+  star: 'M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z',
+  dumbbell: 'M4 9v6M8 7v10M16 7v10M20 9v6M8 12h8',
+  run: 'M13 4a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm-3 6l3-2 2 3 3 1M10 10l-2 4 3 2-1 6M13 11l1 4 3 4',
+  stretch: 'M12 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM6 21l6-9 6 9M12 12V8',
+  chat: 'M21 12a8 8 0 0 1-11.5 7.2L4 21l1.8-5.5A8 8 0 1 1 21 12z',
+  settings: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm7-3l2 1-2 3-2-.5-1.5 1.5.5 2-3 2-1-2h-3l-1 2-3-2 .5-2L4.5 16.5 2.5 17l-2-3 2-1v-2l-2-1 2-3 2 .5L6 6l-.5-2 3-2 1 2h3l1-2 3 2-.5 2 1.5 1.5 2-.5 2 3-2 1z',
+  gift: 'M20 12v9H4v-9M2 7h20v5H2zM12 7v14M12 7s-2-5-5-3 5 3 5 3zm0 0s2-5 5-3-5 3-5 3z',
+  sun: 'M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0-15v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  refresh: 'M21 12a9 9 0 1 1-3-6.7M21 3v6h-6',
+  pause: 'M8 5v14M16 5v14',
+  forward: 'M5 5l8 7-8 7zM14 5h2v14h-2z',
+  list: 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
+  heart: 'M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l8.8 8.8 8.8-8.8a5.5 5.5 0 0 0 0-7.8z',
+};
+
+export function icon(name, { size = 20, cls = '' } = {}) {
+  const d = P[name] || P.info;
+  return `<svg class="ico ${cls}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+}
+
+export const ICON_NAMES = Object.keys(P);

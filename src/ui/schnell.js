@@ -4,6 +4,7 @@ import * as store from '../state.js';
 import { buildQuickWorkout, QUICK_GEAR, QUICK_FOCUS, QUICK_STYLES, muscleName } from '../engine/quick.js';
 import { MUSCLES } from '../data/muscles.js';
 import { getExercise } from '../data/exercises.js';
+import { figureForExercise } from './figure.js';
 import { suggestNext, incrementFor } from '../engine/progression.js';
 import { historyFor } from '../engine/analytics.js';
 import { warmupSets } from '../engine/plan.js';
@@ -92,7 +93,7 @@ function renderResult(r, s) {
       <li class="task"><span class="task-num">0</span><div><strong>Aufwärmen</strong><div class="muted small">4–6 min locker bewegen (Gehen, Rad, Seil, Hampelmänner), dann ein leichter Satz der ersten Übung.</div></div></li>
       ${r.tasks.map((t, i) => {
         const ex = getExercise(t.exId);
-        return html`<li class="task"><span class="task-num">${i + 1}</span><div>
+        return html`<li class="task"><span class="task-num">${i + 1}</span>${raw(figureForExercise(ex, { size: 54, cls: 'thumb' }))}<div>
           <strong>${ex.name}</strong> <span class="muted small">· ${muscleName(t.muscle)}</span>
           <div class="small">${t.sets} × ${t.repMin}–${t.repMax} ${unit(t)}${t.weight ? ` · ca. ${t.weight} kg` : t.estReps ? ` · du schaffst vermutlich ~${t.estReps}` : ''} · Pause ${t.restSec} s</div>
           ${ex.cue ? html`<div class="muted small">${ex.cue}</div>` : ''}

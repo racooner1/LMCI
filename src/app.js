@@ -15,6 +15,7 @@ import { startReminderLoop } from './engine/reminders.js';
 import { generatePlan, availableExercises } from './engine/plan.js';
 import { closeModal } from './ui/dom.js';
 import { icon } from './ui/icons.js';
+import { autoMountFigures } from './ui/figure.js';
 
 // Für Views, die Engine-Funktionen ohne zyklische Importe brauchen.
 let afterRoute = null;
@@ -104,6 +105,7 @@ document.addEventListener('keydown', (e) => {
 
 store.load();
 window.__lmciBooted = true;
+autoMountFigures();
 store.subscribe(() => {
   // Nach Zustandsänderungen die aktuelle Seite neu zeichnen – außer im laufenden Training (dort wird gezielt aktualisiert).
   if (!location.hash.startsWith('#/workout')) route();

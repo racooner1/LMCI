@@ -7,6 +7,7 @@ import { readinessScore, readinessAdvice } from '../engine/recovery.js';
 import { getExercise } from '../data/exercises.js';
 import { MUSCLES, MUSCLE_BY_ID } from '../data/muscles.js';
 import { MOBILITY_BY_ID } from '../data/mobility.js';
+import { figureForMobility } from './figure.js';
 import { ACTIVITY_BY_ID, CARDIO_ACTIVITIES, CARDIO_GROUPS } from '../engine/cardio.js';
 import { toISODate, weekdayIndex, startOfWeek, WEEKDAYS, WEEKDAYS_LONG, formatDate, uid } from '../engine/util.js';
 import { openIntervalTimer } from './timer.js';
@@ -387,7 +388,7 @@ export function openMobility(plan, todayDay) {
   const today = toISODate();
   const done = (store.get().mobilityLogs || []).includes(today);
   const m = openModal(
-    `<ol class="mob-list">${items.map((it) => `<li><div><strong>${it.name}</strong><div class="muted">${it.cue}</div></div><span class="pill">${it.seconds}s${it.perSide ? ' / Seite' : ''}</span></li>`).join('')}</ol>
+    `<ol class="mob-list">${items.map((it) => `<li>${figureForMobility(it, { size: 50, cls: 'thumb' })}<div><strong>${it.name}</strong><div class="muted">${it.cue}</div></div><span class="pill">${it.seconds}s${it.perSide ? ' / Seite' : ''}</span></li>`).join('')}</ol>
      <p class="hint">Ruhig atmen, nichts erzwingen. Regelmäßigkeit zählt mehr als Dauer.</p>
      <button class="btn ${done ? 'btn-ghost' : 'btn-ok'} btn-big" id="mob-done">${done ? 'Heute schon erledigt ✓' : `Erledigt · +${XP.mobility} XP`}</button>`,
     { title: titles[key] },

@@ -48,6 +48,7 @@ Alle Regeln sind bewusst einfach, nachvollziehbar und aus der Trainingswissensch
 - Fragen zu Plan, Fortschritt und Ernährung an einen Coach, der deinen Plan, deine Logs und dein Tagebuch kennt. Läuft über die Anthropic-API mit **deinem eigenen API-Schlüssel** (Abrechnung pro Anfrage, wenige Cent, kein Abo). Schlüssel bleibt im Browser und wird nicht exportiert.
 
 **Daten gehören dir:** Alles liegt im Browser (localStorage). Export/Import als JSON-Sicherung. PWA: auf dem Handy installierbar, offline nutzbar.
+- **Bewegungsanimationen zu jeder Übung:** eine gezeichnete Figur zeigt den Ablauf als Schleife (Seiten- oder Vorderansicht) mit Gerät, Phasen-Text („Absenken“, „Hochdrücken“), Zeitlupe, Schritt-für-Schritt-Anleitung und Markierung des Zielmuskels. Kleine Vorschauen im Plan, im Training, im Schnelltraining und in der Bibliothek; alles ohne Videos und ohne Internet.
 
 ## Auf das Handy bringen
 
@@ -155,6 +156,8 @@ src/ui/foodpicker.js          Lebensmittel-Auswahl, Portionen, eigene Lebensmitt
 src/ui/bodymap.js, timer.js   Körperkarte, Intervall-Timer
 src/ui/icons.js, celebrate.js Icon-Set, Konfetti und Feier-Dialog
 src/ui/motion.js              Zähl- und Balken-Animationen
+src/ui/figure.js              Bewegungsfigur: Gelenk-Rig, inverse Kinematik, Geräte, Animationsschleife
+src/data/motions.js           ~150 Bewegungsmuster (Schlüsselposen, Schritte, Tempo) und Zuordnung aller Übungen
 vendor/anthropic-sdk.js       Gebündeltes Anthropic-SDK (nur für den Coach, wird bei Bedarf geladen)
 tests/*.test.js               Unit-Tests (node --test)
 scripts/                      Icon-Generator, Einzeldatei-Build, SDK-Bündelung

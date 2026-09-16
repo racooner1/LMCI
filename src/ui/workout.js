@@ -10,6 +10,7 @@ import { MUSCLE_BY_ID } from '../data/muscles.js';
 import { toISODate, uid, clamp } from '../engine/util.js';
 import { openExerciseInfo } from './uebungen.js';
 import { icon } from './icons.js';
+import { figureForExercise } from './figure.js';
 import { showCelebration, pop } from './celebrate.js';
 import { totalXP, levelInfo, xpForWorkout, badgeExtra } from '../engine/gamification.js';
 import { badgeStatus } from '../engine/achievements.js';
@@ -263,11 +264,15 @@ function renderEntry(e, ei, s, plan, rir, deload, count) {
   const loadable = !['bw', 'time', 'band'].includes(ex.load);
   const sug = e.suggestion || {};
   const unit = ex.load === 'time' ? 's' : 'Wdh.';
+  const fig = figureForExercise(ex, { size: 62, cls: 'thumb' });
   return html`<div class="card ex-card" data-ei="${ei}">
     <div class="row between top">
-      <div>
-        <div class="ex-title">${ex.name}</div>
-        <div class="muted small">${ex.primary.map((m) => MUSCLE_BY_ID[m].short).join(', ')} · Ziel ${e.sets.length} × ${e.repMin}–${e.repMax} ${unit} · ${rir} RIR · Pause ${Math.round(e.restSec / 60 * 10) / 10} min</div>
+      <div class="ex-thumb-row">
+        ${fig ? html`<button class="fig-btn" type="button" data-act="info" data-ex="${ex.id}" aria-label="Ausführung ansehen">${raw(fig)}</button>` : ''}
+        <div>
+          <div class="ex-title">${ex.name}</div>
+          <div class="muted small">${ex.primary.map((m) => MUSCLE_BY_ID[m].short).join(', ')} · Ziel ${e.sets.length} × ${e.repMin}–${e.repMax} ${unit} · ${rir} RIR · Pause ${Math.round(e.restSec / 60 * 10) / 10} min</div>
+        </div>
       </div>
       <div class="ex-tools">
         <button class="btn-icon" data-act="move" data-ei="${ei}" data-dir="-1" title="Nach oben" aria-label="Nach oben" ${ei === 0 ? 'disabled' : ''}>${raw(icon('up', { size: 18 }))}</button>

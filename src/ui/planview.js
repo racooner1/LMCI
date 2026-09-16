@@ -4,6 +4,7 @@ import * as store from '../state.js';
 import { animateAll } from './motion.js';
 import { planWeek, effectiveSets, rirForWeek, isMesoFinished, GOALS, EXPERIENCE, dayDuration } from '../engine/plan.js';
 import { openExerciseInfo } from './uebungen.js';
+import { figureForExercise } from './figure.js';
 import { getExercise } from '../data/exercises.js';
 import { MUSCLES, MUSCLE_BY_ID } from '../data/muscles.js';
 import { MOBILITY_BY_ID } from '../data/mobility.js';
@@ -83,7 +84,7 @@ function renderTab(t, plan, profile, week) {
         <tbody>${d.exercises.map((pe) => {
           const ex = getExercise(pe.exId);
           return html`<tr class="tappable" data-day="${d.id}" data-ex="${pe.exId}" tabindex="0">
-            <td><div class="ex-name">${ex.name}</div><div class="muted small">${MUSCLE_BY_ID[pe.muscle]?.short}${pe.main ? ' · Hauptübung' : ''}</div></td>
+            <td><div class="ex-thumb-row">${raw(figureForExercise(ex, { size: 40, cls: 'thumb' }))}<div><div class="ex-name">${ex.name}</div><div class="muted small">${MUSCLE_BY_ID[pe.muscle]?.short}${pe.main ? ' · Hauptübung' : ''}</div></div></div></td>
             <td class="num">${effectiveSets(plan, d, pe, week)}</td>
             <td class="num">${pe.repMin}–${pe.repMax}${ex.load === 'time' ? ' s' : ''}</td>
             <td class="num">${Math.round(pe.restSec / 60 * 10) / 10} min</td></tr>`;

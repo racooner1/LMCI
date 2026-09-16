@@ -6,6 +6,7 @@ import { MUSCLES, MUSCLE_BY_ID, GEAR_BY_ID } from '../data/muscles.js';
 import { isAvailable, alternativesFor } from '../engine/plan.js';
 import { historyFor, e1rmHistory, personalRecords } from '../engine/analytics.js';
 import { bodyMap } from './bodymap.js';
+import { figureForExercise, motionText } from './figure.js';
 import { formatDate } from '../engine/util.js';
 
 const LOAD_NAMES = { barbell: 'Langhantel', dumbbell: 'Kurzhantel', machine: 'Maschine', cable: 'Kabelzug', bw: 'Körpergewicht', band: 'Band', time: 'Zeit', kettlebell: 'Kettlebell' };
@@ -42,7 +43,7 @@ export function renderUebungen(root, exId) {
       </div>
       ${MUSCLES.filter((m) => grouped[m.id]).map((m) => html`<div class="card">
         <div class="card-title">${m.name}</div>
-        <ul class="list tappable">${grouped[m.id].map((e) => html`<li><button class="link" data-ex="${e.id}"><strong>${e.name}</strong><div class="muted small">${e.en} · ${LOAD_NAMES[e.load]} · ${TIER_NAMES[e.tier]}${e.secondary.length ? ` · auch ${e.secondary.map((x) => MUSCLE_BY_ID[x].short).join(', ')}` : ''}</div></button></li>`)}</ul>
+        <ul class="list tappable">${grouped[m.id].map((e) => html`<li><button class="link" data-ex="${e.id}"><div class="ex-thumb-row">${raw(figureForExercise(e, { size: 46, cls: 'thumb' }))}<div><strong>${e.name}</strong><div class="muted small">${e.en} · ${LOAD_NAMES[e.load]} · ${TIER_NAMES[e.tier]}${e.secondary.length ? ` · auch ${e.secondary.map((x) => MUSCLE_BY_ID[x].short).join(', ')}` : ''}</div></div></div></button></li>`)}</ul>
       </div>`)}
       ${list.length ? '' : html`<div class="card"><p class="muted">Nichts gefunden. Filter lockern oder „Nur mit meiner Ausrüstung“ abwählen.</p></div>`}
     </section>`);
@@ -81,8 +82,14 @@ export function openExerciseInfo(exId, { onPick = null, pickLabel = 'Alternative
   const pr = personalRecords(s.workouts).find((r) => r.exId === exId);
   const alts = alternativesFor(exId, s.profile).slice(0, 8);
   const gear = ex.gear.map((g) => GEAR_BY_ID[g]?.name || g).join(', ');
+  const mt = motionText(ex);
   const m = openModal(
     `<p class="muted small">${esc(ex.en)} · ${LOAD_NAMES[ex.load]} · ${TIER_NAMES[ex.tier]}${gear ? ` · Zuhause: ${esc(gear)}` : ''}</p>
+     ${mt ? `<div class="figure-hero">${figureForExercise(ex, { size: 260, interactive: true, label: true })}
+       <div class="figure-controls"><button class="btn btn-small btn-ghost" data-fig-act="slow" aria-pressed="false">Zeitlupe</button><span class="muted small">Tippen = Pause · ${mt.view === 'front' ? 'Ansicht von vorn' : 'Ansicht von der Seite'}</span></div></div>
+       <h3>So geht's</h3>
+       <ol class="steps">${mt.steps.map((st) => `<li>${esc(st)}</li>`).join('')}</ol>
+       ${mt.tempo ? `<p class="muted small">Tempo: ${esc(mt.tempo)}</p>` : ''}` : ''}
      ${bodyMap(ex.primary, ex.secondary)}
      <p class="small"><strong>${ex.primary.map((x) => MUSCLE_BY_ID[x].name).join(', ')}</strong>${ex.secondary.length ? `<span class="muted"> · Nebenmuskeln: ${ex.secondary.map((x) => MUSCLE_BY_ID[x].name).join(', ')}</span>` : ''}</p>
      ${ex.cue ? `<p class="cue">${esc(ex.cue)}</p>` : ''}

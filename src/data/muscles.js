@@ -28,7 +28,12 @@ export const LIMITATIONS = [
 
 export const GEAR = [
   { id: 'kurzhantel', name: 'Kurzhanteln (verstellbar oder Satz)' },
+  { id: 'langhantel', name: 'Langhantel mit Scheiben' },
+  { id: 'kettlebell', name: 'Kettlebell' },
   { id: 'bank', name: 'Hantelbank (oder stabile Erhöhung)' },
   { id: 'klimmzugstange', name: 'Klimmzugstange' },
   { id: 'band', name: 'Widerstandsbänder' },
+  { id: 'schlingentrainer', name: 'Schlingentrainer (TRX / Ringe)' },
 ];
+
+export const GEAR_BY_ID = Object.fromEntries(GEAR.map((g) => [g.id, g]));

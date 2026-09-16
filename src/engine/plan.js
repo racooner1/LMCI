@@ -406,6 +406,8 @@ export function generatePlan(profile, opts = {}) {
         exId: pe.ex.id,
         muscle: pe.slot.muscle,
         main: !!pe.slot.main,
+        optional: !!pe.slot.optional,
+        tier: pe.ex.tier,
         sets: pe.sets,
         repMin,
         repMax,
@@ -437,7 +439,7 @@ export function generatePlan(profile, opts = {}) {
     volume,
     cardio: buildCardioPlan(profile),
     mobility: buildMobilityPlan(profile),
-    volumeAdjust: {},
+    muscleAdjust: {},
     notes,
   };
 }
@@ -453,12 +455,120 @@ export function isMesoFinished(plan, todayIso = toISODate()) {
   return diff + 1 > plan.weeks;
 }
 
-// Effektive Satzzahl für eine Übung in einer Woche (Deload + Feedback-Anpassung).
+// Effektive Satzzahl für eine Übung in einer Woche (Deload + Autoregulation pro Muskel).
 export function effectiveSets(plan, day, pe, week) {
-  const adj = plan.volumeAdjust?.[day.id] || 0;
+  const adj = plan.muscleAdjust?.[pe.muscle] ?? plan.volumeAdjust?.[day.id] ?? 0;
   let sets = clamp(pe.sets + adj, 1, 6);
   if (week === plan.deloadWeek) sets = Math.max(1, Math.ceil(sets / 2));
   return sets;
+}
+
+// Zeitbedarf einer Einheit in Minuten (mit effektiven Sätzen).
+export function dayDuration(plan, day, week, profile) {
+  let min = WARMUP_MINUTES;
+  for (const pe of day.exercises) {
+    const ex = EXERCISES.find((e) => e.id === pe.exId);
+    if (!ex) continue;
+    const cost = profile?.goal === 'kraft' && pe.main && ex.tier === 1 ? SET_MINUTES.main : SET_MINUTES[ex.tier];
+    min += effectiveSets(plan, day, pe, week) * cost;
+  }
+  return Math.round(min);
+}
+
+// Kurzversion einer Einheit: Hauptübungen behalten, optionale zuerst streichen, dann Sätze kürzen, bis das Zeitbudget passt.
+export function shortenDay(plan, day, week, minutes, profile) {
+  const cost = (pe) => {
+    const ex = EXERCISES.find((e) => e.id === pe.exId);
+    return profile?.goal === 'kraft' && pe.main && ex?.tier === 1 ? SET_MINUTES.main : SET_MINUTES[ex?.tier || 3];
+  };
+  let list = day.exercises.map((pe) => ({ ...pe, sets: effectiveSets(plan, day, pe, week) }));
+  const total = () => WARMUP_MINUTES + list.reduce((a, pe) => a + pe.sets * cost(pe), 0);
+  // 1) optionale Übungen von hinten streichen
+  while (total() > minutes && list.some((pe) => pe.optional) && list.length > 2) {
+    const idx = list.map((pe) => pe.optional).lastIndexOf(true);
+    list.splice(idx, 1);
+  }
+  // 2) Isolation streichen, dann Sätze reduzieren (nie unter 2 bei Hauptübungen, 1 sonst)
+  while (total() > minutes && list.length > 2 && list.some((pe) => !pe.main && pe.tier === 3)) {
+    const idx = list.map((pe) => !pe.main && pe.tier === 3).lastIndexOf(true);
+    list.splice(idx, 1);
+  }
+  for (let guard = 0; guard < 60 && total() > minutes; guard++) {
+    const cand = [...list].sort((a, b) => b.sets - a.sets || (a.main ? 1 : -1))[0];
+    const floor = cand.main ? 2 : 1;
+    if (!cand || cand.sets <= floor) {
+      if (list.length > 2) list.pop();
+      else break;
+      continue;
+    }
+    cand.sets -= 1;
+  }
+  return { exercises: list, minutes: total() };
+}
+
+// Startgewicht schätzen: 1RM-Verhältnis zum Körpergewicht, skaliert nach Erfahrung, Geschlecht und Alter.
+const EXP_FACTOR = { anfaenger: 0.6, fortgeschritten: 1.0, erfahren: 1.3 };
+const SEX_FACTOR = { m: 1.0, w: 0.65, d: 0.8 };
+export function estimateStartWeight(ex, profile, reps, rir = 2, settings = {}) {
+  if (!ex.ratio || ['bw', 'time', 'band'].includes(ex.load)) return null;
+  const bw = clamp(profile.weightKg || 75, 45, 110);
+  let e1rm = ex.ratio * bw * (EXP_FACTOR[profile.experience] ?? 1) * (SEX_FACTOR[profile.sex] ?? 0.8);
+  if (profile.age > 60) e1rm *= 0.75;
+  else if (profile.age > 50) e1rm *= 0.85;
+  else if (profile.age < 18) e1rm *= 0.8;
+  // Arbeitsgewicht für reps + rir Wiederholungen (Epley), konservativ abgerundet
+  let w = e1rm / (1 + (reps + rir) / 30);
+  const inc = ex.inc || 2.5;
+  w = Math.floor(w / inc) * inc;
+  if (ex.load === 'barbell') w = Math.max(settings.barWeight ?? 20, w);
+  if (ex.load === 'dumbbell' || ex.load === 'kettlebell') w = Math.max(2, w);
+  return Math.round(w * 10) / 10;
+}
+
+export function estimateStartReps(ex, profile) {
+  if (!ex.bwReps) return null;
+  const i = { anfaenger: 0, fortgeschritten: 1, erfahren: 2 }[profile.experience] ?? 1;
+  let r = ex.bwReps[i];
+  if (profile.sex === 'w' && ex.load !== 'time') r = Math.max(1, Math.round(r * 0.7));
+  return r;
+}
+
+// Aufwärmsätze für eine Arbeitslast. level: 'voll' (erste schwere Übung), 'kurz' (weitere Grundübung), null.
+export function warmupSets(ex, weight, barWeight = 20, level = 'voll') {
+  if (!weight || ['bw', 'time', 'band'].includes(ex.load)) return level === 'voll' && ex.load === 'bw' ? [{ weight: 0, reps: 5, note: 'leichte Variante' }] : [];
+  const inc = ex.load === 'dumbbell' || ex.load === 'kettlebell' ? 1 : 2.5;
+  const r = (x) => Math.max(ex.load === 'barbell' ? barWeight : inc, Math.round(x / inc) * inc);
+  if (level === 'kurz') return [{ weight: r(weight * 0.6), reps: 5 }];
+  const sets = [];
+  if (ex.load === 'barbell' && weight > barWeight * 1.5) sets.push({ weight: barWeight, reps: 10, note: 'leere Stange' });
+  if (weight >= 30) sets.push({ weight: r(weight * 0.5), reps: 6 });
+  sets.push({ weight: r(weight * 0.7), reps: 4 });
+  if (weight >= 60) sets.push({ weight: r(weight * 0.85), reps: 2 });
+  return sets.filter((s, i, arr) => i === 0 || s.weight > arr[i - 1].weight);
+}
+
+// Welche Einheit steht an? Heutiger Plantag, sonst eine verpasste Einheit dieser Woche, sonst die nächste.
+export function nextSession(plan, workouts, todayIso = toISODate()) {
+  const wd = (new Date(todayIso).getDay() + 6) % 7;
+  const weekStart = addDaysIso(todayIso, -wd);
+  const doneIds = new Set(workouts.filter((w) => w.planId === plan.id && w.date >= weekStart && w.date <= todayIso).map((w) => w.dayId));
+  const today = plan.days.find((d) => d.weekday === wd);
+  if (today && !doneIds.has(today.id)) return { day: today, kind: 'heute' };
+  // Verpasst = Plantag lag diese Woche vor heute, aber nicht vor dem Planstart.
+  const missed = plan.days.find((d) => d.weekday != null && d.weekday < wd && !doneIds.has(d.id) && addDaysIso(weekStart, d.weekday) >= plan.startDate);
+  if (missed) return { day: missed, kind: 'nachholen' };
+  if (today) return { day: today, kind: 'erledigt' };
+  for (let i = 1; i <= 7; i++) {
+    const d = plan.days.find((x) => x.weekday === (wd + i) % 7);
+    if (d) return { day: d, kind: 'naechste', inDays: i };
+  }
+  return { day: plan.days[0], kind: 'naechste', inDays: 1 };
+}
+
+function addDaysIso(iso, n) {
+  const d = new Date(iso);
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
 }
 
 export function rirForWeek(plan, week) {

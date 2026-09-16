@@ -1,14 +1,83 @@
 // Cardio: Herzfrequenzzonen und Wochenplanung.
 import { clamp } from './util.js';
 
+// Aktivitäten mit MET-Werten (Compendium of Physical Activities, Ainsworth et al. 2011), Zone-2-Intensität.
+// kcal/min = MET × 3,5 × kg / 200
+const A = (id, name, met, group) => ({ id, name, met, group });
 export const CARDIO_ACTIVITIES = [
-  { id: 'laufen', name: 'Laufen', kcalPerKgMin: 0.16 },
-  { id: 'walken', name: 'Zügiges Gehen / Wandern', kcalPerKgMin: 0.08 },
-  { id: 'rad', name: 'Radfahren / Ergometer', kcalPerKgMin: 0.12 },
-  { id: 'rudern', name: 'Rudern (Ergometer)', kcalPerKgMin: 0.14 },
-  { id: 'crosstrainer', name: 'Crosstrainer', kcalPerKgMin: 0.11 },
-  { id: 'schwimmen', name: 'Schwimmen', kcalPerKgMin: 0.13 },
-  { id: 'seilspringen', name: 'Seilspringen', kcalPerKgMin: 0.18 },
+  // Laufen & Gehen
+  A('laufen', 'Laufen (locker, 8–9 km/h)', 8.8, 'Laufen & Gehen'),
+  A('laufen_zuegig', 'Laufen (zügig, 10–11 km/h)', 10.5, 'Laufen & Gehen'),
+  A('trailrunning', 'Trailrunning', 9.5, 'Laufen & Gehen'),
+  A('walken', 'Zügiges Gehen (5–6 km/h)', 4.3, 'Laufen & Gehen'),
+  A('wandern', 'Wandern', 6.0, 'Laufen & Gehen'),
+  A('nordic_walking', 'Nordic Walking', 5.5, 'Laufen & Gehen'),
+  A('treppensteigen', 'Treppensteigen', 8.0, 'Laufen & Gehen'),
+  A('laufband_steigung', 'Laufband mit Steigung (gehen)', 6.5, 'Laufen & Gehen'),
+  A('stairmaster', 'Stairmaster', 9.0, 'Laufen & Gehen'),
+  // Rad
+  A('rad', 'Radfahren (locker, 16–19 km/h)', 6.8, 'Rad'),
+  A('rad_zuegig', 'Radfahren (zügig, 20–25 km/h)', 8.5, 'Rad'),
+  A('rennrad', 'Rennrad', 10.0, 'Rad'),
+  A('mtb', 'Mountainbike', 8.5, 'Rad'),
+  A('ergometer', 'Ergometer / Indoor Bike', 6.8, 'Rad'),
+  A('spinning', 'Spinning-Kurs', 8.5, 'Rad'),
+  A('gravel', 'Gravelbike', 8.0, 'Rad'),
+  // Studio-Geräte
+  A('rudern', 'Rudern (Ergometer)', 7.0, 'Studio'),
+  A('crosstrainer', 'Crosstrainer', 5.0, 'Studio'),
+  A('skierg', 'SkiErg', 7.0, 'Studio'),
+  A('assault_bike', 'Assault / Air Bike', 8.0, 'Studio'),
+  A('seilspringen', 'Seilspringen', 11.0, 'Studio'),
+  A('circuit', 'Zirkeltraining', 8.0, 'Studio'),
+  A('hiit_kurs', 'HIIT-Kurs', 8.5, 'Studio'),
+  A('aerobic', 'Aerobic / Step', 7.3, 'Studio'),
+  A('battle_ropes', 'Battle Ropes', 8.0, 'Studio'),
+  A('kettlebell_cardio', 'Kettlebell-Zirkel', 8.0, 'Studio'),
+  // Wasser
+  A('schwimmen', 'Schwimmen (locker)', 6.0, 'Wasser'),
+  A('schwimmen_kraul', 'Schwimmen (Kraul, zügig)', 9.8, 'Wasser'),
+  A('aquajogging', 'Aquajogging', 9.8, 'Wasser'),
+  A('sup', 'Stand-up-Paddling', 6.0, 'Wasser'),
+  A('kajak', 'Kajak / Kanu', 5.0, 'Wasser'),
+  A('rudern_boot', 'Rudern (Boot)', 7.0, 'Wasser'),
+  A('surfen', 'Surfen / Windsurfen', 5.0, 'Wasser'),
+  // Winter & Berg
+  A('skilanglauf', 'Skilanglauf', 9.0, 'Winter & Berg'),
+  A('skitour', 'Skitour / Bergsteigen', 9.0, 'Winter & Berg'),
+  A('ski_alpin', 'Ski alpin', 5.3, 'Winter & Berg'),
+  A('snowboard', 'Snowboard', 5.3, 'Winter & Berg'),
+  A('schneeschuh', 'Schneeschuhwandern', 7.5, 'Winter & Berg'),
+  A('klettern', 'Klettern / Bouldern', 7.5, 'Winter & Berg'),
+  A('eislaufen', 'Eislaufen', 7.0, 'Winter & Berg'),
+  // Ball & Rückschlag
+  A('fussball', 'Fußball', 8.0, 'Ball & Rückschlag'),
+  A('basketball', 'Basketball', 6.5, 'Ball & Rückschlag'),
+  A('volleyball', 'Volleyball', 4.0, 'Ball & Rückschlag'),
+  A('beachvolleyball', 'Beachvolleyball', 8.0, 'Ball & Rückschlag'),
+  A('handball', 'Handball', 8.0, 'Ball & Rückschlag'),
+  A('tennis', 'Tennis', 7.3, 'Ball & Rückschlag'),
+  A('padel', 'Padel', 6.5, 'Ball & Rückschlag'),
+  A('badminton', 'Badminton', 5.5, 'Ball & Rückschlag'),
+  A('squash', 'Squash', 9.0, 'Ball & Rückschlag'),
+  A('tischtennis', 'Tischtennis', 4.0, 'Ball & Rückschlag'),
+  A('eishockey', 'Eishockey / Unihockey', 8.0, 'Ball & Rückschlag'),
+  A('golf', 'Golf (zu Fuß)', 4.8, 'Ball & Rückschlag'),
+  // Kampf & Tanz
+  A('boxen', 'Boxen (Sack / Pratzen)', 7.8, 'Kampf & Tanz'),
+  A('kickboxen', 'Kickboxen / Muay Thai', 9.0, 'Kampf & Tanz'),
+  A('judo', 'Judo / BJJ / Ringen', 10.0, 'Kampf & Tanz'),
+  A('karate', 'Karate / Taekwondo', 10.0, 'Kampf & Tanz'),
+  A('tanzen', 'Tanzen (Zumba, Hip-Hop)', 6.5, 'Kampf & Tanz'),
+  A('yoga_power', 'Power Yoga / Vinyasa', 4.0, 'Kampf & Tanz'),
+  A('pilates', 'Pilates', 3.0, 'Kampf & Tanz'),
+  // Alltag & Outdoor
+  A('inline', 'Inlineskaten', 7.5, 'Alltag & Outdoor'),
+  A('skateboard', 'Skateboard / Longboard', 5.0, 'Alltag & Outdoor'),
+  A('reiten', 'Reiten', 5.5, 'Alltag & Outdoor'),
+  A('gartenarbeit', 'Gartenarbeit (schwer)', 4.0, 'Alltag & Outdoor'),
+  A('trampolin', 'Trampolin', 3.5, 'Alltag & Outdoor'),
+  A('ruckmarsch', 'Rucking (Gehen mit Gewicht)', 6.5, 'Alltag & Outdoor'),
 ];
 
 export const ACTIVITY_BY_ID = Object.fromEntries(CARDIO_ACTIVITIES.map((a) => [a.id, a]));
@@ -92,6 +161,8 @@ export function buildCardioPlan(profile) {
 }
 
 export function cardioKcal(activityId, minutes, weightKg) {
-  const a = ACTIVITY_BY_ID[activityId] || CARDIO_ACTIVITIES[1];
-  return Math.round(a.kcalPerKgMin * weightKg * minutes);
+  const a = ACTIVITY_BY_ID[activityId] || ACTIVITY_BY_ID.walken;
+  return Math.round(((a.met * 3.5 * weightKg) / 200) * minutes);
 }
+
+export const CARDIO_GROUPS = [...new Set(CARDIO_ACTIVITIES.map((a) => a.group))];

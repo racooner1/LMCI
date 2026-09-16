@@ -1,27 +1,30 @@
-// Trainings-Logging: Sätze eintragen, Pausentimer, Feedback, Autoregulation.
+// Trainings-Logging: Sätze eintragen, Aufwärmsätze, Pausentimer, Kurz-/Leichtversion, Feedback, Autoregulation.
 import { html, raw, esc, toast, openModal, closeModal, confirmDialog, num, fmtMin } from './dom.js';
 import * as store from '../state.js';
-import { planWeek, effectiveSets, rirForWeek, alternativesFor } from '../engine/plan.js';
-import { suggestNext, volumeDeltaFromFeedback, feedbackMessage, plates, incrementFor } from '../engine/progression.js';
+import { planWeek, effectiveSets, rirForWeek, alternativesFor, shortenDay, warmupSets, availableExercises } from '../engine/plan.js';
+import { suggestNext, muscleDeltasFromFeedback, plates, incrementFor } from '../engine/progression.js';
 import { historyFor, newRecords, totalSets, totalTonnage } from '../engine/analytics.js';
+import { readinessScore } from '../engine/recovery.js';
 import { getExercise } from '../data/exercises.js';
 import { MUSCLE_BY_ID } from '../data/muscles.js';
 import { toISODate, uid, clamp } from '../engine/util.js';
+import { openExerciseInfo } from './uebungen.js';
 
 let timer = { end: 0, total: 0, handle: null };
 
 export function renderWorkout(root, dayId) {
   const s = store.get();
   const { plan } = s;
-  const day = plan.days.find((d) => d.id === dayId);
+  const free = dayId === 'frei';
+  const day = free ? { id: 'frei', name: 'Freies Training', exercises: [] } : plan.days.find((d) => d.id === dayId);
   if (!day) {
     location.hash = '#/heute';
     return;
   }
   if (!s.activeWorkout || s.activeWorkout.dayId !== dayId) {
     if (s.activeWorkout && s.activeWorkout.entries.some((e) => e.sets.some((x) => x.done))) {
-      // Es läuft bereits ein anderes Training mit Daten – erst entscheiden.
-      confirmDialog(`Es läuft bereits „${plan.days.find((d) => d.id === s.activeWorkout.dayId)?.name}“. Verwerfen und „${day.name}“ starten?`, { ok: 'Verwerfen & starten', danger: true }).then((ok) => {
+      const runningName = s.activeWorkout.dayId === 'frei' ? 'Freies Training' : plan.days.find((d) => d.id === s.activeWorkout.dayId)?.name;
+      confirmDialog(`Es läuft bereits „${runningName}“. Verwerfen und „${day.name}“ starten?`, { ok: 'Verwerfen & starten', danger: true }).then((ok) => {
         if (ok) {
           store.update((st) => (st.activeWorkout = buildWorkout(st, day)));
           renderWorkout(root, dayId);
@@ -33,17 +36,26 @@ export function renderWorkout(root, dayId) {
   }
   const aw = store.get().activeWorkout;
   const week = aw.week;
-  const rir = rirForWeek(plan, week);
+  const rir = rirForWeek(plan, week) + (aw.mode === 'leicht' ? 1 : 0);
   const deload = week === plan.deloadWeek;
+  const today = toISODate();
+  const checkin = s.checkins.find((c) => c.date === today);
+  const readiness = readinessScore(checkin);
 
   root.innerHTML = String(html`
     <section class="page workout">
       <header class="page-head">
-        <div><h1>${day.name}</h1><p class="muted">Woche ${week} · ${rir} Wdh. in Reserve${deload ? ' · Deload' : ''} · begonnen ${aw.startedAt.slice(11, 16)}</p></div>
+        <div><h1>${day.name}</h1><p class="muted">Woche ${week} · ${rir} Wdh. in Reserve${deload ? ' · Deload' : ''}${aw.mode === 'leicht' ? ' · leichte Version' : ''}${aw.shortMinutes ? ` · Kurzversion ${aw.shortMinutes} min` : ''} · begonnen ${aw.startedAt.slice(11, 16)}</p></div>
         <button class="btn btn-small" data-act="abort">Abbrechen</button>
       </header>
-      <div class="note small">Aufwärmen: 5 min locker, dann 2–3 leichte Sätze der ersten Übung (40 / 60 / 80 %). Erst dann die Arbeitssätze eintragen.</div>
-      ${aw.entries.map((e, ei) => renderEntry(e, ei, s, plan, rir, deload))}
+      ${!free && !aw.entries.some((e) => e.sets.some((x) => x.done)) ? html`<div class="row gap wrap options">
+        <button class="btn btn-small ${aw.shortMinutes ? 'active' : ''}" data-act="short">Wenig Zeit? Kurzversion</button>
+        <button class="btn btn-small ${aw.mode === 'leicht' ? 'active' : ''}" data-act="light">${aw.mode === 'leicht' ? 'Normale Version' : 'Leichte Version'}</button>
+        ${readiness && readiness.level === 'niedrig' && aw.mode !== 'leicht' ? html`<span class="muted small">Check-in: niedrige Bereitschaft – leichte Version empfohlen.</span>` : ''}
+      </div>` : ''}
+      <div class="note small">Aufwärmen: 5 min locker, dann die Aufwärmsätze der ersten Übung. Arbeitssätze abhaken – der Pausentimer startet automatisch.</div>
+      ${aw.entries.map((e, ei) => renderEntry(e, ei, s, plan, rir, deload, aw.entries.length))}
+      ${aw.entries.length === 0 ? html`<div class="card"><p class="muted">Noch keine Übung. Füge Übungen hinzu – Vorschläge und Historie kommen automatisch.</p></div>` : ''}
       <div class="row gap wrap">
         <button class="btn" data-act="add-ex">Übung hinzufügen</button>
         <button class="btn btn-primary btn-big" data-act="finish">Training abschließen</button>
@@ -54,13 +66,17 @@ export function renderWorkout(root, dayId) {
       <div class="rest-content"><span class="rest-label">Pause</span><span class="rest-time">0:00</span><button class="btn btn-small" data-act="rest-add">+30 s</button><button class="btn btn-small" data-act="rest-skip">Weiter</button></div>
     </div>`);
 
-  // Eingaben ohne Re-Render speichern (Fokus bleibt erhalten).
+  bind(root, dayId);
+  if (timer.end > Date.now()) tickRest();
+}
+
+function bind(root, dayId) {
   root.querySelectorAll('input[data-field]').forEach((inp) => {
     inp.addEventListener('input', () => {
       const { ei, si, field } = inp.dataset;
       store.update((st) => {
         const set = st.activeWorkout.entries[ei].sets[si];
-        set[field] = field === 'rir' ? (inp.value === '' ? null : num(inp.value)) : num(inp.value, null);
+        set[field] = num(inp.value, null);
       }, { silent: true });
     });
   });
@@ -74,11 +90,11 @@ export function renderWorkout(root, dayId) {
     btn.addEventListener('click', () => {
       const { ei, si } = btn.dataset;
       let startRest = false;
+      let ok = true;
       store.update((st) => {
         const e = st.activeWorkout.entries[ei];
         const set = e.sets[si];
         if (!set.done) {
-          // Leere Felder aus dem Vorschlag übernehmen
           const row = btn.closest('.set-row');
           const w = row.querySelector('[data-field="weight"]');
           const r = row.querySelector('[data-field="reps"]');
@@ -87,13 +103,14 @@ export function renderWorkout(root, dayId) {
           set.weight = w ? num(w.value, 0) : 0;
           set.reps = num(r.value, 0);
           if (!set.reps) {
-            toast('Bitte Wiederholungen eintragen.', 'warn');
+            ok = false;
             return;
           }
           set.done = true;
           startRest = true;
         } else set.done = false;
       }, { silent: true });
+      if (!ok) return toast('Bitte Wiederholungen eintragen.', 'warn');
       const set = store.get().activeWorkout.entries[ei].sets[si];
       btn.closest('.set-row').classList.toggle('done', !!set.done);
       btn.textContent = set.done ? '✓' : '○';
@@ -101,35 +118,64 @@ export function renderWorkout(root, dayId) {
       if (startRest && store.get().settings.restTimer) startRestTimer(store.get().activeWorkout.entries[ei].restSec);
     });
   });
+  const rerender = () => renderWorkout(root, dayId);
   root.querySelectorAll('[data-act="add-set"]').forEach((b) => b.addEventListener('click', () => {
     store.update((st) => {
       const e = st.activeWorkout.entries[b.dataset.ei];
       const last = e.sets[e.sets.length - 1];
       e.sets.push({ weight: last?.weight ?? null, reps: null, rir: null, done: false });
     }, { silent: true });
-    renderWorkout(root, dayId);
+    rerender();
   }));
   root.querySelectorAll('[data-act="remove-set"]').forEach((b) => b.addEventListener('click', () => {
     store.update((st) => {
       const e = st.activeWorkout.entries[b.dataset.ei];
       if (e.sets.length > 1) e.sets.pop();
     }, { silent: true });
-    renderWorkout(root, dayId);
+    rerender();
+  }));
+  root.querySelectorAll('[data-act="move"]').forEach((b) => b.addEventListener('click', () => {
+    const ei = Number(b.dataset.ei);
+    const dir = Number(b.dataset.dir);
+    store.update((st) => {
+      const arr = st.activeWorkout.entries;
+      const j = ei + dir;
+      if (j < 0 || j >= arr.length) return;
+      [arr[ei], arr[j]] = [arr[j], arr[ei]];
+    }, { silent: true });
+    rerender();
   }));
   root.querySelectorAll('[data-act="swap"]').forEach((b) => b.addEventListener('click', () => openSwap(root, dayId, Number(b.dataset.ei))));
   root.querySelectorAll('[data-act="remove-ex"]').forEach((b) => b.addEventListener('click', async () => {
     if (await confirmDialog('Übung aus diesem Training entfernen?')) {
       store.update((st) => st.activeWorkout.entries.splice(Number(b.dataset.ei), 1), { silent: true });
-      renderWorkout(root, dayId);
+      rerender();
     }
   }));
   root.querySelectorAll('[data-act="plates"]').forEach((b) => b.addEventListener('click', () => openPlates(Number(b.dataset.ei))));
   root.querySelectorAll('[data-act="note"]').forEach((b) => b.addEventListener('click', () => openNote(root, dayId, Number(b.dataset.ei))));
-  root.querySelectorAll('[data-act="cue"]').forEach((b) => b.addEventListener('click', () => {
-    const ex = getExercise(b.dataset.ex);
-    openModal(`<p class="cue">${esc(ex.cue || 'Keine Hinweise hinterlegt.')}</p>`, { title: ex.name });
+  root.querySelectorAll('[data-act="info"]').forEach((b) => b.addEventListener('click', () => openExerciseInfo(b.dataset.ex)));
+  root.querySelectorAll('[data-act="warmup-toggle"]').forEach((b) => b.addEventListener('click', () => {
+    const box = b.closest('.ex-card').querySelector('.warmup-list');
+    box.hidden = !box.hidden;
+    b.textContent = box.hidden ? 'Aufwärmsätze anzeigen' : 'Aufwärmsätze ausblenden';
   }));
   root.querySelector('[data-act="add-ex"]').addEventListener('click', () => openAddExercise(root, dayId));
+  root.querySelector('[data-act="short"]')?.addEventListener('click', () => openShort(root, dayId));
+  root.querySelector('[data-act="light"]')?.addEventListener('click', () => {
+    store.update((st) => {
+      const aw = st.activeWorkout;
+      const toLight = aw.mode !== 'leicht';
+      aw.mode = toLight ? 'leicht' : 'normal';
+      for (const e of aw.entries) {
+        const target = Math.max(1, e.baseSets + (toLight ? -1 : 0));
+        while (e.sets.length > target) e.sets.pop();
+        while (e.sets.length < target) e.sets.push({ weight: e.sets[0]?.weight ?? null, reps: null, rir: null, done: false });
+      }
+    }, { silent: true });
+    toast(store.get().activeWorkout.mode === 'leicht' ? 'Leichte Version: ein Satz weniger, eine Wiederholung mehr in Reserve.' : 'Normale Version.');
+    rerender();
+  });
   root.querySelector('[data-act="abort"]').addEventListener('click', async () => {
     if (await confirmDialog('Training abbrechen? Eingetragene Sätze gehen verloren.', { ok: 'Abbrechen & verwerfen', danger: true })) {
       stopRestTimer();
@@ -143,37 +189,53 @@ export function renderWorkout(root, dayId) {
     timer.end += 30000;
     timer.total += 30000;
   });
-  if (timer.end > Date.now()) tickRest();
+}
+
+function makeEntry(st, pe, sets, week, deload, rir, warmLevel) {
+  const ex = getExercise(pe.exId);
+  const sug = suggestNext(pe, historyFor(st.workouts, pe.exId), rir, deload, { profile: st.profile, settings: st.settings });
+  return {
+    exId: pe.exId,
+    muscle: pe.muscle || ex.primary[0],
+    repMin: pe.repMin,
+    repMax: pe.repMax,
+    restSec: pe.restSec,
+    main: !!pe.main,
+    baseSets: sets,
+    suggestion: sug,
+    warmup: warmLevel ? warmupSets(ex, sug.weight, st.settings.barWeight, warmLevel) : [],
+    note: '',
+    sets: Array.from({ length: sets }, () => ({ weight: sug.weight, reps: null, rir: null, done: false })),
+  };
 }
 
 function buildWorkout(st, day) {
   const week = planWeek(st.plan);
   const deload = week === st.plan.deloadWeek;
   const rir = rirForWeek(st.plan, week);
+  let firstHeavy = true;
   return {
     id: uid(),
     planId: st.plan.id,
     dayId: day.id,
     week,
+    mode: 'normal',
+    shortMinutes: null,
     date: toISODate(),
     startedAt: new Date().toISOString(),
     entries: day.exercises.map((pe) => {
-      const n = effectiveSets(st.plan, day, pe, week);
-      const sug = suggestNext(pe, historyFor(st.workouts, pe.exId), rir, deload);
-      return {
-        exId: pe.exId,
-        repMin: pe.repMin,
-        repMax: pe.repMax,
-        restSec: pe.restSec,
-        suggestion: sug,
-        note: '',
-        sets: Array.from({ length: n }, () => ({ weight: sug.weight, reps: null, rir: null, done: false })),
-      };
+      const ex = getExercise(pe.exId);
+      let level = null;
+      if (ex.tier === 1 && !deload) {
+        level = firstHeavy ? 'voll' : 'kurz';
+        firstHeavy = false;
+      } else if (ex.tier === 1) level = 'kurz';
+      return makeEntry(st, pe, effectiveSets(st.plan, day, pe, week), week, deload, rir, level);
     }),
   };
 }
 
-function renderEntry(e, ei, s, plan, rir, deload) {
+function renderEntry(e, ei, s, plan, rir, deload, count) {
   const ex = getExercise(e.exId);
   const loadable = !['bw', 'time', 'band'].includes(ex.load);
   const sug = e.suggestion || {};
@@ -185,14 +247,18 @@ function renderEntry(e, ei, s, plan, rir, deload) {
         <div class="muted small">${ex.primary.map((m) => MUSCLE_BY_ID[m].short).join(', ')} · Ziel ${e.sets.length} × ${e.repMin}–${e.repMax} ${unit} · ${rir} RIR · Pause ${Math.round(e.restSec / 60 * 10) / 10} min</div>
       </div>
       <div class="row gap-s">
-        ${ex.cue ? html`<button class="btn-icon" data-act="cue" data-ex="${ex.id}" title="Technik" aria-label="Technik-Hinweise">i</button>` : ''}
+        <button class="btn-icon" data-act="move" data-ei="${ei}" data-dir="-1" title="Nach oben" aria-label="Nach oben" ${ei === 0 ? 'disabled' : ''}>↑</button>
+        <button class="btn-icon" data-act="move" data-ei="${ei}" data-dir="1" title="Nach unten" aria-label="Nach unten" ${ei === count - 1 ? 'disabled' : ''}>↓</button>
+        <button class="btn-icon" data-act="info" data-ex="${ex.id}" title="Info" aria-label="Übungsinfo">i</button>
         ${ex.load === 'barbell' ? html`<button class="btn-icon" data-act="plates" data-ei="${ei}" title="Scheiben" aria-label="Scheibenrechner">⚖</button>` : ''}
         <button class="btn-icon" data-act="note" data-ei="${ei}" title="Notiz" aria-label="Notiz">✎</button>
         <button class="btn-icon" data-act="swap" data-ei="${ei}" title="Tauschen" aria-label="Übung tauschen">⇄</button>
         <button class="btn-icon" data-act="remove-ex" data-ei="${ei}" title="Entfernen" aria-label="Übung entfernen">✕</button>
       </div>
     </div>
-    ${sug.note ? html`<div class="suggestion ${sug.kind}"><span>${sug.note}</span>${sug.prev ? html`<span class="muted">Letztes Mal: ${sug.prev}</span>` : ''}</div>` : ''}
+    ${sug.note ? html`<div class="suggestion ${sug.kind}">${sug.estimated ? html`<span class="badge">Schätzung</span>` : ''}<span>${sug.note}</span>${sug.prev ? html`<span class="muted">Letztes Mal: ${sug.prev}</span>` : ''}</div>` : ''}
+    ${e.warmup?.length ? html`<button class="link small muted" data-act="warmup-toggle">Aufwärmsätze anzeigen</button>
+      <div class="warmup-list" hidden>${e.warmup.map((w, i) => html`<div class="warmup-row"><span>Aufwärmen ${i + 1}</span><span>${w.weight ? `${w.weight} kg × ${w.reps}` : `${w.reps} × ${w.note || 'leicht'}`}</span>${w.note && w.weight ? html`<span class="muted small">${w.note}</span>` : ''}</div>`)}</div>` : ''}
     ${e.note ? html`<div class="muted small">Notiz: ${e.note}</div>` : ''}
     <div class="set-table">
       <div class="set-head"><span>Satz</span>${loadable || ex.load === 'bw' ? html`<span>${ex.load === 'bw' ? '+kg' : 'kg'}</span>` : html`<span></span>`}<span>${unit}</span><span>RIR</span><span></span></div>
@@ -262,43 +328,85 @@ function notifyRestDone() {
 }
 
 // ---------------- Dialoge
-function openSwap(root, dayId, ei) {
-  const s = store.get();
-  const e = s.activeWorkout.entries[ei];
-  const alts = alternativesFor(e.exId, s.profile).slice(0, 10);
+function openShort(root, dayId) {
   const m = openModal(
-    `${alts.length ? `<ul class="list tappable">${alts.map((a) => `<li><button class="link" data-alt="${a.id}"><strong>${esc(a.name)}</strong><div class="muted small">${esc(a.en)}</div></button></li>`).join('')}</ul>` : '<p class="muted">Keine Alternative mit deiner Ausrüstung.</p>'}
-     <label class="chip"><input type="checkbox" id="swap-perm"><span>Auch dauerhaft im Plan ersetzen</span></label>`,
-    { title: 'Übung tauschen' },
+    `<p class="small">Wie viel Zeit hast du? Hauptübungen bleiben, optionale Übungen und Sätze werden gekürzt.</p>
+     <div class="row gap wrap">${[20, 30, 45].map((n) => `<button class="btn" data-min="${n}">${n} min</button>`).join('')}<button class="btn btn-ghost" data-min="0">Volle Einheit</button></div>`,
+    { title: 'Kurzversion' },
   );
-  m.querySelectorAll('[data-alt]').forEach((b) => b.addEventListener('click', () => {
-    const perm = m.querySelector('#swap-perm').checked;
-    const newId = b.dataset.alt;
+  m.querySelectorAll('[data-min]').forEach((b) => b.addEventListener('click', () => {
+    const minutes = Number(b.dataset.min);
     store.update((st) => {
-      const entry = st.activeWorkout.entries[ei];
-      const week = st.activeWorkout.week;
-      const pe = { exId: newId, repMin: entry.repMin, repMax: entry.repMax };
-      entry.exId = newId;
-      entry.suggestion = suggestNext(pe, historyFor(st.workouts, newId), rirForWeek(st.plan, week), week === st.plan.deloadWeek);
-      entry.sets = entry.sets.map((x) => ({ ...x, weight: x.done ? x.weight : entry.suggestion.weight }));
-      if (perm) {
-        const d = st.plan.days.find((x) => x.id === dayId);
-        const ppe = d?.exercises.find((x) => x.exId === e.exId);
-        if (ppe) ppe.exId = newId;
+      const day = st.plan.days.find((d) => d.id === dayId);
+      const aw = st.activeWorkout;
+      const week = aw.week;
+      const deload = week === st.plan.deloadWeek;
+      const rir = rirForWeek(st.plan, week) + (aw.mode === 'leicht' ? 1 : 0);
+      let list;
+      if (minutes) {
+        list = shortenDay(st.plan, day, week, minutes, st.profile).exercises;
+        aw.shortMinutes = minutes;
+      } else {
+        list = day.exercises.map((pe) => ({ ...pe, sets: effectiveSets(st.plan, day, pe, week) }));
+        aw.shortMinutes = null;
       }
+      let firstHeavy = true;
+      aw.entries = list.map((pe) => {
+        const ex = getExercise(pe.exId);
+        let level = null;
+        if (ex.tier === 1) {
+          level = firstHeavy && !deload ? 'voll' : 'kurz';
+          firstHeavy = false;
+        }
+        // Kurzversion ist bereits reduziert – „leicht“ senkt dann nur noch die Intensität (RIR), nicht die Sätze.
+        const sets = Math.max(1, pe.sets - (aw.mode === 'leicht' && !minutes ? 1 : 0));
+        return makeEntry(st, pe, sets, week, deload, rir, level);
+      });
     }, { silent: true });
     closeModal();
     renderWorkout(root, dayId);
   }));
 }
 
+function openSwap(root, dayId, ei) {
+  const s = store.get();
+  const e = s.activeWorkout.entries[ei];
+  const m = openExerciseInfo(e.exId, {
+    pickLabel: 'Tauschen gegen',
+    onPick: (newId) => {
+      const perm = m.querySelector('#swap-perm')?.checked;
+      store.update((st) => {
+        const entry = st.activeWorkout.entries[ei];
+        const week = st.activeWorkout.week;
+        const pe = { exId: newId, repMin: entry.repMin, repMax: entry.repMax };
+        entry.exId = newId;
+        entry.suggestion = suggestNext(pe, historyFor(st.workouts, newId), rirForWeek(st.plan, week), week === st.plan.deloadWeek, { profile: st.profile, settings: st.settings });
+        entry.warmup = entry.warmup?.length ? warmupSets(getExercise(newId), entry.suggestion.weight, st.settings.barWeight, 'kurz') : [];
+        entry.sets = entry.sets.map((x) => ({ ...x, weight: x.done ? x.weight : entry.suggestion.weight }));
+        if (perm && dayId !== 'frei') {
+          const d = st.plan.days.find((x) => x.id === dayId);
+          const ppe = d?.exercises.find((x) => x.exId === e.exId);
+          if (ppe) ppe.exId = newId;
+        }
+      }, { silent: true });
+      closeModal();
+      renderWorkout(root, dayId);
+    },
+  });
+  if (m && dayId !== 'frei') {
+    const box = document.createElement('label');
+    box.className = 'chip';
+    box.innerHTML = '<input type="checkbox" id="swap-perm"><span>Auch dauerhaft im Plan ersetzen</span>';
+    m.querySelector('.modal-body').appendChild(box);
+  }
+}
+
 function openAddExercise(root, dayId) {
   const s = store.get();
-  const { availableExercises } = window.__lmci;
   const pool = availableExercises(s.profile).filter((x) => !s.activeWorkout.entries.some((e) => e.exId === x.id));
   const m = openModal(
     `<input id="add-search" class="search" placeholder="Suchen…" aria-label="Übung suchen">
-     <ul class="list tappable" id="add-list">${pool.map((a) => `<li data-name="${esc(a.name.toLowerCase())}"><button class="link" data-add="${a.id}"><strong>${esc(a.name)}</strong><div class="muted small">${a.primary.map((x) => MUSCLE_BY_ID[x].short).join(', ')}</div></button></li>`).join('')}</ul>`,
+     <ul class="list tappable" id="add-list">${pool.map((a) => `<li data-name="${esc((a.name + ' ' + a.en).toLowerCase())}"><button class="link" data-add="${a.id}"><strong>${esc(a.name)}</strong><div class="muted small">${a.primary.map((x) => MUSCLE_BY_ID[x].short).join(', ')}</div></button></li>`).join('')}</ul>`,
     { title: 'Übung hinzufügen' },
   );
   m.querySelector('#add-search').addEventListener('input', (ev) => {
@@ -309,9 +417,10 @@ function openAddExercise(root, dayId) {
     store.update((st) => {
       const ex = getExercise(b.dataset.add);
       const week = st.activeWorkout.week;
-      const pe = { exId: ex.id, repMin: ex.tier === 3 ? 10 : 8, repMax: ex.tier === 3 ? 15 : 12 };
-      const sug = suggestNext(pe, historyFor(st.workouts, ex.id), rirForWeek(st.plan, week), week === st.plan.deloadWeek);
-      st.activeWorkout.entries.push({ exId: ex.id, repMin: pe.repMin, repMax: pe.repMax, restSec: ex.tier === 1 ? 150 : ex.tier === 2 ? 105 : 75, suggestion: sug, note: '', sets: [1, 2, 3].map(() => ({ weight: sug.weight, reps: null, rir: null, done: false })) });
+      const deload = week === st.plan.deloadWeek;
+      const rir = rirForWeek(st.plan, week);
+      const pe = { exId: ex.id, muscle: ex.primary[0], repMin: ex.tier === 3 ? 10 : 8, repMax: ex.tier === 3 ? 15 : 12, restSec: ex.tier === 1 ? 150 : ex.tier === 2 ? 105 : 75, main: false };
+      st.activeWorkout.entries.push(makeEntry(st, pe, 3, week, deload, rir, ex.tier === 1 ? 'kurz' : null));
     }, { silent: true });
     closeModal();
     renderWorkout(root, dayId);
@@ -357,14 +466,20 @@ function finishWorkout(root) {
     .map((e) => ({ exId: e.exId, note: e.note, sets: e.sets.filter((x) => x.done && x.reps > 0).map((x) => ({ weight: x.weight || 0, reps: x.reps, rir: x.rir })) }))
     .filter((e) => e.sets.length);
   if (!entries.length) return toast('Noch kein Satz abgehakt.', 'warn');
+  const trained = [...new Set(entries.flatMap((e) => getExercise(e.exId)?.primary || []))];
+  const today = toISODate();
+  const checkin = s.checkins.find((c) => c.date === today);
+  const preSore = new Set(checkin?.sore || []);
   const m = openModal(
     `<form id="fb-form" class="form">
       <label class="field"><span>Wie anstrengend war die Einheit insgesamt? <strong id="rpe-val">8</strong>/10</span><input type="range" id="fb-rpe" name="rpe" min="5" max="10" step="0.5" value="8"></label>
-      <fieldset class="field"><legend>Muskelkater / Erholung vor dieser Einheit</legend>
-        <div class="chips">${[['keine', 'Voll erholt'], ['leicht', 'Leichter Muskelkater'], ['stark', 'Deutlicher Muskelkater'], ['nicht_erholt', 'Noch nicht erholt']].map(([v, l], i) => `<label class="chip"><input type="radio" name="soreness" value="${v}" ${i === 0 ? 'checked' : ''}><span>${l}</span></label>`).join('')}</div></fieldset>
       <fieldset class="field"><legend>Leistung im Vergleich zum letzten Mal</legend>
         <div class="chips">${[['besser', 'Besser'], ['gleich', 'Gleich'], ['schlechter', 'Schlechter']].map(([v, l], i) => `<label class="chip"><input type="radio" name="performance" value="${v}" ${i === 1 ? 'checked' : ''}><span>${l}</span></label>`).join('')}</div></fieldset>
-      <p class="hint">Aus diesen Antworten passt LMCI das Volumen dieses Trainingstags an (Autoregulation).</p>
+      <fieldset class="field"><legend>Welche Muskeln waren vor der Einheit noch nicht erholt?</legend>
+        <div class="chips">${trained.map((mu) => `<label class="chip"><input type="checkbox" name="sore[]" value="${mu}" ${preSore.has(mu) ? 'checked' : ''}><span>${MUSCLE_BY_ID[mu].short}</span></label>`).join('')}</div></fieldset>
+      <fieldset class="field"><legend>Wo hättest du heute mehr vertragen?</legend>
+        <div class="chips">${trained.map((mu) => `<label class="chip"><input type="checkbox" name="more[]" value="${mu}"><span>${MUSCLE_BY_ID[mu].short}</span></label>`).join('')}</div></fieldset>
+      <p class="hint">Daraus passt LMCI das Volumen pro Muskel an: nicht erholt → ein Satz weniger, mehr vertragen → ein Satz mehr.</p>
       <div class="row end"><button class="btn btn-primary" type="submit">Speichern</button></div>
     </form>`,
     { title: 'Kurzes Feedback' },
@@ -373,16 +488,29 @@ function finishWorkout(root) {
   m.querySelector('#fb-form').addEventListener('submit', (ev) => {
     ev.preventDefault();
     const f = ev.target;
-    const feedback = { rpe: num(f.rpe.value), soreness: f.soreness.value, performance: f.performance.value };
-    const delta = volumeDeltaFromFeedback(feedback);
-    const workout = { id: aw.id, planId: aw.planId, dayId: aw.dayId, week: aw.week, date: aw.date, startedAt: aw.startedAt, finishedAt: new Date().toISOString(), entries, feedback };
+    const feedback = {
+      rpe: num(f.rpe.value),
+      performance: f.performance.value,
+      sore: [...m.querySelectorAll('input[name="sore[]"]:checked')].map((x) => x.value),
+      more: [...m.querySelectorAll('input[name="more[]"]:checked')].map((x) => x.value),
+    };
+    const deltas = aw.dayId === 'frei' ? {} : muscleDeltasFromFeedback(feedback, trained);
+    const workout = { id: aw.id, planId: aw.planId, dayId: aw.dayId, week: aw.week, date: aw.date, startedAt: aw.startedAt, finishedAt: new Date().toISOString(), mode: aw.mode, entries, feedback };
     const records = newRecords(workout, s.workouts);
     stopRestTimer();
+    let applied = [];
     store.update((st) => {
       st.workouts.push(workout);
       st.activeWorkout = null;
       if (aw.week !== st.plan.deloadWeek && st.plan.id === aw.planId) {
-        st.plan.volumeAdjust[aw.dayId] = clamp((st.plan.volumeAdjust[aw.dayId] || 0) + delta, -2, 2);
+        st.plan.muscleAdjust ||= {};
+        for (const [mu, d] of Object.entries(deltas)) {
+          if (!d) continue;
+          const before = st.plan.muscleAdjust[mu] || 0;
+          const after = clamp(before + d, -2, 2);
+          if (after !== before) applied.push(`${MUSCLE_BY_ID[mu].short} ${d > 0 ? '+1' : '−1'}`);
+          st.plan.muscleAdjust[mu] = after;
+        }
       }
     });
     closeModal();
@@ -394,7 +522,7 @@ function finishWorkout(root) {
         <div class="stat"><span class="stat-num">${mins}</span><span class="stat-unit">min</span></div>
       </div>
       ${records.length ? `<h3>Neue Bestleistungen</h3><ul class="bullets">${records.map((r) => `<li>${esc(r.name)}: ${r.e1rm ? `geschätztes 1RM ${r.e1rm} kg` : `${r.reps} Wiederholungen`}</li>`).join('')}</ul>` : ''}
-      <p class="${delta ? 'note' : 'muted'}">${esc(feedbackMessage(aw.week === s.plan.deloadWeek ? 0 : delta))}</p>
+      <p class="${applied.length ? 'note' : 'muted'}">${applied.length ? `Volumen angepasst (Sätze pro Übung): ${esc(applied.join(', '))}.` : 'Volumen bleibt – passt.'}</p>
       <div class="row end"><a class="btn btn-primary" href="#/heute" data-close-modal>Fertig</a></div>`,
       { title: 'Stark – Training gespeichert' },
     ));

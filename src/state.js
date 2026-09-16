@@ -12,6 +12,7 @@ const EMPTY = () => ({
   workouts: [],
   cardioLogs: [],
   bodyLogs: [],
+  checkins: [],
   activeWorkout: null,
   settings: { barWeight: 20, plates: [25, 20, 15, 10, 5, 2.5, 1.25], restTimer: true, sound: true },
   meta: { createdAt: toISODate(), lastOpened: toISODate() },
@@ -59,6 +60,9 @@ function migrate(s) {
   if (!Array.isArray(s.cardioLogs)) s.cardioLogs = [];
   if (!Array.isArray(s.bodyLogs)) s.bodyLogs = [];
   if (!Array.isArray(s.workouts)) s.workouts = [];
+  if (!Array.isArray(s.checkins)) s.checkins = [];
+  if (s.plan && !s.plan.muscleAdjust) s.plan.muscleAdjust = {};
+  for (const d of s.plan?.days || []) for (const pe of d.exercises) if (pe.tier == null) pe.tier = 1;
   s.schema = SCHEMA;
   return s;
 }

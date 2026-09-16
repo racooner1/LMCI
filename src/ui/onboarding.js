@@ -1,7 +1,7 @@
 // Onboarding: 5 Schritte → Profil → Plan.
 import { html, raw, formData, num, toast } from './dom.js';
 import { GOALS, EXPERIENCE, generatePlan } from '../engine/plan.js';
-import { defaultCardioSessions, CARDIO_ACTIVITIES } from '../engine/cardio.js';
+import { defaultCardioSessions, CARDIO_ACTIVITIES, CARDIO_GROUPS } from '../engine/cardio.js';
 import { ACTIVITY_LEVELS } from '../engine/nutrition.js';
 import { LIMITATIONS, GEAR, PRIORITY_OPTIONS, MUSCLE_BY_ID } from '../data/muscles.js';
 import { WEEKDAYS_LONG } from '../engine/util.js';
@@ -216,7 +216,8 @@ function renderStep(i, d) {
     <label class="field"><span>Cardio-Einheiten pro Woche</span>
       <select id="f-cardioSessions" name="cardioSessions">${[0, 1, 2, 3, 4, 5].map((n) => html`<option value="${n}" ${(d.cardioSessions ?? 2) === n ? 'selected' : ''}>${n === 0 ? 'Kein Cardio' : `${n} Einheit${n > 1 ? 'en' : ''}`}</option>`)}</select></label>
     <h3>Welche Aktivitäten magst du?</h3>
-    <div class="chips">${checkChips('cardio', CARDIO_ACTIVITIES.map((a) => [a.id, a.name]), d.cardio || [])}</div>
+    <p class="muted small">Mehrfachauswahl. Die erste Gruppe ist geöffnet, die anderen aufklappen.</p>
+    ${CARDIO_GROUPS.map((g, i) => html`<details class="group" ${i === 0 || CARDIO_ACTIVITIES.some((a) => a.group === g && (d.cardio || []).includes(a.id)) ? 'open' : ''}><summary>${g} <span class="muted small">(${CARDIO_ACTIVITIES.filter((a) => a.group === g).length})</span></summary><div class="chips">${checkChips('cardio', CARDIO_ACTIVITIES.filter((a) => a.group === g).map((a) => [a.id, a.name]), d.cardio || [])}</div></details>`)}
     <h3>Muskelgruppen mit Vorrang <span class="muted">(max. 2, optional)</span></h3>
     <div class="chips">${checkChips('priorities', PRIORITY_OPTIONS.map((m) => [m, MUSCLE_BY_ID[m].short]), d.priorities || [])}</div>
     <p class="hint">Vorrang bedeutet ca. 30 % mehr Sätze für diese Muskeln, der Rest wird leicht reduziert.</p>`;

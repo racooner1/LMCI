@@ -15,7 +15,7 @@ export function renderMehr(root) {
       <div class="card">
         <div class="card-title">Profil</div>
         <p>${p.name || 'Ohne Namen'} · ${p.age} Jahre · ${p.heightCm} cm · ${p.weightKg} kg<br><span class="muted">${GOALS[p.goal]?.name} · ${EXPERIENCE[p.experience]?.name} · ${p.strengthDays}× Kraft à ${p.sessionMinutes} min · ${p.cardioSessions ?? 0}× Cardio · ${p.equipment === 'gym' ? 'Studio' : 'Zuhause'}</span></p>
-        <a class="btn" href="#/onboarding/edit">Profil & Plan-Vorgaben ändern</a>
+        <div class="row gap wrap"><a class="btn" href="#/onboarding/edit">Profil & Plan-Vorgaben ändern</a><a class="btn" href="#/uebungen">Übungsbibliothek</a></div>
       </div>
 
       <div class="card">

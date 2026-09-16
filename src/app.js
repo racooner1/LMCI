@@ -7,6 +7,7 @@ import { renderWorkout } from './ui/workout.js';
 import { renderFortschritt } from './ui/fortschritt.js';
 import { renderErnaehrung } from './ui/ernaehrung.js';
 import { renderMehr } from './ui/mehr.js';
+import { renderUebungen } from './ui/uebungen.js';
 import { generatePlan, availableExercises } from './engine/plan.js';
 import { closeModal } from './ui/dom.js';
 
@@ -55,6 +56,9 @@ function route() {
       break;
     case 'mehr':
       renderMehr(root);
+      break;
+    case 'uebungen':
+      renderUebungen(root, arg);
       break;
     default:
       renderHeute(root);

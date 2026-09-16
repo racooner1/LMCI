@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { generatePlan, volumeTargets, availableExercises, planWeek, effectiveSets, alternativesFor, isMesoFinished } from '../src/engine/plan.js';
-import { suggestNext, plates, volumeDeltaFromFeedback } from '../src/engine/progression.js';
+import { generatePlan, volumeTargets, availableExercises, planWeek, effectiveSets, alternativesFor, isMesoFinished, estimateStartWeight, estimateStartReps, warmupSets, shortenDay, nextSession, dayDuration } from '../src/engine/plan.js';
+import { suggestNext, plates, volumeDeltaFromFeedback, muscleDeltasFromFeedback } from '../src/engine/progression.js';
+import { readinessScore, readinessAdvice } from '../src/engine/recovery.js';
 import { computeNutrition, weightTrend, trendAdvice, bmrMifflin } from '../src/engine/nutrition.js';
 import { heartRateZones, buildCardioPlan } from '../src/engine/cardio.js';
 import { weeklyVolume, personalRecords, newRecords, historyFor } from '../src/engine/analytics.js';
@@ -98,7 +99,7 @@ test('Plan: Wochenlogik, Deload und Anpassung', () => {
   const pe = day.exercises[0];
   assert.equal(effectiveSets(plan, day, pe, 1), pe.sets);
   assert.equal(effectiveSets(plan, day, pe, 5), Math.ceil(pe.sets / 2));
-  plan.volumeAdjust[day.id] = 1;
+  plan.muscleAdjust[pe.muscle] = 1;
   assert.equal(effectiveSets(plan, day, pe, 2), pe.sets + 1);
   assert.ok(alternativesFor('bankdruecken_lh', base).length > 3);
 });
@@ -184,4 +185,58 @@ test('Analytics: Volumen, Rekorde, Historie', () => {
   assert.equal(newRecords(w2, [w1]).length, 1);
   assert.equal(historyFor([w2, w1], 'bankdruecken_lh').length, 2);
   assert.equal(historyFor([w2, w1], 'bankdruecken_lh')[0].date, '2026-09-14');
+});
+
+test('Startgewichte und Aufwärmsätze', () => {
+  const bench = getExercise('bankdruecken_lh');
+  const w = estimateStartWeight(bench, base, 6, 2, { barWeight: 20 });
+  assert.ok(w >= 50 && w <= 65, `bench ${w}`);
+  const wAnf = estimateStartWeight(bench, { ...base, experience: 'anfaenger' }, 8, 3, { barWeight: 20 });
+  assert.ok(wAnf < w && wAnf >= 20, `anf ${wAnf}`);
+  const wF = estimateStartWeight(bench, { ...base, sex: 'w', weightKg: 62 }, 6, 2, {});
+  assert.ok(wF < wAnf + 10 && wF >= 20, `w ${wF}`);
+  assert.equal(estimateStartWeight(getExercise('klimmzuege'), base, 6, 2), null);
+  assert.equal(estimateStartReps(getExercise('liegestuetze'), base), 15);
+  assert.equal(estimateStartReps(getExercise('liegestuetze'), { ...base, sex: 'w' }), 11);
+  const wu = warmupSets(bench, 80, 20, 'voll');
+  assert.ok(wu.length >= 3 && wu[0].weight === 20 && wu[wu.length - 1].weight < 80);
+  assert.equal(warmupSets(bench, 80, 20, 'kurz').length, 1);
+  assert.equal(warmupSets(getExercise('seitheben_kh'), 10, 20, 'voll').length, 1);
+  const s = suggestNext({ exId: 'bankdruecken_lh', repMin: 6, repMax: 10 }, [], 2, false, { profile: base, settings: { barWeight: 20 } });
+  assert.equal(s.kind, 'start');
+  assert.ok(s.estimated && s.weight > 20);
+  const sb = suggestNext({ exId: 'liegestuetze', repMin: 8, repMax: 12 }, [], 2, false, { profile: base });
+  assert.ok(sb.estimated && sb.reps >= 8 && sb.reps <= 12);
+});
+
+test('Kurzversion und nächste Einheit', () => {
+  const plan = generatePlan(base, { startDate: '2026-09-14' });
+  const day = plan.days[0];
+  const full = dayDuration(plan, day, 1, base);
+  const short = shortenDay(plan, day, 1, 30, base);
+  assert.ok(short.minutes <= 31, `short ${short.minutes}`);
+  assert.ok(short.exercises.length < day.exercises.length || short.exercises.reduce((a, e) => a + e.sets, 0) < day.exercises.reduce((a, e) => a + e.sets, 0));
+  assert.ok(short.exercises.some((e) => e.main));
+  assert.ok(full > short.minutes);
+  // Mo: Tag 1 heute; Di ohne Training → Tag 1 nachholen, wenn Mo verpasst
+  assert.equal(nextSession(plan, [], '2026-09-14').kind, 'heute');
+  const tue = nextSession(plan, [], '2026-09-16'); // Mittwoch, Plan 4 Tage: Mo Di Do Fr → Mi frei, Mo/Di verpasst
+  assert.equal(tue.kind, 'nachholen');
+  assert.equal(tue.day.id, 'd1');
+  const done = [{ id: 'x', planId: plan.id, dayId: 'd1', date: '2026-09-14', entries: [] }, { id: 'y', planId: plan.id, dayId: 'd2', date: '2026-09-15', entries: [] }];
+  assert.equal(nextSession(plan, done, '2026-09-16').kind, 'naechste');
+  assert.equal(nextSession(plan, done, '2026-09-14').kind, 'erledigt');
+});
+
+test('Autoregulation pro Muskel und Readiness', () => {
+  const d = muscleDeltasFromFeedback({ rpe: 8, performance: 'gleich', sore: ['brust'], more: ['ruecken'] }, ['brust', 'ruecken', 'schultern']);
+  assert.deepEqual(d, { brust: -1, ruecken: 1, schultern: 0 });
+  const d2 = muscleDeltasFromFeedback({ rpe: 10, performance: 'schlechter' }, ['brust']);
+  assert.equal(d2.brust, -1);
+  const r = readinessScore({ sleep: 8, sleepQuality: 5, stress: 1, energy: 5 });
+  assert.equal(r.level, 'gut');
+  const low = readinessScore({ sleep: 5, sleepQuality: 1, stress: 5, energy: 1 });
+  assert.equal(low.level, 'niedrig');
+  assert.equal(readinessAdvice(low).mode, 'leicht');
+  assert.equal(readinessAdvice(null).mode, 'normal');
 });

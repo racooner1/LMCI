@@ -1,7 +1,8 @@
 // Planansicht: Kraft-Tage, Volumen, Cardio, Mobilität.
 import { html, raw, openModal, closeModal, toast, confirmDialog } from './dom.js';
 import * as store from '../state.js';
-import { planWeek, effectiveSets, rirForWeek, alternativesFor, isMesoFinished, GOALS, EXPERIENCE } from '../engine/plan.js';
+import { planWeek, effectiveSets, rirForWeek, isMesoFinished, GOALS, EXPERIENCE, dayDuration } from '../engine/plan.js';
+import { openExerciseInfo } from './uebungen.js';
 import { getExercise } from '../data/exercises.js';
 import { MUSCLES, MUSCLE_BY_ID } from '../data/muscles.js';
 import { MOBILITY_BY_ID } from '../data/mobility.js';
@@ -41,6 +42,7 @@ export function renderPlan(root) {
       <div class="tab-panel">${raw(renderTab(tab, plan, profile, week))}</div>
 
       <div class="row gap wrap">
+        <a class="btn" href="#/uebungen">Übungsbibliothek</a>
         <a class="btn" href="#/onboarding/edit">Profil & Vorgaben ändern</a>
         <button class="btn btn-ghost" data-act="regen">Plan neu berechnen</button>
       </div>
@@ -71,7 +73,7 @@ function renderTab(t, plan, profile, week) {
   if (t === 'kraft') {
     return plan.days.map((d) => html`<div class="card day-card">
       <div class="row between">
-        <div><div class="card-title">${d.name}</div><div class="muted small">${d.weekday != null ? WEEKDAYS_LONG[d.weekday] : ''} · ca. ${d.minutes} min</div></div>
+        <div><div class="card-title">${d.name}</div><div class="muted small">${d.weekday != null ? WEEKDAYS_LONG[d.weekday] : ''} · ca. ${dayDuration(plan, d, week, profile)} min</div></div>
         <a class="btn btn-small" href="#/workout/${d.id}">Starten</a>
       </div>
       <table class="ex-table">
@@ -85,7 +87,7 @@ function renderTab(t, plan, profile, week) {
             <td class="num">${Math.round(pe.restSec / 60 * 10) / 10} min</td></tr>`;
         })}</tbody>
       </table>
-      ${plan.volumeAdjust?.[d.id] ? html`<div class="muted small">Autoregulation: ${plan.volumeAdjust[d.id] > 0 ? '+' : ''}${plan.volumeAdjust[d.id]} Satz pro Übung (aus deinem Feedback).</div>` : ''}
+      ${Object.entries(plan.muscleAdjust || {}).filter(([m, v]) => v && d.exercises.some((pe) => pe.muscle === m)).length ? html`<div class="muted small">Autoregulation: ${Object.entries(plan.muscleAdjust).filter(([m, v]) => v && d.exercises.some((pe) => pe.muscle === m)).map(([m, v]) => `${MUSCLE_BY_ID[m]?.short} ${v > 0 ? '+' : ''}${v}`).join(', ')} Satz/Übung (aus deinem Feedback).</div>` : ''}
     </div>`).map(String).join('') + `<div class="card"><div class="card-title">So liest du den Plan</div><ul class="bullets">
       <li><strong>Sätze × Wdh.</strong> – Arbeitssätze nach dem Aufwärmen. Erreichst du in allen Sätzen die obere Wiederholungszahl, wird beim nächsten Mal das Gewicht erhöht (doppelte Progression).</li>
       <li><strong>Wiederholungen in Reserve (RIR)</strong> – wie viele saubere Wiederholungen du noch schaffen würdest. Woche 1 locker (3), bis Woche 4 nah ans Versagen, Woche 5 Deload.</li>
@@ -120,24 +122,20 @@ function renderTab(t, plan, profile, week) {
 }
 
 export function openExerciseDetail(dayId, exId, root) {
-  const s = store.get();
-  const ex = getExercise(exId);
-  const alts = alternativesFor(exId, s.profile).slice(0, 8);
-  const m = openModal(
-    `<p class="muted small">${ex.en} · ${[...ex.primary.map((x) => MUSCLE_BY_ID[x].short), ...ex.secondary.map((x) => `(${MUSCLE_BY_ID[x].short})`)].join(', ')}</p>
-     ${ex.cue ? `<p class="cue">${ex.cue}</p>` : ''}
-     <h3>Alternativen</h3>
-     ${alts.length ? `<ul class="list tappable">${alts.map((a) => `<li><button class="link" data-alt="${a.id}"><strong>${a.name}</strong><div class="muted small">${a.en}</div></button></li>`).join('')}</ul>` : '<p class="muted">Keine passende Alternative mit deiner Ausrüstung.</p>'}`,
-    { title: ex.name },
-  );
-  m.querySelectorAll('[data-alt]').forEach((b) => b.addEventListener('click', () => {
-    store.update((st) => {
-      const d = st.plan.days.find((x) => x.id === dayId);
-      const pe = d?.exercises.find((x) => x.exId === exId);
-      if (pe) pe.exId = b.dataset.alt;
-    });
-    closeModal();
-    toast('Übung im Plan ersetzt.', 'ok');
-    if (root) renderPlan(root);
-  }));
+  openExerciseInfo(exId, {
+    pickLabel: 'Im Plan ersetzen durch',
+    onPick: (altId) => {
+      store.update((st) => {
+        const d = st.plan.days.find((x) => x.id === dayId);
+        const pe = d?.exercises.find((x) => x.exId === exId);
+        if (pe) {
+          pe.exId = altId;
+          pe.tier = getExercise(altId)?.tier ?? pe.tier;
+        }
+      });
+      closeModal();
+      toast('Übung im Plan ersetzt.', 'ok');
+      if (root) renderPlan(root);
+    },
+  });
 }

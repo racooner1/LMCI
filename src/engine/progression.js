@@ -1,6 +1,7 @@
 // Progression: Doppelte Progression (erst Wiederholungen, dann Gewicht) + Autoregulation über Feedback.
 import { getExercise } from '../data/exercises.js';
 import { round, estimate1RM } from './util.js';
+import { estimateStartWeight, estimateStartReps } from './plan.js';
 
 const UPPER = new Set(['brust', 'ruecken', 'schultern', 'bizeps', 'trizeps']);
 
@@ -41,7 +42,7 @@ export function summarizeEntry(entry, ex) {
  * @param {number} rirTarget  RIR-Vorgabe der Woche
  * @param {boolean} deload
  */
-export function suggestNext(pe, history, rirTarget, deload = false) {
+export function suggestNext(pe, history, rirTarget, deload = false, ctx = {}) {
   const ex = getExercise(pe.exId);
   const inc = incrementFor(ex);
   const last = history.length ? history[history.length - 1] : null;
@@ -50,6 +51,29 @@ export function suggestNext(pe, history, rirTarget, deload = false) {
   const unitLabel = ex.load === 'time' ? 'Sekunden' : 'Wdh.';
 
   if (!sets.length) {
+    const est = ctx.profile ? estimateStartWeight(ex, ctx.profile, pe.repMin, rirTarget, ctx.settings || {}) : null;
+    const estReps = ctx.profile ? estimateStartReps(ex, ctx.profile) : null;
+    if (isLoadable && est) {
+      return {
+        kind: 'start',
+        weight: est,
+        reps: pe.repMin,
+        estimated: true,
+        note: `Startgewicht geschätzt: ${est} kg für ${pe.repMin}–${pe.repMax} ${unitLabel} mit ${rirTarget} in Reserve. Zu leicht oder zu schwer? Einfach anpassen – ab dem 2. Mal zählt nur noch dein Log.`,
+        prev: '',
+      };
+    }
+    if (!isLoadable && estReps) {
+      const r = Math.max(pe.repMin, Math.min(pe.repMax, estReps));
+      return {
+        kind: 'start',
+        weight: ex.load === 'bw' ? 0 : null,
+        reps: r,
+        estimated: true,
+        note: `Schätzung: ca. ${estReps} ${unitLabel} schaffst du vermutlich. Ziel ${pe.repMin}–${pe.repMax} bei ${rirTarget} in Reserve${estReps > pe.repMax ? ' – wähle eine schwerere Variante oder Zusatzgewicht' : estReps < pe.repMin ? ' – notfalls leichtere Variante' : ''}.`,
+        prev: '',
+      };
+    }
     return {
       kind: 'start',
       weight: null,
@@ -118,6 +142,27 @@ export function volumeDeltaFromFeedback(fb) {
   if (fb.rpe >= 9.5 && fb.performance === 'schlechter') return -1;
   if ((s === 'keine' || !s) && fb.performance !== 'schlechter' && (fb.rpe ?? 8) <= 7.5) return 1;
   return 0;
+}
+
+/**
+ * Autoregulation pro Muskel.
+ * feedback: { rpe, performance, sore: [muskeln, die vor der Einheit noch nicht erholt waren], more: [muskeln, die mehr vertragen] }
+ * trained: Muskeln, die in der Einheit als Hauptmuskel trainiert wurden.
+ * Rückgabe: { muskel: -1 | 0 | +1 }
+ */
+export function muscleDeltasFromFeedback(fb, trained) {
+  const out = {};
+  if (!fb) return out;
+  const sore = new Set(fb.sore || []);
+  const more = new Set(fb.more || []);
+  const globalDown = (fb.rpe ?? 8) >= 9.5 && fb.performance === 'schlechter';
+  const globalUp = (fb.rpe ?? 8) <= 7 && fb.performance === 'besser';
+  for (const m of trained) {
+    if (sore.has(m) || globalDown) out[m] = -1;
+    else if (more.has(m) || globalUp) out[m] = 1;
+    else out[m] = 0;
+  }
+  return out;
 }
 
 export function feedbackMessage(delta) {

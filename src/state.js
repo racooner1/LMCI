@@ -20,6 +20,7 @@ const EMPTY = () => ({
   favorites: [],
   recents: [],
   measurements: [],
+  quickPrefs: null,
   coach: { apiKey: '', model: 'claude-opus-5', history: [] },
   activeWorkout: null,
   settings: { barWeight: 20, plates: [25, 20, 15, 10, 5, 2.5, 1.25], restTimer: true, sound: true, kcalAdjust: 0, targetOverride: null, reminders: { enabled: false, time: '18:00', lastFired: null } },

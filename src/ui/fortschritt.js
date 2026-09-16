@@ -94,7 +94,7 @@ export function renderFortschritt(root) {
 
       <div class="card">
         <div class="card-title">Letzte Trainings</div>
-        ${recent.length ? html`<ul class="list tappable">${recent.map((w) => html`<li><button class="link" data-w="${w.id}"><strong>${plan.days.find((d) => d.id === w.dayId)?.name || s.planHistory.flatMap((p) => p.days).find((d) => d.id === w.dayId && p.id === w.planId)?.name || 'Training'}</strong><div class="muted small">${formatDate(w.date)} · ${totalSets(w)} Sätze · ${totalTonnage(w).toLocaleString('de-DE')} kg${w.feedback ? ` · RPE ${w.feedback.rpe}` : ''}</div></button></li>`)}</ul>` : html`<p class="muted">Noch nichts geloggt – starte auf „Heute“.</p>`}
+        ${recent.length ? html`<ul class="list tappable">${recent.map((w) => html`<li><button class="link" data-w="${w.id}"><strong>${w.dayId === 'frei' ? 'Freies Training' : w.dayId === 'schnell' ? 'Schnelltraining' : plan.days.find((d) => d.id === w.dayId)?.name || s.planHistory.flatMap((p) => p.days).find((d) => d.id === w.dayId && p.id === w.planId)?.name || 'Training'}</strong><div class="muted small">${formatDate(w.date)} · ${totalSets(w)} Sätze · ${totalTonnage(w).toLocaleString('de-DE')} kg${w.feedback ? ` · RPE ${w.feedback.rpe}` : ''}</div></button></li>`)}</ul>` : html`<p class="muted">Noch nichts geloggt – starte auf „Heute“.</p>`}
       </div>
     </section>`);
 

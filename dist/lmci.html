@@ -446,6 +446,12 @@ details.group .chips { margin-top: 8px; }
 .msg.streaming { opacity: 0.85; }
 .chip:disabled, .chip[disabled] { opacity: 0.5; }
 
+/* Schnelltraining */
+.task-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.task { display: grid; grid-template-columns: 32px 1fr; gap: 10px; align-items: start; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.task-num { width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; }
+.quick-card { border-style: dashed; }
+
 </style>
 </head>
 <body>
@@ -5511,6 +5517,15 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
   var clamp = (v, lo2, hi2) => Math.min(hi2, Math.max(lo2, v));
   var round = (v, step2 = 1) => Math.round(v / step2) * step2;
   var uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+  function seededRandom(seed2) {
+    let t2 = seed2 >>> 0;
+    return function next() {
+      t2 += 1831565813;
+      let r = Math.imul(t2 ^ t2 >>> 15, 1 | t2);
+      r ^= r + Math.imul(r ^ r >>> 7, 61 | r);
+      return ((r ^ r >>> 14) >>> 0) / 4294967296;
+    };
+  }
   var DAY_MS = 24 * 60 * 60 * 1e3;
   function toISODate(d = /* @__PURE__ */ new Date()) {
     const x = d instanceof Date ? d : new Date(d);
@@ -5568,6 +5583,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     favorites: [],
     recents: [],
     measurements: [],
+    quickPrefs: null,
     coach: { apiKey: "", model: "claude-opus-5", history: [] },
     activeWorkout: null,
     settings: { barWeight: 20, plates: [25, 20, 15, 10, 5, 2.5, 1.25], restTimer: true, sound: true, kcalAdjust: 0, targetOverride: null, reminders: { enabled: false, time: "18:00", lastFired: null } },
@@ -5763,9 +5779,9 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       });
     });
   }
-  function formData(form) {
+  function formData(form2) {
     const out = {};
-    const fd = new FormData(form);
+    const fd = new FormData(form2);
     for (const [k, v] of fd.entries()) {
       if (k.endsWith("[]")) {
         const key = k.slice(0, -2);
@@ -6843,6 +6859,25 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
 
   // src/ui/onboarding.js
   var STEPS = ["\xDCber dich", "Ziel", "Training", "Ausr\xFCstung", "Cardio & Fokus"];
+  var QUICK_PROFILE = {
+    name: "",
+    sex: "m",
+    age: 30,
+    heightCm: 175,
+    weightKg: 75,
+    activityLevel: "leicht",
+    goal: "fitness",
+    experience: "anfaenger",
+    strengthDays: 3,
+    sessionMinutes: 45,
+    trainingWeekdays: [],
+    equipment: "home",
+    gear: [],
+    limitations: [],
+    cardio: ["walken"],
+    cardioSessions: 1,
+    priorities: []
+  };
   var DEMO_PROFILE = {
     name: "Beispiel",
     sex: "m",
@@ -6882,7 +6917,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       <form id="onb-form" class="card onb-card" novalidate>${raw(renderStep(step, draft))}</form>
       <div class="row gap between onb-nav">
         <button type="button" class="btn" data-act="back" ${step === 0 ? "disabled" : ""}>Zurück</button>
-        ${step === 0 && !edit ? html`<button type="button" class="btn btn-ghost" data-act="demo">Mit Beispielprofil ausprobieren</button>` : ""}
+        ${step === 0 && !edit ? html`<button type="button" class="btn btn-ghost" data-act="quick">Nur Schnelltraining, ohne Fragen</button><button type="button" class="btn btn-ghost" data-act="demo">Beispielprofil</button>` : ""}
         <button type="button" class="btn btn-primary" data-act="next">${step === STEPS.length - 1 ? "Plan erstellen" : "Weiter"}</button>
       </div>
     </section>`);
@@ -6903,6 +6938,11 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       draft = { ...DEMO_PROFILE };
       finish(false);
     });
+    root2.querySelector('[data-act="quick"]')?.addEventListener("click", () => {
+      draft = { ...QUICK_PROFILE, name: "", weightKg: num(root2.querySelector("#f-weight")?.value, 0) || QUICK_PROFILE.weightKg, age: num(root2.querySelector("#f-age")?.value, 0) || QUICK_PROFILE.age, sex: root2.querySelector("#f-sex")?.value || "m" };
+      finish(false, "#/schnell");
+      toast("Los geht\u2019s. Profil und Plan kannst du sp\xE4ter unter \u201EMehr\u201C erg\xE4nzen.", "ok");
+    });
     root2.querySelectorAll('input[name="goal"]').forEach((el2) => el2.addEventListener("change", (e) => {
       draft.cardioSessions = defaultCardioSessions(e.target.value);
     }));
@@ -6919,8 +6959,8 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     window.scrollTo({ top: 0 });
   }
   function collect(root2) {
-    const form = root2.querySelector("#onb-form");
-    const d = formData(form);
+    const form2 = root2.querySelector("#onb-form");
+    const d = formData(form2);
     if (step === 0) {
       draft.name = (d.name || "").trim();
       draft.sex = d.sex;
@@ -6962,7 +7002,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     }
     return "";
   }
-  function finish(edit) {
+  function finish(edit, target = null) {
     const profile = { ...draft };
     delete profile.__edit;
     delete profile.__started;
@@ -6980,8 +7020,8 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     });
     draft = {};
     step = 0;
-    toast(keepPlan ? "Profil gespeichert." : "Dein Plan ist fertig.", "ok");
-    location.hash = keepPlan ? "#/mehr" : "#/plan";
+    if (!target) toast(keepPlan ? "Profil gespeichert." : "Dein Plan ist fertig.", "ok");
+    location.hash = target || (keepPlan ? "#/mehr" : "#/plan");
   }
   var PLAN_KEYS = ["goal", "experience", "strengthDays", "sessionMinutes", "equipment", "gear", "limitations", "cardio", "cardioSessions", "priorities", "trainingWeekdays"];
   function samePlanInputs(a2, b2) {
@@ -8224,8 +8264,8 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
           const mod = await import("https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/+esm");
           const reader = new mod.BrowserMultiFormatReader();
           status.textContent = "Barcode vor die Kamera halten.";
-          zxing = await reader.decodeFromVideoElement(video, (result) => {
-            if (result) found(result.getText());
+          zxing = await reader.decodeFromVideoElement(video, (result2) => {
+            if (result2) found(result2.getText());
           });
         }
       } catch (err) {
@@ -8646,7 +8686,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
 
       ${s.activeWorkout ? html`<div class="card card-accent">
         <div class="card-title">Laufendes Training</div>
-        <p>${s.activeWorkout.dayId === "frei" ? "Freies Training" : dayName(plan, s.activeWorkout.dayId)} – begonnen ${s.activeWorkout.startedAt.slice(11, 16)} Uhr</p>
+        <p>${s.activeWorkout.dayId === "frei" ? "Freies Training" : s.activeWorkout.dayId === "schnell" ? "Schnelltraining" : dayName(plan, s.activeWorkout.dayId)} – begonnen ${s.activeWorkout.startedAt.slice(11, 16)} Uhr</p>
         <div class="row gap"><a class="btn btn-primary" href="#/workout/${s.activeWorkout.dayId}">Weitermachen</a><button class="btn" data-act="discard">Verwerfen</button></div>
       </div>` : html`<div class="card ${next.kind === "erledigt" ? "" : "card-accent"}">
         <div class="card-title">${sessionTitle}${next.kind === "naechste" ? ` \xB7 ${WEEKDAYS_LONG[next.day.weekday]}` : ""}</div>
@@ -8658,9 +8698,15 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         <div class="row gap wrap">
           <a class="btn btn-primary" href="#/workout/${next.day.id}">${next.kind === "erledigt" ? "Nochmal trainieren" : next.kind === "naechste" ? "Vorziehen" : "Training starten"}</a>
           <button class="btn" data-act="other">Andere Einheit</button>
-          <a class="btn btn-ghost" href="#/workout/frei">Freies Training</a>
+          <a class="btn btn-ghost" href="#/schnell">Schnelltraining</a>
         </div>
       </div>`}
+
+      <div class="card quick-card">
+        <div class="card-title">Kein Plan, keine Zeit, andere Ausrüstung?</div>
+        <p class="small">Wähle, was du gerade hast und was du trainieren willst – du bekommst sofort eine Aufgabenliste.</p>
+        <a class="btn" href="#/schnell">Schnelltraining zusammenstellen</a>
+      </div>
 
       <div class="grid2">
         <div class="card">
@@ -8743,7 +8789,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
   }
   function pickOtherSession(plan) {
     openModal(
-      `<ul class="list tappable">${plan.days.map((d) => `<li><a href="#/workout/${d.id}" data-close-modal><strong>${d.name}</strong><div class="muted">${d.exercises.length} \xDCbungen \xB7 ca. ${d.minutes} min</div></a></li>`).join("")}<li><a href="#/workout/frei" data-close-modal><strong>Freies Training</strong><div class="muted">Ohne Vorgabe \u2013 \xDCbungen selbst zusammenstellen</div></a></li></ul>`,
+      `<ul class="list tappable">${plan.days.map((d) => `<li><a href="#/workout/${d.id}" data-close-modal><strong>${d.name}</strong><div class="muted">${d.exercises.length} \xDCbungen \xB7 ca. ${d.minutes} min</div></a></li>`).join("")}<li><a href="#/schnell" data-close-modal><strong>Schnelltraining</strong><div class="muted">Ausr\xFCstung und Fokus w\xE4hlen \u2013 Aufgaben bekommen</div></a></li><li><a href="#/workout/frei" data-close-modal><strong>Freies Training</strong><div class="muted">Ohne Vorgabe \u2013 \xDCbungen selbst zusammenstellen</div></a></li></ul>`,
       { title: "Einheit w\xE4hlen" }
     );
   }
@@ -9172,15 +9218,19 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
   function renderWorkout(root2, dayId) {
     const s = get();
     const { plan } = s;
-    const free = dayId === "frei";
-    const day = free ? { id: "frei", name: "Freies Training", exercises: [] } : plan.days.find((d) => d.id === dayId);
+    const free2 = dayId === "frei" || dayId === "schnell";
+    const day = dayId === "frei" ? { id: "frei", name: "Freies Training", exercises: [] } : dayId === "schnell" ? { id: "schnell", name: "Schnelltraining", exercises: [] } : plan.days.find((d) => d.id === dayId);
     if (!day) {
       location.hash = "#/heute";
       return;
     }
+    if (dayId === "schnell" && (!s.activeWorkout || s.activeWorkout.dayId !== "schnell")) {
+      location.hash = "#/schnell";
+      return;
+    }
     if (!s.activeWorkout || s.activeWorkout.dayId !== dayId) {
       if (s.activeWorkout && s.activeWorkout.entries.some((e) => e.sets.some((x) => x.done))) {
-        const runningName = s.activeWorkout.dayId === "frei" ? "Freies Training" : plan.days.find((d) => d.id === s.activeWorkout.dayId)?.name;
+        const runningName = s.activeWorkout.dayId === "frei" ? "Freies Training" : s.activeWorkout.dayId === "schnell" ? "Schnelltraining" : plan.days.find((d) => d.id === s.activeWorkout.dayId)?.name;
         confirmDialog(`Es l\xE4uft bereits \u201E${runningName}\u201C. Verwerfen und \u201E${day.name}\u201C starten?`, { ok: "Verwerfen & starten", danger: true }).then((ok) => {
           if (ok) {
             update((st2) => st2.activeWorkout = buildWorkout(st2, day));
@@ -9193,18 +9243,18 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     }
     const aw = get().activeWorkout;
     const week = aw.week;
-    const rir = rirForWeek(plan, week) + (aw.mode === "leicht" ? 1 : 0);
-    const deload = week === plan.deloadWeek;
+    const rir = (dayId === "schnell" ? aw.rir ?? 2 : rirForWeek(plan, week)) + (aw.mode === "leicht" ? 1 : 0);
+    const deload = dayId !== "schnell" && week === plan.deloadWeek;
     const today = toISODate();
     const checkin = s.checkins.find((c) => c.date === today);
     const readiness = readinessScore(checkin);
     root2.innerHTML = String(html`
     <section class="page workout">
       <header class="page-head">
-        <div><h1>${day.name}</h1><p class="muted">Woche ${week} · ${rir} Wdh. in Reserve${deload ? " \xB7 Deload" : ""}${aw.mode === "leicht" ? " \xB7 leichte Version" : ""}${aw.shortMinutes ? ` \xB7 Kurzversion ${aw.shortMinutes} min` : ""} · begonnen ${aw.startedAt.slice(11, 16)}</p></div>
+        <div><h1>${day.name}</h1><p class="muted">${free2 ? "" : `Woche ${week} \xB7 `}${rir} Wdh. in Reserve${deload ? " \xB7 Deload" : ""}${aw.mode === "leicht" ? " \xB7 leichte Version" : ""}${aw.shortMinutes ? ` \xB7 Kurzversion ${aw.shortMinutes} min` : ""} · begonnen ${aw.startedAt.slice(11, 16)}</p></div>
         <button class="btn btn-small" data-act="abort">Abbrechen</button>
       </header>
-      ${!free && !aw.entries.some((e) => e.sets.some((x) => x.done)) ? html`<div class="row gap wrap options">
+      ${!free2 && !aw.entries.some((e) => e.sets.some((x) => x.done)) ? html`<div class="row gap wrap options">
         <button class="btn btn-small ${aw.shortMinutes ? "active" : ""}" data-act="short">Wenig Zeit? Kurzversion</button>
         <button class="btn btn-small ${aw.mode === "leicht" ? "active" : ""}" data-act="light">${aw.mode === "leicht" ? "Normale Version" : "Leichte Version"}</button>
         ${readiness && readiness.level === "niedrig" && aw.mode !== "leicht" ? html`<span class="muted small">Check-in: niedrige Bereitschaft – leichte Version empfohlen.</span>` : ""}
@@ -9525,7 +9575,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
           entry.suggestion = suggestNext(pe, historyFor(st2.workouts, newId), rirForWeek(st2.plan, week), week === st2.plan.deloadWeek, { profile: st2.profile, settings: st2.settings });
           entry.warmup = entry.warmup?.length ? warmupSets(getExercise(newId), entry.suggestion.weight, st2.settings.barWeight, "kurz") : [];
           entry.sets = entry.sets.map((x) => ({ ...x, weight: x.done ? x.weight : entry.suggestion.weight }));
-          if (perm && dayId !== "frei") {
+          if (perm && !free) {
             const d = st2.plan.days.find((x) => x.id === dayId);
             const ppe = d?.exercises.find((x) => x.exId === e.exId);
             if (ppe) ppe.exId = newId;
@@ -9535,7 +9585,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         renderWorkout(root2, dayId);
       }
     });
-    if (m && dayId !== "frei") {
+    if (m && dayId !== "frei" && dayId !== "schnell") {
       const box = document.createElement("label");
       box.className = "chip";
       box.innerHTML = '<input type="checkbox" id="swap-perm"><span>Auch dauerhaft im Plan ersetzen</span>';
@@ -9629,7 +9679,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         sore: [...m.querySelectorAll('input[name="sore[]"]:checked')].map((x) => x.value),
         more: [...m.querySelectorAll('input[name="more[]"]:checked')].map((x) => x.value)
       };
-      const deltas = aw.dayId === "frei" ? {} : muscleDeltasFromFeedback(feedback, trained);
+      const deltas = aw.dayId === "frei" || aw.dayId === "schnell" ? {} : muscleDeltasFromFeedback(feedback, trained);
       const workout = { id: aw.id, planId: aw.planId, dayId: aw.dayId, week: aw.week, date: aw.date, startedAt: aw.startedAt, finishedAt: (/* @__PURE__ */ new Date()).toISOString(), mode: aw.mode, entries, feedback };
       const records = newRecords(workout, s.workouts);
       stopRestTimer();
@@ -9638,7 +9688,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         var _a2;
         st2.workouts.push(workout);
         st2.activeWorkout = null;
-        if (aw.week !== st2.plan.deloadWeek && st2.plan.id === aw.planId) {
+        if (aw.week && aw.week !== st2.plan.deloadWeek && st2.plan.id === aw.planId) {
           (_a2 = st2.plan).muscleAdjust || (_a2.muscleAdjust = {});
           for (const [mu, d] of Object.entries(deltas)) {
             if (!d) continue;
@@ -9748,7 +9798,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
 
       <div class="card">
         <div class="card-title">Letzte Trainings</div>
-        ${recent.length ? html`<ul class="list tappable">${recent.map((w) => html`<li><button class="link" data-w="${w.id}"><strong>${plan.days.find((d) => d.id === w.dayId)?.name || s.planHistory.flatMap((p2) => p2.days).find((d) => d.id === w.dayId && p.id === w.planId)?.name || "Training"}</strong><div class="muted small">${formatDate(w.date)} · ${totalSets(w)} Sätze · ${totalTonnage(w).toLocaleString("de-DE")} kg${w.feedback ? ` \xB7 RPE ${w.feedback.rpe}` : ""}</div></button></li>`)}</ul>` : html`<p class="muted">Noch nichts geloggt – starte auf „Heute“.</p>`}
+        ${recent.length ? html`<ul class="list tappable">${recent.map((w) => html`<li><button class="link" data-w="${w.id}"><strong>${w.dayId === "frei" ? "Freies Training" : w.dayId === "schnell" ? "Schnelltraining" : plan.days.find((d) => d.id === w.dayId)?.name || s.planHistory.flatMap((p2) => p2.days).find((d) => d.id === w.dayId && p.id === w.planId)?.name || "Training"}</strong><div class="muted small">${formatDate(w.date)} · ${totalSets(w)} Sätze · ${totalTonnage(w).toLocaleString("de-DE")} kg${w.feedback ? ` \xB7 RPE ${w.feedback.rpe}` : ""}</div></button></li>`)}</ul>` : html`<p class="muted">Noch nichts geloggt – starte auf „Heute“.</p>`}
       </div>
     </section>`);
     root2.querySelector('[data-act="measure"]').addEventListener("click", () => openMeasure(root2));
@@ -9902,7 +9952,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const recent = [...s.workouts].sort((a2, b2) => a2.date < b2.date ? 1 : -1).slice(0, 6);
     lines.push(`Letzte Trainings (${s.workouts.length} gesamt, Streak ${dailyStreak(s, today)} Tage):`);
     for (const w of recent) {
-      const name = w.dayId === "frei" ? "Frei" : plan.days.find((x) => x.id === w.dayId)?.name || "Training";
+      const name = w.dayId === "frei" ? "Frei" : w.dayId === "schnell" ? "Schnelltraining" : plan.days.find((x) => x.id === w.dayId)?.name || "Training";
       lines.push(`- ${w.date} ${name}${w.mode === "leicht" ? " (leicht)" : ""}: ${totalSets(w)} S\xE4tze, ${totalTonnage(w)} kg${w.feedback ? `, RPE ${w.feedback.rpe}, Leistung ${w.feedback.performance}${w.feedback.sore?.length ? `, nicht erholt: ${w.feedback.sore.join(",")}` : ""}` : ""}. ${w.entries.slice(0, 5).map((e) => `${getExercise(e.exId)?.name || e.exId} ${e.sets.map((x) => `${x.weight ? `${x.weight}\xD7` : ""}${x.reps}${x.rir != null ? `@${x.rir}` : ""}`).join(",")}`).join("; ")}`);
     }
     const prs = personalRecords(s.workouts).slice(0, 6);
@@ -10053,7 +10103,7 @@ ${buildContext(get())}` }
   }
 
   // src/ui/mehr.js
-  var APP_VERSION = "1.1.0";
+  var APP_VERSION = "1.2.0";
   function renderMehr(root2) {
     const s = get();
     const p2 = s.profile;
@@ -10273,7 +10323,7 @@ ${buildContext(get())}` }
     root2.querySelectorAll("[data-day]").forEach((b2) => b2.addEventListener("click", () => openDay(b2.dataset.day, byDay(b2.dataset.day), s)));
   }
   function openDay(iso, d, s) {
-    const dayName2 = (w) => w.dayId === "frei" ? "Freies Training" : s.plan.days.find((x) => x.id === w.dayId)?.name || s.planHistory.flatMap((p2) => p2.days).find((x) => x.id === w.dayId)?.name || "Training";
+    const dayName2 = (w) => w.dayId === "frei" ? "Freies Training" : w.dayId === "schnell" ? "Schnelltraining" : s.plan.days.find((x) => x.id === w.dayId)?.name || s.planHistory.flatMap((p2) => p2.days).find((x) => x.id === w.dayId)?.name || "Training";
     const food = dayTotals(s.foodLog?.[iso] || []);
     openModal(
       `${d.workouts.length ? `<h3>Krafttraining</h3>${d.workouts.map((w) => `<p><strong>${esc(dayName2(w))}</strong> \xB7 ${totalSets(w)} S\xE4tze \xB7 ${totalTonnage(w).toLocaleString("de-DE")} kg${w.feedback ? ` \xB7 RPE ${w.feedback.rpe}` : ""}</p><ul class="bullets small">${w.entries.map((e) => `<li>${esc(getExercise(e.exId)?.name || e.exId)}: ${e.sets.map((x) => `${x.weight ? `${x.weight}\xD7` : ""}${x.reps}`).join(", ")}</li>`).join("")}</ul>`).join("")}` : ""}
@@ -10284,6 +10334,256 @@ ${buildContext(get())}` }
      ${!d.workouts.length && !d.cardio.length && !d.checkin && !d.food && !d.weight ? '<p class="muted">Keine Eintr\xE4ge an diesem Tag.</p>' : ""}`,
       { title: formatDate(iso) }
     );
+  }
+
+  // src/engine/quick.js
+  var QUICK_GEAR = [
+    { id: "studio", name: "Fitnessstudio (alles da)" },
+    { id: "kurzhantel", name: "Kurzhanteln" },
+    { id: "langhantel", name: "Langhantel" },
+    { id: "kettlebell", name: "Kettlebell" },
+    { id: "bank", name: "Bank / Erh\xF6hung" },
+    { id: "klimmzugstange", name: "Klimmzugstange" },
+    { id: "band", name: "B\xE4nder" },
+    { id: "schlingentrainer", name: "Schlingentrainer" }
+  ];
+  var QUICK_FOCUS = [
+    { id: "ganzkoerper", name: "Ganzk\xF6rper", muscles: ["quadrizeps", "brust", "ruecken", "beinbeuger", "schultern", "bauch", "gesaess"] },
+    { id: "oberkoerper", name: "Oberk\xF6rper", muscles: ["brust", "ruecken", "schultern", "trizeps", "bizeps"] },
+    { id: "unterkoerper", name: "Unterk\xF6rper", muscles: ["quadrizeps", "beinbeuger", "gesaess", "waden"] },
+    { id: "push", name: "Push (Brust, Schultern, Trizeps)", muscles: ["brust", "schultern", "trizeps"] },
+    { id: "pull", name: "Pull (R\xFCcken, Bizeps)", muscles: ["ruecken", "bizeps", "schultern"] },
+    { id: "core", name: "Bauch & Rumpf", muscles: ["bauch"] },
+    { id: "arme", name: "Arme", muscles: ["bizeps", "trizeps", "schultern"] },
+    { id: "beine_po", name: "Beine & Ges\xE4\xDF", muscles: ["gesaess", "quadrizeps", "beinbeuger"] }
+  ];
+  var QUICK_STYLES = [
+    { id: "kraft", name: "Kraft & Muskeln", desc: "Klassische S\xE4tze mit Pausen" },
+    { id: "zirkel", name: "Zirkel / Kondition", desc: "Kurze Pausen, mehr Wiederholungen, schwei\xDFtreibend" }
+  ];
+  var EX_PER_MINUTES = [[15, 3], [20, 4], [30, 5], [45, 7], [60, 8], [90, 10]];
+  var EASY = /* @__PURE__ */ new Set(["liegestuetze_knie", "klimmzuege_negativ", "klimmzuege_band", "klimmzuege_maschine", "knieheben_haengend", "sissy_squat", "glute_bridge", "crunches", "wadenheben_einbeinig"]);
+  var setCost = (t2) => (t2.restSec + 40) / 60;
+  function quickPool({ gear = [], limitations = [] }) {
+    const studio = gear.includes("studio");
+    return EXERCISES.filter((e) => {
+      if (e.contra.some((c) => limitations.includes(c))) return false;
+      if (studio && e.ctx.includes("gym")) return true;
+      return e.ctx.includes("home") && e.gear.every((g2) => gear.includes(g2));
+    });
+  }
+  function buildQuickWorkout(opts) {
+    const { profile = {}, minutes = 30, intensity = "normal", style = "kraft" } = opts;
+    const rnd = seededRandom(opts.seed ?? Date.now());
+    const pool = quickPool({ gear: opts.gear || [], limitations: profile.limitations || [] });
+    const muscles = [];
+    for (const m of opts.muscles || []) if (!muscles.includes(m)) muscles.push(m);
+    for (const f of opts.focus || []) for (const m of QUICK_FOCUS.find((x) => x.id === f)?.muscles || []) if (!muscles.includes(m)) muscles.push(m);
+    if (!muscles.length) muscles.push(...QUICK_FOCUS[0].muscles);
+    const maxEx = EX_PER_MINUTES.reduce((acc, [min, n]) => minutes >= min ? n : acc, 3);
+    const sets = intensity === "leicht" ? 2 : intensity === "hart" ? 4 : 3;
+    const rir = intensity === "leicht" ? 3 : intensity === "hart" ? 1 : 2;
+    const used = /* @__PURE__ */ new Set();
+    const usedPatterns = /* @__PURE__ */ new Set();
+    const picks = [];
+    const beginner = profile.experience === "anfaenger";
+    const pick = (muscle, tiers) => {
+      const base = pool.filter((e) => e.primary.includes(muscle) && !used.has(e.id));
+      let cands = base.filter((e) => tiers.includes(e.tier));
+      if (!cands.length) cands = base;
+      if (!beginner && cands.some((e) => !EASY.has(e.id))) cands = cands.filter((e) => !EASY.has(e.id));
+      if (cands.some((e) => !usedPatterns.has(`${muscle}:${e.pattern}`))) cands = cands.filter((e) => !usedPatterns.has(`${muscle}:${e.pattern}`));
+      if (!cands.length) return null;
+      cands.sort((a2, b2) => pool.indexOf(a2) - pool.indexOf(b2));
+      const r = rnd();
+      const idx = Math.min(cands.length - 1, r < 0.55 ? 0 : r < 0.85 ? 1 : 2);
+      const ex2 = cands[idx];
+      used.add(ex2.id);
+      usedPatterns.add(`${muscle}:${ex2.pattern}`);
+      return ex2;
+    };
+    const rounds = [[1, 2], [3, 2, 1]];
+    for (const tiers of rounds) {
+      for (const m of muscles) {
+        if (picks.length >= maxEx) break;
+        const ex2 = pick(m, tiers);
+        if (ex2) picks.push({ ex: ex2, muscle: m });
+      }
+      if (picks.length >= maxEx) break;
+    }
+    if (!picks.length) return { tasks: [], minutes: 0, note: "Mit dieser Ausr\xFCstung und Auswahl finde ich keine \xDCbungen \u2013 w\xE4hle mehr Ausr\xFCstung oder einen anderen Fokus." };
+    picks.sort((a2, b2) => a2.ex.tier - b2.ex.tier);
+    const tasks = picks.map(({ ex: ex2, muscle }) => {
+      let repMin;
+      let repMax;
+      let rest;
+      if (ex2.load === "time") {
+        [repMin, repMax, rest] = [30, 60, style === "zirkel" ? 30 : 60];
+      } else if (style === "zirkel") {
+        [repMin, repMax, rest] = ex2.tier === 3 ? [15, 20, 30] : [12, 15, 45];
+      } else {
+        [repMin, repMax, rest] = ex2.tier === 1 ? [6, 10, 120] : ex2.tier === 2 ? [8, 12, 90] : [10, 15, 60];
+        if (profile.experience === "anfaenger" && ex2.tier === 1) [repMin, repMax] = [8, 12];
+        if (["bw", "band"].includes(ex2.load)) rest = ex2.tier === 3 ? 45 : 60;
+      }
+      const weight = estimateStartWeight(ex2, profile, repMin, rir, {});
+      const reps = ex2.bwReps ? estimateStartReps(ex2, profile) : null;
+      return { exId: ex2.id, muscle, tier: ex2.tier, sets, repMin, repMax, restSec: rest, rir, weight, estReps: reps, load: ex2.load };
+    });
+    const warm = minutes <= 20 ? 4 : 6;
+    const total = () => warm + tasks.reduce((a2, t2) => a2 + setCost(t2) * t2.sets, 0);
+    let guard = 0;
+    while (total() > minutes + 1 && guard++ < 50) {
+      const cand = [...tasks].sort((a2, b2) => b2.tier - a2.tier || b2.sets - a2.sets)[0];
+      if (cand && cand.sets > 2) cand.sets -= 1;
+      else if (tasks.length > 2) tasks.pop();
+      else break;
+    }
+    guard = 0;
+    while (guard++ < 20) {
+      const cand = [...tasks].filter((t2) => t2.sets < 5).sort((a2, b2) => a2.tier - b2.tier || a2.sets - b2.sets)[0];
+      if (!cand || total() + setCost(cand) > minutes + 1) break;
+      cand.sets += 1;
+    }
+    return { tasks, minutes: Math.round(total()), style, intensity, rir, note: "" };
+  }
+  function muscleName(id) {
+    return MUSCLES.find((m) => m.id === id)?.short || id;
+  }
+
+  // src/ui/schnell.js
+  var form = null;
+  var result = null;
+  var seed = 1;
+  function defaults(s) {
+    const p2 = s.profile || {};
+    const gear = p2.equipment === "gym" ? ["studio"] : [...p2.gear || []];
+    return { gear, focus: ["ganzkoerper"], muscles: [], minutes: 30, intensity: "normal", style: "kraft" };
+  }
+  function renderSchnell(root2) {
+    const s = get();
+    if (!form) form = s.quickPrefs ? { ...defaults(s), ...s.quickPrefs } : defaults(s);
+    const chip = (name, id, label, checked) => html`<label class="chip"><input type="checkbox" name="${name}" value="${id}" ${checked ? "checked" : ""}><span>${label}</span></label>`;
+    const radio = (name, id, label, checked) => html`<label class="chip"><input type="radio" name="${name}" value="${id}" ${checked ? "checked" : ""}><span>${label}</span></label>`;
+    root2.innerHTML = String(html`
+    <section class="page">
+      <header class="page-head"><div><h1>Schnelltraining</h1><p class="muted">Sag, was du hast und was du trainieren willst – du bekommst eine fertige Aufgabenliste.</p></div></header>
+      <form id="q-form" class="card">
+        <h3>Was hast du gerade?</h3>
+        <p class="muted small">Nichts ausgewählt = nur Körpergewicht.</p>
+        <div class="chips">${QUICK_GEAR.map((g2) => chip("gear", g2.id, g2.name, form.gear.includes(g2.id)))}</div>
+        <h3>Was willst du trainieren?</h3>
+        <div class="chips">${QUICK_FOCUS.map((f) => chip("focus", f.id, f.name, form.focus.includes(f.id)))}</div>
+        <p class="muted small">Oder gezielt einzelne Muskeln dazu:</p>
+        <div class="chips">${MUSCLES.map((m) => chip("muscles", m.id, m.short, form.muscles.includes(m.id)))}</div>
+        <h3>Wie viel Zeit und wie hart?</h3>
+        <div class="chips">${[15, 20, 30, 45, 60].map((n) => radio("minutes", n, `${n} min`, form.minutes === n))}</div>
+        <div class="chips">${[["leicht", "Leicht"], ["normal", "Normal"], ["hart", "Hart"]].map(([id, n]) => radio("intensity", id, n, form.intensity === id))}</div>
+        <div class="chips">${QUICK_STYLES.map((st2) => radio("style", st2.id, `${st2.name} \u2013 ${st2.desc}`, form.style === st2.id))}</div>
+        <div class="row gap wrap"><button class="btn btn-primary" type="submit">Aufgaben erstellen</button>${result ? html`<button class="btn" type="button" data-act="reroll">Neu mischen</button>` : ""}</div>
+      </form>
+      ${result ? renderResult(result, s) : ""}
+    </section>`);
+    const read = () => {
+      const f = root2.querySelector("#q-form");
+      const vals = (n) => [...f.querySelectorAll(`input[name="${n}"]:checked`)].map((x) => x.value);
+      form = { gear: vals("gear"), focus: vals("focus"), muscles: vals("muscles"), minutes: Number(vals("minutes")[0] || 30), intensity: vals("intensity")[0] || "normal", style: vals("style")[0] || "kraft" };
+      update((st2) => st2.quickPrefs = form, { silent: true });
+    };
+    root2.querySelector("#q-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      read();
+      seed = Date.now();
+      result = buildQuickWorkout({ ...form, profile: s.profile, seed });
+      if (result.note) toast(result.note, "warn");
+      renderSchnell(root2);
+      root2.querySelector("#q-result")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    root2.querySelector('[data-act="reroll"]')?.addEventListener("click", () => {
+      read();
+      seed += 1;
+      result = buildQuickWorkout({ ...form, profile: s.profile, seed });
+      renderSchnell(root2);
+    });
+    root2.querySelector('[data-act="start"]')?.addEventListener("click", () => startQuick(result));
+    root2.querySelectorAll("[data-info]").forEach((b2) => b2.addEventListener("click", () => openExerciseInfo(b2.dataset.info)));
+    root2.querySelectorAll("[data-swap]").forEach((b2) => b2.addEventListener("click", () => {
+      const i = Number(b2.dataset.swap);
+      openExerciseInfo(result.tasks[i].exId, {
+        pickLabel: "Ersetzen durch",
+        onPick: (altId) => {
+          const ex2 = getExercise(altId);
+          result.tasks[i] = { ...result.tasks[i], exId: altId, tier: ex2.tier, load: ex2.load };
+          document.getElementById("modal")?.remove();
+          document.body.classList.remove("modal-open");
+          renderSchnell(root2);
+        }
+      });
+    }));
+  }
+  function renderResult(r, s) {
+    const unit = (t2) => t2.load === "time" ? "s" : "Wdh.";
+    return html`<div class="card card-accent" id="q-result">
+    <div class="row between"><div class="card-title">Deine Aufgaben</div><span class="muted small">ca. ${r.minutes} min · ${r.rir} Wdh. in Reserve</span></div>
+    <ol class="task-list">
+      <li class="task"><span class="task-num">0</span><div><strong>Aufwärmen</strong><div class="muted small">4–6 min locker bewegen (Gehen, Rad, Seil, Hampelmänner), dann ein leichter Satz der ersten Übung.</div></div></li>
+      ${r.tasks.map((t2, i) => {
+      const ex2 = getExercise(t2.exId);
+      return html`<li class="task"><span class="task-num">${i + 1}</span><div>
+          <strong>${ex2.name}</strong> <span class="muted small">· ${muscleName(t2.muscle)}</span>
+          <div class="small">${t2.sets} × ${t2.repMin}–${t2.repMax} ${unit(t2)}${t2.weight ? ` \xB7 ca. ${t2.weight} kg` : t2.estReps ? ` \xB7 du schaffst vermutlich ~${t2.estReps}` : ""} · Pause ${t2.restSec} s</div>
+          ${ex2.cue ? html`<div class="muted small">${ex2.cue}</div>` : ""}
+          <div class="row gap-s"><button type="button" class="btn btn-small btn-ghost" data-info="${ex2.id}">Info</button><button type="button" class="btn btn-small btn-ghost" data-swap="${i}">Andere Übung</button></div>
+        </div></li>`;
+    })}
+      <li class="task"><span class="task-num">✓</span><div><strong>Cool-down</strong><div class="muted small">2–3 min locker ausgehen, die trainierten Muskeln kurz dehnen.</div></div></li>
+    </ol>
+    <div class="row gap wrap"><button class="btn btn-primary btn-big" data-act="start">Training starten & loggen</button></div>
+    <p class="muted small">Beim Start wird jede Aufgabe zum Eintragen vorbereitet – mit Pausentimer, Vorschlägen aus deiner Historie und Feedback am Ende. Ohne Plan, ohne Verpflichtung.</p>
+  </div>`;
+  }
+  function startQuick(r) {
+    const s = get();
+    let firstHeavy = true;
+    const rirTarget = r.rir;
+    update((st2) => {
+      st2.activeWorkout = {
+        id: uid(),
+        planId: st2.plan?.id || null,
+        dayId: "schnell",
+        week: 0,
+        rir: rirTarget,
+        mode: "normal",
+        shortMinutes: null,
+        date: toISODate(),
+        startedAt: (/* @__PURE__ */ new Date()).toISOString(),
+        entries: r.tasks.map((t2) => {
+          const ex2 = getExercise(t2.exId);
+          const pe = { exId: t2.exId, muscle: t2.muscle, repMin: t2.repMin, repMax: t2.repMax, restSec: t2.restSec, main: t2.tier === 1 };
+          const sug = suggestNext(pe, historyFor(st2.workouts, t2.exId), rirTarget, false, { profile: st2.profile, settings: st2.settings });
+          if (sug.kind === "start" && t2.weight && !sug.weight) sug.weight = t2.weight;
+          let level = null;
+          if (ex2.tier === 1) {
+            level = firstHeavy ? "voll" : "kurz";
+            firstHeavy = false;
+          }
+          return {
+            exId: t2.exId,
+            muscle: t2.muscle,
+            repMin: t2.repMin,
+            repMax: t2.repMax,
+            restSec: t2.restSec,
+            main: t2.tier === 1,
+            baseSets: t2.sets,
+            suggestion: sug,
+            warmup: level ? warmupSets(ex2, sug.weight, st2.settings.barWeight, level) : [],
+            note: "",
+            sets: Array.from({ length: t2.sets }, () => ({ weight: sug.weight ?? null, reps: null, rir: null, done: false }))
+          };
+        })
+      };
+    });
+    location.hash = "#/workout/schnell";
   }
 
   // src/app.js
@@ -10337,6 +10637,9 @@ ${buildContext(get())}` }
         break;
       case "coach":
         renderCoach(root);
+        break;
+      case "schnell":
+        renderSchnell(root);
         break;
       default:
         renderHeute(root);

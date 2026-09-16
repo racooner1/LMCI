@@ -9,6 +9,12 @@ import * as store from '../state.js';
 
 const STEPS = ['Über dich', 'Ziel', 'Training', 'Ausrüstung', 'Cardio & Fokus'];
 
+export const QUICK_PROFILE = {
+  name: '', sex: 'm', age: 30, heightCm: 175, weightKg: 75, activityLevel: 'leicht',
+  goal: 'fitness', experience: 'anfaenger', strengthDays: 3, sessionMinutes: 45, trainingWeekdays: [],
+  equipment: 'home', gear: [], limitations: [], cardio: ['walken'], cardioSessions: 1, priorities: [],
+};
+
 export const DEMO_PROFILE = {
   name: 'Beispiel', sex: 'm', age: 29, heightCm: 180, weightKg: 79, activityLevel: 'leicht',
   goal: 'muskelaufbau', experience: 'fortgeschritten', strengthDays: 4, sessionMinutes: 60, trainingWeekdays: [0, 1, 3, 4],
@@ -35,7 +41,7 @@ export function renderOnboarding(root, { edit = false } = {}) {
       <form id="onb-form" class="card onb-card" novalidate>${raw(renderStep(step, draft))}</form>
       <div class="row gap between onb-nav">
         <button type="button" class="btn" data-act="back" ${step === 0 ? 'disabled' : ''}>Zurück</button>
-        ${step === 0 && !edit ? html`<button type="button" class="btn btn-ghost" data-act="demo">Mit Beispielprofil ausprobieren</button>` : ''}
+        ${step === 0 && !edit ? html`<button type="button" class="btn btn-ghost" data-act="quick">Nur Schnelltraining, ohne Fragen</button><button type="button" class="btn btn-ghost" data-act="demo">Beispielprofil</button>` : ''}
         <button type="button" class="btn btn-primary" data-act="next">${step === STEPS.length - 1 ? 'Plan erstellen' : 'Weiter'}</button>
       </div>
     </section>`);
@@ -56,6 +62,12 @@ export function renderOnboarding(root, { edit = false } = {}) {
   root.querySelector('[data-act="demo"]')?.addEventListener('click', () => {
     draft = { ...DEMO_PROFILE };
     finish(false);
+  });
+  root.querySelector('[data-act="quick"]')?.addEventListener('click', () => {
+    // Minimalprofil: reicht für Schnelltraining und Schätzungen, später jederzeit anpassbar.
+    draft = { ...QUICK_PROFILE, name: '', weightKg: num(root.querySelector('#f-weight')?.value, 0) || QUICK_PROFILE.weightKg, age: num(root.querySelector('#f-age')?.value, 0) || QUICK_PROFILE.age, sex: root.querySelector('#f-sex')?.value || 'm' };
+    finish(false, '#/schnell');
+    toast('Los geht’s. Profil und Plan kannst du später unter „Mehr“ ergänzen.', 'ok');
   });
   // Ziel → sinnvolle Cardio-Vorgabe übernehmen
   root.querySelectorAll('input[name="goal"]').forEach((el) => el.addEventListener('change', (e) => {
@@ -119,7 +131,7 @@ function collect(root) {
   return '';
 }
 
-function finish(edit) {
+function finish(edit, target = null) {
   const profile = { ...draft };
   delete profile.__edit;
   delete profile.__started;
@@ -137,8 +149,8 @@ function finish(edit) {
   });
   draft = {};
   step = 0;
-  toast(keepPlan ? 'Profil gespeichert.' : 'Dein Plan ist fertig.', 'ok');
-  location.hash = keepPlan ? '#/mehr' : '#/plan';
+  if (!target) toast(keepPlan ? 'Profil gespeichert.' : 'Dein Plan ist fertig.', 'ok');
+  location.hash = target || (keepPlan ? '#/mehr' : '#/plan');
 }
 
 const PLAN_KEYS = ['goal', 'experience', 'strengthDays', 'sessionMinutes', 'equipment', 'gear', 'limitations', 'cardio', 'cardioSessions', 'priorities', 'trainingWeekdays'];

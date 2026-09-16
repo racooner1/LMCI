@@ -78,7 +78,7 @@ export function renderHeute(root) {
 
       ${s.activeWorkout ? html`<div class="card card-accent">
         <div class="card-title">Laufendes Training</div>
-        <p>${s.activeWorkout.dayId === 'frei' ? 'Freies Training' : dayName(plan, s.activeWorkout.dayId)} – begonnen ${s.activeWorkout.startedAt.slice(11, 16)} Uhr</p>
+        <p>${s.activeWorkout.dayId === 'frei' ? 'Freies Training' : s.activeWorkout.dayId === 'schnell' ? 'Schnelltraining' : dayName(plan, s.activeWorkout.dayId)} – begonnen ${s.activeWorkout.startedAt.slice(11, 16)} Uhr</p>
         <div class="row gap"><a class="btn btn-primary" href="#/workout/${s.activeWorkout.dayId}">Weitermachen</a><button class="btn" data-act="discard">Verwerfen</button></div>
       </div>` : html`<div class="card ${next.kind === 'erledigt' ? '' : 'card-accent'}">
         <div class="card-title">${sessionTitle}${next.kind === 'naechste' ? ` · ${WEEKDAYS_LONG[next.day.weekday]}` : ''}</div>
@@ -90,9 +90,15 @@ export function renderHeute(root) {
         <div class="row gap wrap">
           <a class="btn btn-primary" href="#/workout/${next.day.id}">${next.kind === 'erledigt' ? 'Nochmal trainieren' : next.kind === 'naechste' ? 'Vorziehen' : 'Training starten'}</a>
           <button class="btn" data-act="other">Andere Einheit</button>
-          <a class="btn btn-ghost" href="#/workout/frei">Freies Training</a>
+          <a class="btn btn-ghost" href="#/schnell">Schnelltraining</a>
         </div>
       </div>`}
+
+      <div class="card quick-card">
+        <div class="card-title">Kein Plan, keine Zeit, andere Ausrüstung?</div>
+        <p class="small">Wähle, was du gerade hast und was du trainieren willst – du bekommst sofort eine Aufgabenliste.</p>
+        <a class="btn" href="#/schnell">Schnelltraining zusammenstellen</a>
+      </div>
 
       <div class="grid2">
         <div class="card">
@@ -179,7 +185,7 @@ export function startNewMeso() {
 
 function pickOtherSession(plan) {
   openModal(
-    `<ul class="list tappable">${plan.days.map((d) => `<li><a href="#/workout/${d.id}" data-close-modal><strong>${d.name}</strong><div class="muted">${d.exercises.length} Übungen · ca. ${d.minutes} min</div></a></li>`).join('')}<li><a href="#/workout/frei" data-close-modal><strong>Freies Training</strong><div class="muted">Ohne Vorgabe – Übungen selbst zusammenstellen</div></a></li></ul>`,
+    `<ul class="list tappable">${plan.days.map((d) => `<li><a href="#/workout/${d.id}" data-close-modal><strong>${d.name}</strong><div class="muted">${d.exercises.length} Übungen · ca. ${d.minutes} min</div></a></li>`).join('')}<li><a href="#/schnell" data-close-modal><strong>Schnelltraining</strong><div class="muted">Ausrüstung und Fokus wählen – Aufgaben bekommen</div></a></li><li><a href="#/workout/frei" data-close-modal><strong>Freies Training</strong><div class="muted">Ohne Vorgabe – Übungen selbst zusammenstellen</div></a></li></ul>`,
     { title: 'Einheit wählen' },
   );
 }

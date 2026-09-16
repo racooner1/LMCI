@@ -15,15 +15,19 @@ let timer = { end: 0, total: 0, handle: null };
 export function renderWorkout(root, dayId) {
   const s = store.get();
   const { plan } = s;
-  const free = dayId === 'frei';
-  const day = free ? { id: 'frei', name: 'Freies Training', exercises: [] } : plan.days.find((d) => d.id === dayId);
+  const free = dayId === 'frei' || dayId === 'schnell';
+  const day = dayId === 'frei' ? { id: 'frei', name: 'Freies Training', exercises: [] } : dayId === 'schnell' ? { id: 'schnell', name: 'Schnelltraining', exercises: [] } : plan.days.find((d) => d.id === dayId);
   if (!day) {
     location.hash = '#/heute';
     return;
   }
+  if (dayId === 'schnell' && (!s.activeWorkout || s.activeWorkout.dayId !== 'schnell')) {
+    location.hash = '#/schnell';
+    return;
+  }
   if (!s.activeWorkout || s.activeWorkout.dayId !== dayId) {
     if (s.activeWorkout && s.activeWorkout.entries.some((e) => e.sets.some((x) => x.done))) {
-      const runningName = s.activeWorkout.dayId === 'frei' ? 'Freies Training' : plan.days.find((d) => d.id === s.activeWorkout.dayId)?.name;
+      const runningName = s.activeWorkout.dayId === 'frei' ? 'Freies Training' : s.activeWorkout.dayId === 'schnell' ? 'Schnelltraining' : plan.days.find((d) => d.id === s.activeWorkout.dayId)?.name;
       confirmDialog(`Es läuft bereits „${runningName}“. Verwerfen und „${day.name}“ starten?`, { ok: 'Verwerfen & starten', danger: true }).then((ok) => {
         if (ok) {
           store.update((st) => (st.activeWorkout = buildWorkout(st, day)));
@@ -36,8 +40,8 @@ export function renderWorkout(root, dayId) {
   }
   const aw = store.get().activeWorkout;
   const week = aw.week;
-  const rir = rirForWeek(plan, week) + (aw.mode === 'leicht' ? 1 : 0);
-  const deload = week === plan.deloadWeek;
+  const rir = (dayId === 'schnell' ? aw.rir ?? 2 : rirForWeek(plan, week)) + (aw.mode === 'leicht' ? 1 : 0);
+  const deload = dayId !== 'schnell' && week === plan.deloadWeek;
   const today = toISODate();
   const checkin = s.checkins.find((c) => c.date === today);
   const readiness = readinessScore(checkin);
@@ -45,7 +49,7 @@ export function renderWorkout(root, dayId) {
   root.innerHTML = String(html`
     <section class="page workout">
       <header class="page-head">
-        <div><h1>${day.name}</h1><p class="muted">Woche ${week} · ${rir} Wdh. in Reserve${deload ? ' · Deload' : ''}${aw.mode === 'leicht' ? ' · leichte Version' : ''}${aw.shortMinutes ? ` · Kurzversion ${aw.shortMinutes} min` : ''} · begonnen ${aw.startedAt.slice(11, 16)}</p></div>
+        <div><h1>${day.name}</h1><p class="muted">${free ? '' : `Woche ${week} · `}${rir} Wdh. in Reserve${deload ? ' · Deload' : ''}${aw.mode === 'leicht' ? ' · leichte Version' : ''}${aw.shortMinutes ? ` · Kurzversion ${aw.shortMinutes} min` : ''} · begonnen ${aw.startedAt.slice(11, 16)}</p></div>
         <button class="btn btn-small" data-act="abort">Abbrechen</button>
       </header>
       ${!free && !aw.entries.some((e) => e.sets.some((x) => x.done)) ? html`<div class="row gap wrap options">
@@ -383,7 +387,7 @@ function openSwap(root, dayId, ei) {
         entry.suggestion = suggestNext(pe, historyFor(st.workouts, newId), rirForWeek(st.plan, week), week === st.plan.deloadWeek, { profile: st.profile, settings: st.settings });
         entry.warmup = entry.warmup?.length ? warmupSets(getExercise(newId), entry.suggestion.weight, st.settings.barWeight, 'kurz') : [];
         entry.sets = entry.sets.map((x) => ({ ...x, weight: x.done ? x.weight : entry.suggestion.weight }));
-        if (perm && dayId !== 'frei') {
+        if (perm && !free) {
           const d = st.plan.days.find((x) => x.id === dayId);
           const ppe = d?.exercises.find((x) => x.exId === e.exId);
           if (ppe) ppe.exId = newId;
@@ -393,7 +397,7 @@ function openSwap(root, dayId, ei) {
       renderWorkout(root, dayId);
     },
   });
-  if (m && dayId !== 'frei') {
+  if (m && dayId !== 'frei' && dayId !== 'schnell') {
     const box = document.createElement('label');
     box.className = 'chip';
     box.innerHTML = '<input type="checkbox" id="swap-perm"><span>Auch dauerhaft im Plan ersetzen</span>';
@@ -494,7 +498,7 @@ function finishWorkout(root) {
       sore: [...m.querySelectorAll('input[name="sore[]"]:checked')].map((x) => x.value),
       more: [...m.querySelectorAll('input[name="more[]"]:checked')].map((x) => x.value),
     };
-    const deltas = aw.dayId === 'frei' ? {} : muscleDeltasFromFeedback(feedback, trained);
+    const deltas = aw.dayId === 'frei' || aw.dayId === 'schnell' ? {} : muscleDeltasFromFeedback(feedback, trained);
     const workout = { id: aw.id, planId: aw.planId, dayId: aw.dayId, week: aw.week, date: aw.date, startedAt: aw.startedAt, finishedAt: new Date().toISOString(), mode: aw.mode, entries, feedback };
     const records = newRecords(workout, s.workouts);
     stopRestTimer();
@@ -502,7 +506,7 @@ function finishWorkout(root) {
     store.update((st) => {
       st.workouts.push(workout);
       st.activeWorkout = null;
-      if (aw.week !== st.plan.deloadWeek && st.plan.id === aw.planId) {
+      if (aw.week && aw.week !== st.plan.deloadWeek && st.plan.id === aw.planId) {
         st.plan.muscleAdjust ||= {};
         for (const [mu, d] of Object.entries(deltas)) {
           if (!d) continue;

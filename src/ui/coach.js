@@ -41,7 +41,7 @@ function buildContext(s) {
   const recent = [...s.workouts].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 6);
   lines.push(`Letzte Trainings (${s.workouts.length} gesamt, Streak ${dailyStreak(s, today)} Tage):`);
   for (const w of recent) {
-    const name = w.dayId === 'frei' ? 'Frei' : plan.days.find((x) => x.id === w.dayId)?.name || 'Training';
+    const name = w.dayId === 'frei' ? 'Frei' : w.dayId === 'schnell' ? 'Schnelltraining' : plan.days.find((x) => x.id === w.dayId)?.name || 'Training';
     lines.push(`- ${w.date} ${name}${w.mode === 'leicht' ? ' (leicht)' : ''}: ${totalSets(w)} Sätze, ${totalTonnage(w)} kg${w.feedback ? `, RPE ${w.feedback.rpe}, Leistung ${w.feedback.performance}${w.feedback.sore?.length ? `, nicht erholt: ${w.feedback.sore.join(',')}` : ''}` : ''}. ${w.entries.slice(0, 5).map((e) => `${getExercise(e.exId)?.name || e.exId} ${e.sets.map((x) => `${x.weight ? `${x.weight}×` : ''}${x.reps}${x.rir != null ? `@${x.rir}` : ''}`).join(',')}`).join('; ')}`);
   }
   const prs = personalRecords(s.workouts).slice(0, 6);

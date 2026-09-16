@@ -5,7 +5,7 @@ import { GOALS, EXPERIENCE } from '../engine/plan.js';
 import { buildICS } from '../engine/reminders.js';
 import { openCoachSettings } from './coach.js';
 
-export const APP_VERSION = '1.1.0';
+export const APP_VERSION = '1.2.0';
 
 export function renderMehr(root) {
   const s = store.get();

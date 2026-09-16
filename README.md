@@ -6,7 +6,12 @@ Alle Regeln sind bewusst einfach, nachvollziehbar und aus der Trainingswissensch
 
 ## Was die App kann
 
-**Training**
+**Schnelltraining – ohne Plan**
+- Wählen, was du gerade hast (nur Körpergewicht, Kurzhanteln, Langhantel, Kettlebell, Bank, Klimmzugstange, Bänder, Schlingentrainer oder Studio), was du trainieren willst (Ganzkörper, Ober-/Unterkörper, Push, Pull, Bauch, Arme, Beine & Gesäß oder einzelne Muskeln), wie viel Zeit du hast und wie hart es sein soll.
+- Die App stellt sofort eine Aufgabenliste zusammen: Aufwärmen, Übungen mit Sätzen, Wiederholungen, geschätzten Gewichten und Pausen, Cool-down. Jede Aufgabe lässt sich tauschen, alles lässt sich neu mischen und direkt mit Pausentimer loggen.
+- Auch ohne Onboarding nutzbar: „Nur Schnelltraining, ohne Fragen“ auf dem Startbildschirm.
+
+**Training mit Plan**
 - Onboarding in 5 Schritten: Ziel (Muskelaufbau, Fettabbau, Kraft, Ausdauer, Fitness), Erfahrung, Zielgewicht, Trainingstage, Dauer, Ausrüstung (Studio oder Zuhause mit Kurzhanteln, Langhantel, Kettlebell, Bank, Klimmzugstange, Bändern, Schlingentrainer), Beschwerden, Cardio-Vorlieben aus 65 Aktivitäten, Muskel-Schwerpunkte.
 - Kraftplan als Mesozyklus (4 Aufbauwochen + Deload): Split je nach Tagen, Volumen pro Muskel nach Erfahrung und Trainingsfrequenz, Wiederholungsbereiche nach Ziel, RIR-Steuerung pro Woche, Zeitbudget pro Einheit, Übungsrotation pro Block.
 - 233 Übungen mit Technik-Hinweisen, Körperkarte, Alternativen und Technik-Videolinks; Bibliothek mit Suche und Filtern.
@@ -37,22 +42,37 @@ Alle Regeln sind bewusst einfach, nachvollziehbar und aus der Trainingswissensch
 
 **Daten gehören dir:** Alles liegt im Browser (localStorage). Export/Import als JSON-Sicherung. PWA: auf dem Handy installierbar, offline nutzbar.
 
-## Nutzen
+## Auf das Handy bringen
 
-### Variante A – online (empfohlen)
+LMCI ist eine Web-App (PWA). Sie wird nicht über den App Store installiert, sondern über eine Web-Adresse – danach liegt sie wie eine normale App auf dem Home-Bildschirm und funktioniert offline.
 
-1. Im Repository **Settings → Pages → Source: „GitHub Actions“** wählen (einmalig).
-2. Den Workflow „Auf GitHub Pages veröffentlichen“ laufen lassen (automatisch bei Push auf `main`, oder unter *Actions* manuell starten).
-3. Die App ist dann unter `https://<dein-github-name>.github.io/LMCI/` erreichbar.
-4. Auf dem Handy öffnen und **zum Home-Bildschirm hinzufügen** (iPhone: Teilen → „Zum Home-Bildschirm“; Android: Menü → „App installieren“).
+### Weg 1 – GitHub Pages (empfohlen, dauerhaft, kostenlos)
+
+1. Auf GitHub im Repository **Settings → Pages** öffnen und bei **Source** „GitHub Actions“ auswählen. Das ist ein einziger Klick und muss nur einmal gemacht werden.
+2. Im Reiter **Actions** den Workflow „Auf GitHub Pages veröffentlichen“ anklicken und mit **Run workflow** starten (er läuft danach bei jedem Push automatisch, sowohl auf `main` als auch auf den `claude/…`-Branches).
+3. Nach etwa einer Minute ist die App unter **https://racooner1.github.io/LMCI/** erreichbar.
+4. Diese Adresse auf dem Handy öffnen:
+   - **iPhone (Safari):** Teilen-Symbol (Quadrat mit Pfeil) → „Zum Home-Bildschirm“ → Hinzufügen.
+   - **Android (Chrome):** Menü ⋮ → „App installieren“ oder „Zum Startbildschirm hinzufügen“.
+5. Ab jetzt startet LMCI vom Home-Bildschirm wie eine App, auch ohne Internet. Deine Daten bleiben auf dem Handy.
 
 Online-Suche in Open Food Facts, Barcode-Scan und KI-Coach brauchen Internet; alles andere funktioniert offline.
 
-### Variante B – Einzeldatei
+### Weg 2 – sofort ausprobieren
 
-`dist/lmci.html` ist die komplette App in einer Datei. Herunterladen, im Browser öffnen, fertig. (Schriftarten werden nur online geladen; offline nutzt die App die Systemschrift.)
+Der veröffentlichte Artifact-Link aus dem Chat funktioniert auch auf dem Handy und lässt sich ebenfalls zum Home-Bildschirm hinzufügen. Dort sind aber Downloads, Online-Suche und Coach durch die Sandbox gesperrt – für den Alltag ist Weg 1 besser.
 
-### Variante C – lokal entwickeln
+### Weg 3 – Einzeldatei
+
+`dist/lmci.html` ist die komplette App in einer Datei. Auf dem PC herunterladen und im Browser öffnen. Auf dem Handy ist das umständlich, deshalb lieber Weg 1.
+
+### Später möglich – echte App im Store
+
+Mit einer nativen Hülle (Capacitor) ließe sich LMCI in den App Store und Play Store bringen und bekäme dann Zugriff auf Schrittzähler, Pulsdaten und Push-Benachrichtigungen. Das kostet ein Apple-Entwicklerkonto (99 $/Jahr) und einen Mac mit Xcode – für den eigenen Gebrauch ist die PWA der einfachere Weg.
+
+> **Wichtig:** Die Daten sind an die Adresse und den Browser gebunden. Vor einem Handywechsel unter *Mehr → Sicherung exportieren* eine Kopie ziehen.
+
+### Lokal entwickeln
 
 ```bash
 npm start              # lokaler Server auf http://localhost:4173
@@ -64,8 +84,6 @@ npm run icons          # erzeugt die App-Icons neu
 ```
 
 Kein Build nötig: `index.html` lädt die ES-Module direkt.
-
-> **Wichtig:** Die Daten sind an die Adresse und den Browser gebunden. Vor einem Handywechsel unter *Mehr → Sicherung exportieren* eine Kopie ziehen.
 
 ### KI-Coach einrichten
 
@@ -117,7 +135,8 @@ src/engine/food.js            Tagebuch-Makros, Suche, Open Food Facts, Rezepte, 
 src/engine/analytics.js       Auswertungen (Volumen, 1RM, Rekorde, Konstanz)
 src/engine/achievements.js    Streaks, Abzeichen, Zielgewicht-Prognose
 src/engine/reminders.js       Erinnerungen, iCalendar-Export
-src/ui/*.js                   Ansichten: Onboarding, Heute, Plan, Training, Übungen, Fortschritt, Kalender, Ernährung, Coach, Mehr
+src/engine/quick.js           Schnelltraining: Ausrüstung + Fokus + Zeit → Aufgabenliste
+src/ui/*.js                   Ansichten: Onboarding, Heute, Schnelltraining, Plan, Training, Übungen, Fortschritt, Kalender, Ernährung, Coach, Mehr
 src/ui/foodpicker.js          Lebensmittel-Auswahl, Portionen, eigene Lebensmittel, Rezepte, Barcode
 src/ui/bodymap.js, timer.js   Körperkarte, Intervall-Timer
 vendor/anthropic-sdk.js       Gebündeltes Anthropic-SDK (nur für den Coach, wird bei Bedarf geladen)

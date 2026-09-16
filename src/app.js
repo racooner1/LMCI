@@ -10,6 +10,7 @@ import { renderMehr } from './ui/mehr.js';
 import { renderUebungen } from './ui/uebungen.js';
 import { renderKalender } from './ui/kalender.js';
 import { renderCoach } from './ui/coach.js';
+import { renderSchnell } from './ui/schnell.js';
 import { startReminderLoop } from './engine/reminders.js';
 import { generatePlan, availableExercises } from './engine/plan.js';
 import { closeModal } from './ui/dom.js';
@@ -68,6 +69,9 @@ function route() {
       break;
     case 'coach':
       renderCoach(root);
+      break;
+    case 'schnell':
+      renderSchnell(root);
       break;
     default:
       renderHeute(root);

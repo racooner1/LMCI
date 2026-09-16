@@ -78,7 +78,7 @@ export function renderKalender(root) {
 }
 
 function openDay(iso, d, s) {
-  const dayName = (w) => (w.dayId === 'frei' ? 'Freies Training' : s.plan.days.find((x) => x.id === w.dayId)?.name || s.planHistory.flatMap((p) => p.days).find((x) => x.id === w.dayId)?.name || 'Training');
+  const dayName = (w) => (w.dayId === 'frei' ? 'Freies Training' : w.dayId === 'schnell' ? 'Schnelltraining' : s.plan.days.find((x) => x.id === w.dayId)?.name || s.planHistory.flatMap((p) => p.days).find((x) => x.id === w.dayId)?.name || 'Training');
   const food = dayTotals(s.foodLog?.[iso] || []);
   openModal(
     `${d.workouts.length ? `<h3>Krafttraining</h3>${d.workouts.map((w) => `<p><strong>${esc(dayName(w))}</strong> · ${totalSets(w)} Sätze · ${totalTonnage(w).toLocaleString('de-DE')} kg${w.feedback ? ` · RPE ${w.feedback.rpe}` : ''}</p><ul class="bullets small">${w.entries.map((e) => `<li>${esc(getExercise(e.exId)?.name || e.exId)}: ${e.sets.map((x) => `${x.weight ? `${x.weight}×` : ''}${x.reps}`).join(', ')}</li>`).join('')}</ul>`).join('')}` : ''}

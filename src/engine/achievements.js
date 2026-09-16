@@ -2,6 +2,7 @@
 import { addDays, toISODate } from './util.js';
 import { personalRecords, totalSets } from './analytics.js';
 import { recordBoard } from './records.js';
+import { routineActiveDays, activeRoutines, routineStreak, routineDayStatus } from './routines.js';
 
 // Tage mit irgendeiner Aktivität (Training, Cardio, Check-in, Ernährung, Gewicht).
 export function activeDays(s) {
@@ -11,6 +12,7 @@ export function activeDays(s) {
   for (const c of s.checkins || []) days.add(c.date);
   for (const [d, list] of Object.entries(s.foodLog || {})) if (list.length) days.add(d);
   for (const b of s.bodyLogs) days.add(b.date);
+  for (const d of routineActiveDays(s)) days.add(d);
   return days;
 }
 
@@ -73,7 +75,7 @@ const perfectDays = (s, ctx) => ctx.perfectDays;
 const fullWeeks = (s, ctx) => ctx.fullWeeks;
 
 export const BADGE_GROUPS = [
-  ['training', 'Training'], ['kraft', 'Kraft & Volumen'], ['streak', 'Konstanz'], ['cardio', 'Ausdauer'], ['alltag', 'Alltag & Erholung'], ['special', 'Besondere Momente'], ['level', 'Level'],
+  ['training', 'Training'], ['kraft', 'Kraft & Volumen'], ['streak', 'Konstanz'], ['cardio', 'Ausdauer'], ['routine', 'Routine & Gewohnheiten'], ['alltag', 'Alltag & Erholung'], ['special', 'Besondere Momente'], ['level', 'Level'],
 ];
 
 const B = (id, group, name, desc, icon, check) => ({ id, group, name, desc, icon, check });
@@ -148,6 +150,18 @@ export const BADGES = [
   B('gewicht_60', 'alltag', 'Datenfreund', '60 Gewichtseinträge', '📈', (s) => s.bodyLogs.length >= 60),
   B('mobility_10', 'alltag', 'Geschmeidig', '10 Mobilitäts-Routinen', '🤸', (s) => (s.mobilityLogs || []).length >= 10),
   B('mobility_50', 'alltag', 'Gummiband', '50 Mobilitäts-Routinen', '🧘‍♂️', (s) => (s.mobilityLogs || []).length >= 50),
+  // Routine & Gewohnheiten
+  B('routine_start', 'routine', 'Routine gestartet', 'Erste eigene Gewohnheit abgehakt', '🌱', (s, ctx) => ctx.routine.done >= 1),
+  B('routine_50', 'routine', 'Fünfzig Haken', '50 Gewohnheiten abgehakt', '✅', (s, ctx) => ctx.routine.done >= 50),
+  B('routine_250', 'routine', 'Alltagsheld', '250 Gewohnheiten abgehakt', '🧹', (s, ctx) => ctx.routine.done >= 250),
+  B('routine_1000', 'routine', 'Tausend kleine Schritte', '1000 Gewohnheiten abgehakt', '🪜', (s, ctx) => ctx.routine.done >= 1000),
+  B('routine_streak_7', 'routine', 'Eine Woche Routine', 'Eine Gewohnheit 7 Tage in Folge', '📿', (s, ctx) => ctx.routine.streak >= 7),
+  B('routine_streak_30', 'routine', 'Gewohnheit verankert', 'Eine Gewohnheit 30 Tage in Folge', '⚓', (s, ctx) => ctx.routine.streak >= 30),
+  B('routine_streak_66', 'routine', 'Automatisch', 'Eine Gewohnheit 66 Tage in Folge', '🧲', (s, ctx) => ctx.routine.streak >= 66),
+  B('routine_perfect_1', 'routine', 'Routine komplett', 'Einen Tag die ganze Routine geschafft', '🗂️', (s, ctx) => ctx.routine.perfectDays >= 1),
+  B('routine_perfect_10', 'routine', 'Zehn runde Tage', '10 Tage die ganze Routine geschafft', '🎛️', (s, ctx) => ctx.routine.perfectDays >= 10),
+  B('routine_perfect_50', 'routine', 'Uhrwerk', '50 Tage die ganze Routine geschafft', '⏰', (s, ctx) => ctx.routine.perfectDays >= 50),
+  B('routine_five', 'routine', 'Fünf Gewohnheiten', 'Fünf aktive Gewohnheiten in der Routine', '🖐️', (s) => activeRoutines(s).length >= 5),
   B('masse_5', 'alltag', 'Maßband', '5 Messungen der Körpermaße', '📏', (s) => (s.measurements || []).length >= 5),
   // Besondere Momente
   B('frueh', 'special', 'Frühaufsteher', 'Training vor 8 Uhr beendet', '🌅', (s) => s.workouts.some((w) => w.finishedAt && new Date(w.finishedAt).getHours() < 8)),
@@ -166,9 +180,9 @@ export const BADGES = [
 
 // Kontextwerte, die mehrere Abzeichen brauchen (einmal berechnet).
 export function badgeContext(s, today = toISODate(), extra = {}) {
-  const ctx = { streak: dailyStreak(s, today), perfectDays: 0, fullWeeks: 0, level: extra.level || 1, challengesDone: extra.challengesDone || 0, board: recordBoard(s, today) };
+  const ctx = { streak: dailyStreak(s, today), perfectDays: 0, fullWeeks: 0, level: extra.level || 1, challengesDone: extra.challengesDone || 0, board: recordBoard(s, today), routine: routineContext(s, today) };
   if (extra.isPerfectDay) {
-    const days = new Set([...s.workouts.map((w) => w.date), ...(s.checkins || []).map((c) => c.date)]);
+    const days = new Set([...s.workouts.map((w) => w.date), ...(s.checkins || []).map((c) => c.date), ...Object.keys(s.routineLog || {})]);
     ctx.perfectDays = [...days].filter((d) => extra.isPerfectDay(s, d)).length;
   }
   if (s.plan) {
@@ -185,6 +199,15 @@ export function badgeContext(s, today = toISODate(), extra = {}) {
     ctx.fullWeeks = n;
   }
   return ctx;
+}
+
+// Kennzahlen der Routine für die Abzeichen (einmal je Aufruf berechnet).
+function routineContext(s, today) {
+  const log = s.routineLog || {};
+  const done = Object.values(log).reduce((a, l) => a + (l?.length || 0), 0);
+  const streak = Math.max(0, ...activeRoutines(s).map((r) => routineStreak(s, r, today)), 0);
+  const perfectDays = Object.keys(log).filter((d) => d <= today && routineDayStatus(s, d).all).length;
+  return { done, streak, perfectDays };
 }
 
 export function badgeStatus(s, today = toISODate(), extra = {}) {

@@ -3,6 +3,7 @@ import { toISODate } from './util.js';
 import { totalSets } from './analytics.js';
 import { XP, dailyGoals, isPerfectDay } from './goals.js';
 import { challengeXP, completedChallenges } from './challenges.js';
+import { routineXP } from './routines.js';
 
 export { XP, dailyGoals, isPerfectDay };
 
@@ -28,7 +29,8 @@ export function baseXP(s) {
   for (const ml of Object.values(s.waterLog || {})) if (ml >= 1500) xp += XP.water;
   xp += s.bodyLogs.length * XP.weight;
   xp += (s.mobilityLogs || []).length * XP.mobility;
-  const days = new Set([...s.workouts.map((w) => w.date), ...(s.checkins || []).map((c) => c.date)]);
+  xp += routineXP(s);
+  const days = new Set([...s.workouts.map((w) => w.date), ...(s.checkins || []).map((c) => c.date), ...Object.keys(s.routineLog || {})]);
   for (const d of days) if (isPerfectDay(s, d)) xp += XP.perfectDay;
   return xp;
 }
@@ -57,6 +59,7 @@ export function xpToday(s, today = toISODate()) {
     waterLog: { [today]: s.waterLog?.[today] || 0 },
     bodyLogs: s.bodyLogs.filter((b) => b.date === today),
     mobilityLogs: (s.mobilityLogs || []).filter((d) => d === today),
+    routineLog: { [today]: s.routineLog?.[today] || [] },
   };
   return baseXP(sub);
 }
@@ -66,6 +69,7 @@ export function motivation(s, { streak, goals, today = toISODate() }) {
   const done = goals.filter((g) => !g.optional && g.done).length;
   const total = goals.filter((g) => !g.optional).length;
   const hour = new Date().getHours();
+  if (!total) return 'Heute ist nichts Pflicht – jedes Häkchen ist trotzdem ein Plus.';
   if (done === total) return 'Perfekter Tag. Alles erledigt – mehr geht nicht.';
   if (streak >= 7 && done === 0 && hour >= 18) return `${streak} Tage Serie – ein kleiner Schritt heute reicht, um sie zu halten.`;
   if (streak >= 3 && done === 0) return `${streak} Tage in Folge. Heute weitermachen?`;

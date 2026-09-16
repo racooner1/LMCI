@@ -90,3 +90,11 @@ export function volumeBars(rows) {
     })
     .join('')}</div>`;
 }
+
+// Fortschrittsring (z. B. Einheiten der Woche, erledigte Gewohnheiten).
+export function ring(value, max, { label = '', cls = '' } = {}) {
+  const r = 36;
+  const c = 2 * Math.PI * r;
+  const p = max ? Math.min(1, value / max) : 0;
+  return `<div class="ring ${cls} ${p >= 1 ? 'ok' : ''}"><svg viewBox="0 0 84 84"><circle class="track" cx="42" cy="42" r="${r}"/><circle class="fill" cx="42" cy="42" r="${r}" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${(c * (1 - p)).toFixed(1)}"/></svg><div class="ring-label"><strong>${value}<span style="font-size:.7em;color:var(--muted)">/${max}</span></strong><span>${label}</span></div></div>`;
+}

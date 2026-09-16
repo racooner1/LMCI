@@ -11,6 +11,7 @@ import { renderUebungen } from './ui/uebungen.js';
 import { renderKalender } from './ui/kalender.js';
 import { renderCoach } from './ui/coach.js';
 import { renderSchnell } from './ui/schnell.js';
+import { renderRoutine } from './ui/routine.js';
 import { startReminderLoop } from './engine/reminders.js';
 import { generatePlan, availableExercises } from './engine/plan.js';
 import { closeModal } from './ui/dom.js';
@@ -20,13 +21,18 @@ import { icon } from './ui/icons.js';
 let afterRoute = null;
 window.__lmci = { generatePlan, availableExercises, afterRoute: (fn) => (afterRoute = fn) };
 
-const NAV = [
-  ['#/heute', 'Heute', 'home'],
-  ['#/plan', 'Plan', 'plan'],
-  ['#/fortschritt', 'Erfolge', 'trophy'],
-  ['#/ernaehrung', 'Ernährung', 'food'],
-  ['#/mehr', 'Mehr', 'more'],
-];
+// Navigation. Im Fokus „Routine“ rückt die Routine an die Stelle des Trainingsplans (Plan bleibt über „Mehr“ erreichbar).
+function navItems(s) {
+  const routineFocus = s.settings?.focus === 'routine';
+  return [
+    ['#/heute', 'Heute', 'home'],
+    ...(routineFocus ? [] : [['#/plan', 'Plan', 'plan']]),
+    ['#/routine', 'Routine', 'check'],
+    ['#/fortschritt', 'Erfolge', 'trophy'],
+    ['#/ernaehrung', 'Essen', 'food'],
+    ['#/mehr', 'Mehr', 'more'],
+  ];
+}
 
 const root = document.getElementById('app');
 const nav = document.getElementById('nav');
@@ -42,6 +48,7 @@ function route() {
     return;
   }
   nav.hidden = false;
+  renderNav(s);
   switch (path) {
     case 'onboarding':
       nav.hidden = true;
@@ -74,6 +81,9 @@ function route() {
     case 'schnell':
       renderSchnell(root);
       break;
+    case 'routine':
+      renderRoutine(root);
+      break;
     default:
       renderHeute(root);
   }
@@ -86,8 +96,14 @@ function route() {
   }
 }
 
-function renderNav() {
-  nav.innerHTML = NAV.map(([href, label, name]) => `<a href="${href}" aria-label="${label}">${icon(name, { size: 24 })}<span>${label}</span></a>`).join('');
+let navMarkup = '';
+function renderNav(s = store.get()) {
+  const items = navItems(s);
+  const markup = items.map(([href, label, name]) => `<a href="${href}" aria-label="${label}">${icon(name, { size: 24 })}<span>${label}</span></a>`).join('');
+  if (markup === navMarkup) return;
+  navMarkup = markup;
+  nav.innerHTML = markup;
+  nav.classList.toggle('compact', items.length > 5);
 }
 
 // Radio-Karten: „selected“-Klasse mitführen.

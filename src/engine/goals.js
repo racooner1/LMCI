@@ -2,12 +2,15 @@
 import { toISODate } from './util.js';
 import { nextSession } from './plan.js';
 import { dayTotals } from './food.js';
+import { routinesForDay, DAYPART_BY_ID } from './routines.js';
 
 export const XP = { workoutBase: 50, perSet: 8, pr: 25, rankUp: 40, cardioPerMin: 2, checkin: 10, food: 15, water: 5, weight: 5, mobility: 15, perfectDay: 40 };
 
-// Tagesziele für ein Datum. Rückgabe: [{ id, label, hint, xp, done, href, act?, optional? }]
+// Tagesziele für ein Datum. Rückgabe: [{ id, label, hint, xp, done, href, act?, optional?, routineId? }]
+// Im Fokus „routine“ zählen nur die eigenen Gewohnheiten als Pflicht – Training und Ernährung werden optional.
 export function dailyGoals(s, today = toISODate()) {
   const goals = [];
+  const routineOnly = s.settings?.focus === 'routine';
   const plan = s.plan;
   const workoutToday = s.workouts.some((w) => w.date === today);
   const cardioToday = s.cardioLogs.some((c) => c.date === today);
@@ -18,17 +21,33 @@ export function dailyGoals(s, today = toISODate()) {
   const water = s.waterLog?.[today] || 0;
   const weight = s.bodyLogs.some((b) => b.date === today);
 
-  goals.push({ id: 'checkin', label: 'Check-in machen', hint: 'Schlaf, Stress, Energie', xp: XP.checkin, done: checkin, href: '#/heute', act: 'checkin' });
+  goals.push({ id: 'checkin', label: 'Check-in machen', hint: 'Schlaf, Stress, Energie', xp: XP.checkin, done: checkin, href: '#/heute', act: 'checkin', optional: routineOnly });
   const next = plan ? nextSession(plan, s.workouts, today) : null;
   if (next && (next.kind === 'heute' || next.kind === 'nachholen')) {
-    goals.push({ id: 'training', label: `Training: ${next.day.name}`, hint: `${next.day.exercises.length} Übungen`, xp: XP.workoutBase, done: workoutToday, href: `#/workout/${next.day.id}` });
+    goals.push({ id: 'training', label: `Training: ${next.day.name}`, hint: `${next.day.exercises.length} Übungen`, xp: XP.workoutBase, done: workoutToday, href: `#/workout/${next.day.id}`, optional: routineOnly });
   } else {
-    goals.push({ id: 'bewegung', label: 'Bewegung heute', hint: 'Cardio, Mobilität oder Schnelltraining', xp: XP.mobility, done: workoutToday || cardioToday || mobilityToday, href: '#/schnell' });
+    goals.push({ id: 'bewegung', label: 'Bewegung heute', hint: 'Cardio, Mobilität oder Schnelltraining', xp: XP.mobility, done: workoutToday || cardioToday || mobilityToday, href: '#/schnell', optional: routineOnly });
   }
-  goals.push({ id: 'food', label: 'Ernährung erfassen', hint: 'mindestens 3 Einträge', xp: XP.food, done: entries >= 3 || food.kcal >= 800, href: '#/ernaehrung' });
-  goals.push({ id: 'water', label: 'Genug trinken', hint: '6 Gläser (1,5 l)', xp: XP.water, done: water >= 1500, href: '#/ernaehrung' });
-  goals.push({ id: 'mobility', label: 'Mobilität', hint: '10 Minuten', xp: XP.mobility, done: mobilityToday, href: '#/heute', act: 'mobility' });
+  goals.push({ id: 'food', label: 'Ernährung erfassen', hint: 'mindestens 3 Einträge', xp: XP.food, done: entries >= 3 || food.kcal >= 800, href: '#/ernaehrung', optional: routineOnly });
+  goals.push({ id: 'water', label: 'Genug trinken', hint: '6 Gläser (1,5 l)', xp: XP.water, done: water >= 1500, href: '#/ernaehrung', optional: routineOnly });
+  goals.push({ id: 'mobility', label: 'Mobilität', hint: '10 Minuten', xp: XP.mobility, done: mobilityToday, href: '#/heute', act: 'mobility', optional: routineOnly });
   goals.push({ id: 'weight', label: 'Wiegen', hint: 'morgens, nüchtern', xp: XP.weight, done: weight, href: '#/heute', act: 'weight', optional: true });
+  // Eigene Gewohnheiten (Quests) als vollwertige Tagesziele.
+  for (const r of routinesForDay(s, today)) {
+    goals.push({
+      id: `routine:${r.id}`,
+      routineId: r.id,
+      icon: r.icon,
+      daypart: r.daypart,
+      label: r.name,
+      hint: r.weekTarget ? `${r.weekDone}/${r.weekTarget} diese Woche` : DAYPART_BY_ID[r.daypart]?.name || 'Routine',
+      xp: r.xp,
+      done: r.done,
+      href: '#/routine',
+      act: 'routine',
+      optional: !r.counts,
+    });
+  }
   return goals;
 }
 

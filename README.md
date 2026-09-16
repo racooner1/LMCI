@@ -34,17 +34,24 @@ Alle Regeln sind bewusst einfach, nachvollziehbar und aus der Trainingswissensch
 
 **Motivation & Belohnungen**
 - XP für alles, was du tust: Training (50 + 8 pro Satz, +25 je Bestleistung, +40 je Rangaufstieg), Cardio (2 pro Minute), Check-in, erfasste Ernährung, Trinken, Wiegen, Mobilität und perfekte Tage.
-- Level mit Titeln von „Neuling“ bis „Legende“, Streak-Flamme mit Meilenstein-Feiern, 76 Abzeichen in sieben Gruppen (Training, Kraft & Volumen, Konstanz, Ausdauer, Alltag & Erholung, besondere Momente, Level).
+- Level mit Titeln von „Neuling“ bis „Legende“, Streak-Flamme mit Meilenstein-Feiern, 87 Abzeichen in acht Gruppen (Training, Kraft & Volumen, Konstanz, Ausdauer, Routine & Gewohnheiten, Alltag & Erholung, besondere Momente, Level).
 - Bestleistungen als Spiel: jede Übung bekommt einen Rang von Bronze bis Diamant (Kraftwert = geschätztes 1RM im Verhältnis zur Referenz eines Fortgeschrittenen bei deinem Körpergewicht, Geschlecht und Alter; Körpergewichtsübungen zählen Wiederholungen), dazu ein Kraft-Rang über alle Bewegungsmuster mit Fortschrittsbalken. Die Rekord-Serie zählt Wochen in Folge mit mindestens einer Steigerung – mit Wochenstreifen, Warnung, wenn sie zu reißen droht, und Feiern bei 3, 5, 8, 12, 20 und 30 Wochen. „Nächste Ziele“ zeigen, wie nah der nächste Rang, der 100-kg-Club oder das 1,5-fache Körpergewicht ist; die Chronik listet jede Steigerung und jeden Rangaufstieg. Rangaufstiege werden nach dem Training gefeiert und mit Abzeichen belohnt (100-kg-Club, Körpergewicht gedrückt, Rekordtag, Rekord-Serie …).
 - Rekorde im Training: jede Übung zeigt die aktuelle Bestleistung mit Medaille und rechnet vor, wie sie heute fällt („Knacken: 72,5 kg × 9 oder 75 kg × 8 · 100-kg-Club: 72,5 kg × 12“). Wird ein Satz abgehakt, der den Rekord schlägt, erscheint sofort ein Banner mit Konfetti und der Satz leuchtet gold. Rekordtage sind im Kalender markiert, die Übungsbibliothek zeigt Rang und Punkte, und der KI-Coach kennt Ränge, Serie und nächste Ziele.
 - Herausforderungen: jede Woche drei neue (z. B. alle Krafteinheiten, Cardio-Minuten, perfekte Tage, Bestleistung, Beintag) und eine im Monat, mit Fortschrittsbalken und XP. Abgeschlossene werden gefeiert und zählen für Abzeichen.
 - Tägliche Ziel-Checkliste auf der Startseite (Check-in, Training oder Bewegung, Ernährung, Trinken, Mobilität, optional Wiegen) mit Bonus für den perfekten Tag.
 - Feier nach jedem Training mit Konfetti, XP-Zähler, neuen Bestleistungen, Abzeichen und Level-ups.
 
+**Routine & Quests (eigene Gewohnheiten)**
+- Eigene Quests für den Alltag: Zähne putzen, Glas Wasser nach dem Aufstehen, Vitamin D, Spaziergang, 20 Minuten lesen, Handy weg vor dem Schlafen, pünktlich ins Bett … 21 Vorlagen zum Antippen oder frei selbst anlegen (Name, Symbol, Tagesabschnitt, XP).
+- Rhythmus pro Gewohnheit: täglich, an bestimmten Wochentagen oder x-mal pro Woche. Optional eine Uhrzeit für die Erinnerung.
+- Eigene Seite „Routine“ mit Tagesring, Wochenstreifen (auch zum Nachtragen vergangener Tage), Gruppierung nach Morgen / Tagsüber / Abend, 14-Tage-Raster je Gewohnheit, Serie, 30-Tage-Quote und Gesamtzahl.
+- Auf „Heute“ erscheinen die fälligen Gewohnheiten als abhakbare Karte, geben XP, halten die Streak am Leben, zählen für den perfekten Tag (pro Gewohnheit abschaltbar), für Herausforderungen und für elf eigene Abzeichen.
+- Fokus umstellbar: **Training & Routine** (Standard) oder **nur Routine** – dann sind die eigenen Gewohnheiten die Pflichtziele des Tages, Trainingsplan und Ernährung bleiben erhalten, zählen aber als optional. LMCI wird damit auf Wunsch zur reinen Routine-App.
+
 **Fortschritt**
 - Wochenvolumen je Muskel gegen Ziel, Sätze und Cardio-Minuten pro Woche, geschätztes 1RM je Übung, Körpergewicht mit 7-Tage-Schnitt, Körpermaße, Bestleistungen mit Rangleiter und 1RM-Verlauf je Übung, Trainingshistorie.
 - Kalender mit Training, Cardio, Ernährung und Check-ins.
-- Erinnerungen an Trainingstagen (bei geöffneter App) und Kalender-Export (.ics) für zuverlässige Termine.
+- Erinnerungen an Trainingstagen und an Gewohnheiten mit Uhrzeit (bei geöffneter App) sowie Kalender-Export (.ics) für zuverlässige Termine.
 
 **Optional: KI-Coach**
 - Fragen zu Plan, Fortschritt und Ernährung an einen Coach, der deinen Plan, deine Logs und dein Tagebuch kennt. Läuft über die Anthropic-API mit **deinem eigenen API-Schlüssel** (Abrechnung pro Anfrage, wenige Cent, kein Abo). Schlüssel bleibt im Browser und wird nicht exportiert.
@@ -150,11 +157,13 @@ src/engine/achievements.js    Streaks, Abzeichen, Zielgewicht-Prognose
 src/engine/reminders.js       Erinnerungen, iCalendar-Export
 src/engine/quick.js           Schnelltraining: Ausrüstung + Fokus + Zeit → Aufgabenliste
 src/engine/goals.js           Tagesziele, XP-Werte
+src/engine/routines.js        Eigene Gewohnheiten: Vorlagen, Rhythmus, Serien, Quoten, XP
 src/engine/challenges.js      Wochen- und Monats-Herausforderungen
 src/engine/gamification.js    XP, Level, perfekte Tage
 src/engine/records.js         Bestleistungen: Chronik, Rekord-Serie, Ränge (Bronze–Diamant), Kraft-Rang, nächste Ziele
-src/ui/*.js                   Ansichten: Onboarding, Heute, Schnelltraining, Plan, Training, Übungen, Fortschritt, Kalender, Ernährung, Coach, Mehr
+src/ui/*.js                   Ansichten: Onboarding, Heute, Schnelltraining, Plan, Training, Übungen, Fortschritt, Kalender, Ernährung, Routine, Coach, Mehr
 src/ui/records.js             Bestleistungen-Karte, Detail mit Rangleiter, Kurzzeile für „Heute“
+src/ui/routine.js             Routine-Seite: Quests abhaken, anlegen, bearbeiten, Verlauf, Fokus
 src/ui/foodpicker.js          Lebensmittel-Auswahl, Portionen, eigene Lebensmittel, Rezepte, Barcode
 src/ui/bodymap.js, timer.js   Körperkarte, Intervall-Timer
 src/ui/icons.js, celebrate.js Icon-Set, Konfetti und Feier-Dialog

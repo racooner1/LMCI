@@ -19,8 +19,10 @@ const EMPTY = () => ({
   recipes: [],
   favorites: [],
   recents: [],
+  measurements: [],
+  coach: { apiKey: '', model: 'claude-opus-5', history: [] },
   activeWorkout: null,
-  settings: { barWeight: 20, plates: [25, 20, 15, 10, 5, 2.5, 1.25], restTimer: true, sound: true, kcalAdjust: 0, targetOverride: null },
+  settings: { barWeight: 20, plates: [25, 20, 15, 10, 5, 2.5, 1.25], restTimer: true, sound: true, kcalAdjust: 0, targetOverride: null, reminders: { enabled: false, time: '18:00', lastFired: null } },
   meta: { createdAt: toISODate(), lastOpened: toISODate() },
 });
 
@@ -72,6 +74,10 @@ function migrate(s) {
   for (const k of ['customFoods', 'recipes', 'favorites', 'recents']) if (!Array.isArray(s[k])) s[k] = [];
   if (s.settings.kcalAdjust == null) s.settings.kcalAdjust = 0;
   if (s.settings.targetOverride === undefined) s.settings.targetOverride = null;
+  if (!s.settings.reminders) s.settings.reminders = { enabled: false, time: '18:00', lastFired: null };
+  if (!Array.isArray(s.measurements)) s.measurements = [];
+  if (!s.coach) s.coach = { apiKey: '', model: 'claude-opus-5', history: [] };
+  if (!Array.isArray(s.coach.history)) s.coach.history = [];
   if (s.plan && !s.plan.muscleAdjust) s.plan.muscleAdjust = {};
   for (const d of s.plan?.days || []) for (const pe of d.exercises) if (pe.tier == null) pe.tier = 1;
   s.schema = SCHEMA;
@@ -105,7 +111,9 @@ export function saveNow() {
 }
 
 export function exportJSON() {
-  return JSON.stringify({ app: 'LMCI', exportedAt: new Date().toISOString(), data: state }, null, 2);
+  // API-Schlüssel des Coaches bleibt auf dem Gerät und wandert nicht in die Sicherung.
+  const data = { ...state, coach: { ...state.coach, apiKey: '' } };
+  return JSON.stringify({ app: 'LMCI', exportedAt: new Date().toISOString(), data }, null, 2);
 }
 
 export function importJSON(text) {

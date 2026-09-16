@@ -6,6 +6,7 @@ import { MEALS, dayTotals, macrosFor, weeklyReview } from '../engine/food.js';
 import { GOALS } from '../engine/plan.js';
 import { toISODate, addDays, formatDate, uid } from '../engine/util.js';
 import { openFoodPicker, openPortion, openCustomFood, openRecipe } from './foodpicker.js';
+import { goalProjection } from '../engine/achievements.js';
 
 let viewDate = toISODate();
 
@@ -44,6 +45,7 @@ export function renderErnaehrung(root) {
   const yesterday = addDays(viewDate, -1);
   const pct = (v, t) => Math.min(100, t ? (v / t) * 100 : 0).toFixed(0);
   const maxDay = Math.max(n.target, ...review.days.map((d) => d.kcal));
+  const goal = goalProjection(profile, s.bodyLogs, trend);
 
   root.innerHTML = String(html`
     <section class="page">
@@ -101,6 +103,13 @@ export function renderErnaehrung(root) {
         <div class="advice ${review.suggestion.level}">${review.suggestion.text}${review.suggestion.deltaKcal ? html` <button class="btn btn-small" data-act="apply-delta" data-delta="${review.suggestion.deltaKcal}">Ziel um ${review.suggestion.deltaKcal > 0 ? '+' : ''}${review.suggestion.deltaKcal} kcal anpassen</button>` : ''}</div>
         <div class="advice ${advice.level}">${advice.text}</div>
         <form class="row gap" id="weight-form"><input id="weight-input" type="number" step="0.1" inputmode="decimal" placeholder="Gewicht heute (kg)" aria-label="Gewicht heute"><button class="btn" type="submit">Speichern</button></form>
+      </div>
+
+      <div class="card">
+        <div class="row between"><div class="card-title">Zielgewicht</div><button class="btn btn-small" data-act="goal">${goal ? 'Ändern' : 'Setzen'}</button></div>
+        ${goal ? html`<div class="row between"><span class="muted small">Start ${goal.start} kg</span><strong>${goal.current} kg</strong><span class="muted small">Ziel ${goal.target} kg</span></div>
+          <div class="kcal-bar"><div style="width:${(goal.progress * 100).toFixed(0)}%"></div></div>
+          <p class="small">${Math.abs(goal.remaining) < 0.3 ? 'Ziel erreicht – jetzt halten.' : html`Noch ${Math.abs(goal.remaining).toFixed(1).replace('.', ',')} kg. ${goal.etaWeeks ? `Bei deinem aktuellen Trend etwa ${goal.etaWeeks} Wochen.` : 'Trend zeigt noch nicht in Richtung Ziel.'} Gesund erreichbar in ca. ${goal.safeWeeks} Wochen${goal.targetDate ? ` · Wunschtermin ${formatDate(goal.targetDate)}` : ''}.`}</p>` : html`<p class="muted small">Ein Zielgewicht macht den Fortschritt sichtbar und zeigt, ob dein Tempo realistisch ist.</p>`}
       </div>
 
       <div class="card">
@@ -173,6 +182,7 @@ export function renderErnaehrung(root) {
   root.querySelector('[data-act="override"]').addEventListener('click', () => openOverride(n));
   root.querySelector('[data-act="override-off"]')?.addEventListener('click', () => store.update((st) => { st.settings.targetOverride = null; }));
   root.querySelector('[data-act="manage"]').addEventListener('click', openManage);
+  root.querySelector('[data-act="goal"]').addEventListener('click', openGoal);
   root.querySelector('#act-select').addEventListener('change', (e) => {
     store.update((st) => (st.profile.activityLevel = e.target.value));
     toast('Aktivitätslevel gespeichert.', 'ok');
@@ -232,4 +242,36 @@ function openManage() {
   m.querySelectorAll('[data-food]').forEach((b) => b.addEventListener('click', () => openCustomFood(s.customFoods.find((c) => c.id === b.dataset.food), openManage)));
   m.querySelector('#mg-new-recipe').addEventListener('click', () => openRecipe(null, openManage));
   m.querySelector('#mg-new-food').addEventListener('click', () => openCustomFood(null, openManage));
+}
+
+function openGoal() {
+  const s = store.get();
+  const p = s.profile;
+  const m = openModal(
+    `<form id="goal-form" class="form">
+      <div class="grid2">
+        <label class="field"><span>Zielgewicht (kg)</span><input id="goal-kg" type="number" step="0.5" min="30" max="250" inputmode="decimal" value="${p.targetWeightKg || ''}"></label>
+        <label class="field"><span>Wunschtermin (optional)</span><input id="goal-date" type="date" value="${p.targetDate || ''}"></label>
+      </div>
+      <p class="muted small">Gesundes Tempo: Fettabbau 0,5–1 % Körpergewicht pro Woche, Aufbau 0,25–0,5 %. Ein zu knapper Termin kostet Muskeln oder setzt Fett an.</p>
+      <div class="row between gap"><button type="button" class="btn btn-ghost btn-small" id="goal-clear">Kein Ziel</button><button class="btn btn-primary" type="submit">Speichern</button></div>
+    </form>`,
+    { title: 'Zielgewicht' },
+  );
+  m.querySelector('#goal-clear').addEventListener('click', () => {
+    store.update((st) => { delete st.profile.targetWeightKg; delete st.profile.targetDate; delete st.profile.startWeightKg; });
+    closeModal();
+  });
+  m.querySelector('#goal-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const kg = num(m.querySelector('#goal-kg').value);
+    if (kg < 30 || kg > 250) return toast('Bitte ein plausibles Zielgewicht.', 'warn');
+    store.update((st) => {
+      st.profile.targetWeightKg = kg;
+      st.profile.targetDate = m.querySelector('#goal-date').value || null;
+      if (!st.profile.startWeightKg) st.profile.startWeightKg = st.profile.weightKg;
+    });
+    closeModal();
+    toast('Zielgewicht gespeichert.', 'ok');
+  });
 }

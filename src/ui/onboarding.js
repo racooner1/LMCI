@@ -92,6 +92,9 @@ function collect(root) {
   if (step === 1) {
     draft.goal = d.goal;
     draft.experience = d.experience;
+    draft.targetWeightKg = num(d.targetWeightKg, 0) || undefined;
+    draft.targetDate = d.targetDate || undefined;
+    if (draft.targetWeightKg && !draft.startWeightKg) draft.startWeightKg = draft.weightKg;
     if (draft.cardioSessions == null) draft.cardioSessions = defaultCardioSessions(d.goal);
   }
   if (step === 2) {
@@ -180,7 +183,12 @@ function renderStep(i, d) {
       <h2>Was willst du erreichen?</h2>
       <div class="choices">${radioCards('goal', Object.entries(GOALS), d.goal)}</div>
       <h3>Trainingserfahrung</h3>
-      <div class="choices">${radioCards('experience', Object.entries(EXPERIENCE), d.experience)}</div>`;
+      <div class="choices">${radioCards('experience', Object.entries(EXPERIENCE), d.experience)}</div>
+      <h3>Zielgewicht <span class="muted">(optional)</span></h3>
+      <div class="grid2">
+        <label class="field"><span>Zielgewicht (kg)</span><input id="f-target" name="targetWeightKg" type="number" inputmode="decimal" step="0.5" min="30" max="250" value="${d.targetWeightKg || ''}"></label>
+        <label class="field"><span>Wunschtermin</span><input id="f-target-date" name="targetDate" type="date" value="${d.targetDate || ''}"></label>
+      </div>`;
   }
   if (i === 2) {
     const wd = d.trainingWeekdays || [];

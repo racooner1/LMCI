@@ -2,8 +2,10 @@
 import { html, raw, toast, confirmDialog, openModal, num } from './dom.js';
 import * as store from '../state.js';
 import { GOALS, EXPERIENCE } from '../engine/plan.js';
+import { buildICS } from '../engine/reminders.js';
+import { openCoachSettings } from './coach.js';
 
-export const APP_VERSION = '1.0.0';
+export const APP_VERSION = '1.1.0';
 
 export function renderMehr(root) {
   const s = store.get();
@@ -26,6 +28,23 @@ export function renderMehr(root) {
         </div>
         <label class="chip"><input type="checkbox" id="set-rest" ${s.settings.restTimer ? 'checked' : ''}><span>Pausentimer nach jedem Satz starten</span></label>
         <label class="chip"><input type="checkbox" id="set-sound" ${s.settings.sound ? 'checked' : ''}><span>Ton am Ende der Pause</span></label>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Erinnerungen</div>
+        <p class="muted small">Die App kann dich an Trainingstagen erinnern, solange sie geöffnet oder im Hintergrund aktiv ist. Für zuverlässige Erinnerungen: Trainingstage in deinen Kalender exportieren.</p>
+        <div class="row gap wrap">
+          <label class="chip"><input type="checkbox" id="rem-enabled" ${s.settings.reminders?.enabled ? 'checked' : ''}><span>Erinnerung an Trainingstagen</span></label>
+          <label class="field"><span>Uhrzeit</span><input id="rem-time" type="time" value="${s.settings.reminders?.time || '18:00'}"></label>
+        </div>
+        <p class="muted small" id="rem-status">${typeof Notification === 'undefined' ? 'Benachrichtigungen werden hier nicht unterstützt.' : Notification.permission === 'granted' ? 'Benachrichtigungen erlaubt.' : Notification.permission === 'denied' ? 'Benachrichtigungen im Browser blockiert.' : 'Beim Aktivieren fragt der Browser nach Erlaubnis.'}</p>
+        <button class="btn" data-act="ics">Trainingstage als Kalender (.ics) exportieren</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">KI-Coach</div>
+        <p class="muted small">Optional: Fragen zu Plan, Fortschritt und Ernährung an einen KI-Coach mit deinem eigenen Anthropic-Schlüssel. ${s.coach?.apiKey ? 'Eingerichtet.' : 'Noch nicht eingerichtet.'}</p>
+        <div class="row gap wrap"><a class="btn" href="#/coach">Coach öffnen</a><button class="btn btn-ghost" data-act="coach-settings">Schlüssel & Modell</button></div>
       </div>
 
       <div class="card">
@@ -72,6 +91,24 @@ export function renderMehr(root) {
   root.querySelector('#set-rest').addEventListener('change', (e) => store.update((st) => (st.settings.restTimer = e.target.checked)));
   root.querySelector('#set-sound').addEventListener('change', (e) => store.update((st) => (st.settings.sound = e.target.checked)));
   root.querySelector('[data-act="export"]').addEventListener('click', exportBackup);
+  root.querySelector('[data-act="coach-settings"]').addEventListener('click', openCoachSettings);
+  root.querySelector('#rem-enabled').addEventListener('change', async (e) => {
+    let ok = true;
+    if (e.target.checked && typeof Notification !== 'undefined' && Notification.permission === 'default') {
+      try {
+        ok = (await Notification.requestPermission()) === 'granted';
+      } catch {
+        ok = false;
+      }
+    }
+    store.update((st) => (st.settings.reminders.enabled = e.target.checked));
+    if (e.target.checked && !ok) toast('Ohne Erlaubnis kann der Browser nichts anzeigen – der Kalender-Export funktioniert immer.', 'warn');
+  });
+  root.querySelector('#rem-time').addEventListener('change', (e) => store.update((st) => (st.settings.reminders.time = e.target.value || '18:00'), { silent: true }));
+  root.querySelector('[data-act="ics"]').addEventListener('click', () => {
+    const ics = buildICS(s.plan, { time: s.settings.reminders?.time || '18:00', durationMin: s.profile.sessionMinutes || 60 });
+    downloadOrShow(ics, 'lmci-trainingsplan.ics', 'text/calendar', 'Kalender-Datei');
+  });
   root.querySelector('#import-file').addEventListener('change', async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -96,10 +133,13 @@ export function renderMehr(root) {
 }
 
 function exportBackup() {
-  const json = store.exportJSON();
-  const name = `lmci-sicherung-${new Date().toISOString().slice(0, 10)}.json`;
+  downloadOrShow(store.exportJSON(), `lmci-sicherung-${new Date().toISOString().slice(0, 10)}.json`, 'application/json', 'Sicherung');
+}
+
+function downloadOrShow(text, name, type, title) {
+  const json = text;
   try {
-    const blob = new Blob([json], { type: 'application/json' });
+    const blob = new Blob([json], { type });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -112,7 +152,7 @@ function exportBackup() {
     /* Fallback unten */
   }
   // Fallback für Umgebungen, die Downloads blockieren: Text zum Kopieren anzeigen.
-  const m = openModal(`<p class="muted small">Falls kein Download gestartet ist: Text kopieren und als <code>${name}</code> speichern.</p><textarea class="textarea" rows="8" readonly id="exp-text">${json.replace(/</g, '&lt;')}</textarea><div class="row end"><button class="btn" id="exp-copy">In Zwischenablage kopieren</button></div>`, { title: 'Sicherung' });
+  const m = openModal(`<p class="muted small">Falls kein Download gestartet ist: Text kopieren und als <code>${name}</code> speichern.</p><textarea class="textarea" rows="8" readonly id="exp-text">${json.replace(/</g, '&lt;')}</textarea><div class="row end"><button class="btn" id="exp-copy">In Zwischenablage kopieren</button></div>`, { title });
   m.querySelector('#exp-copy').addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(json);

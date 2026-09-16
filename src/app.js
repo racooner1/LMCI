@@ -8,6 +8,9 @@ import { renderFortschritt } from './ui/fortschritt.js';
 import { renderErnaehrung } from './ui/ernaehrung.js';
 import { renderMehr } from './ui/mehr.js';
 import { renderUebungen } from './ui/uebungen.js';
+import { renderKalender } from './ui/kalender.js';
+import { renderCoach } from './ui/coach.js';
+import { startReminderLoop } from './engine/reminders.js';
 import { generatePlan, availableExercises } from './engine/plan.js';
 import { closeModal } from './ui/dom.js';
 
@@ -60,6 +63,12 @@ function route() {
     case 'uebungen':
       renderUebungen(root, arg);
       break;
+    case 'kalender':
+      renderKalender(root);
+      break;
+    case 'coach':
+      renderCoach(root);
+      break;
     default:
       renderHeute(root);
   }
@@ -97,6 +106,7 @@ renderNav();
 window.addEventListener('hashchange', route);
 route();
 store.requestPersistentStorage();
+startReminderLoop(store);
 
 // In der Einzeldatei-Variante (dist/) gibt es keinen Service Worker.
 const SINGLE_FILE = typeof __LMCI_SINGLE__ !== 'undefined' && __LMCI_SINGLE__;

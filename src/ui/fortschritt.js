@@ -6,7 +6,12 @@ import { weeklySeries, weeklyVolume, e1rmHistory, personalRecords, totalSets, to
 import { weightTrend } from '../engine/nutrition.js';
 import { getExercise } from '../data/exercises.js';
 import { MUSCLES } from '../data/muscles.js';
-import { toISODate, startOfWeek, formatDate, fromISODate } from '../engine/util.js';
+import { toISODate, startOfWeek, formatDate, fromISODate, uid } from '../engine/util.js';
+import { badgeStatus, dailyStreak } from '../engine/achievements.js';
+import { num } from './dom.js';
+
+const MEASURES = [['taille', 'Taille'], ['huefte', 'Hüfte'], ['brust', 'Brust'], ['arm', 'Oberarm'], ['oberschenkel', 'Oberschenkel'], ['schulter', 'Schulterumfang']];
+let selectedMeasure = 'taille';
 
 let selectedEx = null;
 
@@ -32,10 +37,28 @@ export function renderFortschritt(root) {
   const trend = weightTrend(bodyLogs);
   const records = personalRecords(workouts).slice(0, 10);
   const recent = [...workouts].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 20);
+  const badges = badgeStatus(s, today);
+  const earned = badges.filter((b) => b.earned);
+  const streak = dailyStreak(s, today);
+  const measures = [...s.measurements].sort((a, b) => (a.date < b.date ? -1 : 1));
+  const latestM = measures[measures.length - 1];
+  const mSeries = measures.filter((m) => m[selectedMeasure] != null).map((m) => ({ label: formatDate(m.date, { weekday: false }), y: m[selectedMeasure] }));
 
   root.innerHTML = String(html`
     <section class="page">
-      <header class="page-head"><div><h1>Fortschritt</h1><p class="muted">${workouts.length} Trainings · ${cardioLogs.length} Cardio-Einheiten</p></div></header>
+      <header class="page-head"><div><h1>Fortschritt</h1><p class="muted">${workouts.length} Trainings · ${cardioLogs.length} Cardio-Einheiten · Streak ${streak} Tag${streak === 1 ? '' : 'e'}</p></div><a class="btn btn-small" href="#/kalender">Kalender</a></header>
+
+      <div class="card">
+        <div class="row between"><div class="card-title">Abzeichen</div><span class="muted small">${earned.length} / ${badges.length}</span></div>
+        <div class="badges">${badges.map((b) => html`<div class="badge-tile ${b.earned ? 'earned' : ''}" title="${b.desc}"><span class="badge-icon">${b.icon}</span><span class="badge-name">${b.name}</span><span class="muted small">${b.desc}</span></div>`)}</div>
+      </div>
+
+      <div class="card">
+        <div class="row between"><div class="card-title">Körpermaße</div><button class="btn btn-small" data-act="measure">Eintragen</button></div>
+        ${latestM ? html`<p class="small">${formatDate(latestM.date)}: ${MEASURES.filter(([k]) => latestM[k] != null).map(([k, n]) => `${n} ${latestM[k]} cm`).join(' · ')}</p>
+        <select id="measure-select" class="select">${MEASURES.map(([k, n]) => html`<option value="${k}" ${k === selectedMeasure ? 'selected' : ''}>${n}</option>`)}</select>
+        ${raw(lineChart(mSeries, { unit: ' cm' }))}` : html`<p class="muted small">Umfänge sagen oft mehr als die Waage – vor allem beim Muskelaufbau. Alle 2–4 Wochen messen, morgens, gleiche Stelle.</p>`}
+      </div>
 
       <div class="card">
         <div class="card-title">Harte Sätze diese Woche</div>
@@ -75,6 +98,11 @@ export function renderFortschritt(root) {
       </div>
     </section>`);
 
+  root.querySelector('[data-act="measure"]').addEventListener('click', () => openMeasure(root));
+  root.querySelector('#measure-select')?.addEventListener('change', (e) => {
+    selectedMeasure = e.target.value;
+    renderFortschritt(root);
+  });
   root.querySelector('#ex-select')?.addEventListener('change', (e) => {
     selectedEx = e.target.value;
     renderFortschritt(root);
@@ -99,5 +127,39 @@ function openWorkoutDetail(root, id) {
       toast('Training gelöscht.');
       renderFortschritt(root);
     }
+  });
+}
+
+function openMeasure(root) {
+  const s = store.get();
+  const last = [...s.measurements].sort((a, b) => (a.date < b.date ? 1 : -1))[0] || {};
+  const m = openModal(
+    `<form id="ms-form" class="form">
+      <label class="field"><span>Datum</span><input id="ms-date" type="date" value="${toISODate()}"></label>
+      <p class="muted small">Umfänge in cm – leer lassen, was du nicht misst.</p>
+      <div class="grid2">${MEASURES.map(([k, n]) => `<label class="field"><span>${n}</span><input id="ms-${k}" type="number" step="0.5" min="10" max="250" inputmode="decimal" placeholder="${last[k] ?? ''}"></label>`).join('')}</div>
+      <div class="row end"><button class="btn btn-primary" type="submit">Speichern</button></div>
+    </form>`,
+    { title: 'Körpermaße' },
+  );
+  m.querySelector('#ms-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const entry = { id: uid(), date: m.querySelector('#ms-date').value || toISODate() };
+    let any = false;
+    for (const [k] of MEASURES) {
+      const v = num(m.querySelector(`#ms-${k}`).value);
+      if (v) {
+        entry[k] = v;
+        any = true;
+      }
+    }
+    if (!any) return toast('Bitte mindestens einen Wert eintragen.', 'warn');
+    store.update((st) => {
+      st.measurements = st.measurements.filter((x) => x.date !== entry.date);
+      st.measurements.push(entry);
+    });
+    closeModal();
+    toast('Maße gespeichert.', 'ok');
+    renderFortschritt(root);
   });
 }

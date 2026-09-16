@@ -12,6 +12,7 @@ import { toISODate, weekdayIndex, startOfWeek, WEEKDAYS, WEEKDAYS_LONG, formatDa
 import { openIntervalTimer } from './timer.js';
 import { dayTotals } from '../engine/food.js';
 import { dailyTargets } from './ernaehrung.js';
+import { dailyStreak, badgeStatus } from '../engine/achievements.js';
 
 export function renderHeute(root) {
   const s = store.get();
@@ -27,6 +28,8 @@ export function renderHeute(root) {
   const nutrition = dailyTargets(s);
   const eaten = dayTotals(s.foodLog[today] || []);
   const streak = streakWeeks(plan, s.workouts, today);
+  const dayStreak = dailyStreak(s, today);
+  const earnedBadges = badgeStatus(s, today).filter((b) => b.earned).length;
   const lastWeight = [...s.bodyLogs].sort((a, b) => (a.date < b.date ? 1 : -1))[0];
   const cardioThisWeek = s.cardioLogs.filter((c) => c.date >= ws);
   const checkin = s.checkins.find((c) => c.date === today);
@@ -121,9 +124,10 @@ export function renderHeute(root) {
       </div>
 
       <div class="card">
-        <div class="card-title">Konstanz</div>
-        <p><strong>${streak}</strong> Woche${streak === 1 ? '' : 'n'} in Folge mit fast allen geplanten Einheiten · <strong>${s.workouts.length}</strong> Trainings gesamt</p>
-        <p class="muted small">Regelmäßigkeit schlägt jedes perfekte Programm. Zwei Drittel der Einheiten reichen, damit der Fortschritt weiterläuft.</p>
+        <div class="row between"><div class="card-title">Konstanz</div><a class="btn btn-small btn-ghost" href="#/kalender">Kalender</a></div>
+        <div class="summary"><div class="stat"><span class="stat-num">${dayStreak}</span><span class="stat-unit">Tage aktiv in Folge</span></div><div class="stat"><span class="stat-num">${streak}</span><span class="stat-unit">Wochen dran</span></div><div class="stat"><span class="stat-num">${earnedBadges}</span><span class="stat-unit">Abzeichen</span></div></div>
+        <p class="muted small">Regelmäßigkeit schlägt jedes perfekte Programm. Zwei Drittel der Einheiten reichen, damit der Fortschritt weiterläuft.${s.coach?.apiKey ? '' : ''}</p>
+        <a class="btn btn-ghost btn-small" href="#/coach">Coach fragen</a>
       </div>
     </section>`);
 

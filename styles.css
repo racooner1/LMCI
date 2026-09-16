@@ -401,3 +401,37 @@ details.group .chips { margin-top: 8px; }
 .review-day.none i { background: var(--line); }
 .danger-text { color: var(--danger); }
 .warn-text { color: var(--warn); }
+
+/* Stufe 3: Kalender, Abzeichen, Coach */
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-head { text-align: center; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding: 4px 0; }
+.cal-cell { appearance: none; border: 1px solid transparent; background: var(--surface-2); border-radius: 8px; min-height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 4px 2px; font: inherit; color: var(--ink); cursor: pointer; }
+.cal-cell.empty { background: transparent; cursor: default; }
+.cal-cell.today { border-color: var(--accent); }
+.cal-cell.future { opacity: 0.5; }
+.cal-cell.missed { border-color: var(--warn); border-style: dashed; }
+.cal-cell[data-empty] { color: var(--muted); }
+.cal-num { font-size: 0.9rem; font-weight: 500; }
+.cal-dots { display: flex; gap: 2px; min-height: 8px; }
+.cal-dots i, .cal-legend i { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+.d-strength { background: var(--accent); }
+.d-cardio { background: var(--ok); }
+.d-food { background: var(--warn); }
+.d-checkin { background: var(--deload); }
+.cal-legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.75rem; color: var(--muted); margin-top: 8px; align-items: center; }
+.cal-legend span { display: inline-flex; align-items: center; gap: 4px; }
+.missed-legend::before { content: ''; width: 12px; height: 12px; border: 1px dashed var(--warn); border-radius: 3px; display: inline-block; }
+.badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+.badge-tile { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; padding: 10px 6px; border-radius: 10px; background: var(--surface-2); opacity: 0.45; filter: grayscale(1); }
+.badge-tile.earned { opacity: 1; filter: none; background: var(--accent-soft); }
+.badge-icon { font-size: 1.6rem; }
+.badge-name { font-weight: 600; font-size: 0.85rem; }
+.chat { display: flex; flex-direction: column; gap: 10px; min-height: 120px; max-height: 55vh; overflow: auto; padding: 4px; }
+.msg { max-width: 88%; padding: 10px 14px; border-radius: 14px; font-size: 0.95rem; line-height: 1.45; }
+.msg p { margin: 0 0 6px; }
+.msg p:last-child { margin: 0; }
+.msg ul { margin: 4px 0; padding-left: 18px; }
+.msg.user { align-self: flex-end; background: var(--accent); color: var(--accent-ink); border-bottom-right-radius: 4px; }
+.msg.assistant { align-self: flex-start; background: var(--surface); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+.msg.streaming { opacity: 0.85; }
+.chip:disabled, .chip[disabled] { opacity: 0.5; }

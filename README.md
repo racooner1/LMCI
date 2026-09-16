@@ -34,7 +34,8 @@ Alle Regeln sind bewusst einfach, nachvollziehbar und aus der Trainingswissensch
 
 **Motivation & Belohnungen**
 - XP für alles, was du tust: Training (50 + 8 pro Satz, +25 je Bestleistung), Cardio (2 pro Minute), Check-in, erfasste Ernährung, Trinken, Wiegen, Mobilität und perfekte Tage.
-- Level mit Titeln von „Neuling“ bis „Legende“, Streak-Flamme für aktive Tage in Folge, 16 Abzeichen.
+- Level mit Titeln von „Neuling“ bis „Legende“, Streak-Flamme mit Meilenstein-Feiern, 65 Abzeichen in sieben Gruppen (Training, Kraft & Volumen, Konstanz, Ausdauer, Alltag & Erholung, besondere Momente, Level).
+- Herausforderungen: jede Woche drei neue (z. B. alle Krafteinheiten, Cardio-Minuten, perfekte Tage, Bestleistung, Beintag) und eine im Monat, mit Fortschrittsbalken und XP. Abgeschlossene werden gefeiert und zählen für Abzeichen.
 - Tägliche Ziel-Checkliste auf der Startseite (Check-in, Training oder Bewegung, Ernährung, Trinken, Mobilität, optional Wiegen) mit Bonus für den perfekten Tag.
 - Feier nach jedem Training mit Konfetti, XP-Zähler, neuen Bestleistungen, Abzeichen und Level-ups.
 
@@ -142,11 +143,14 @@ src/engine/analytics.js       Auswertungen (Volumen, 1RM, Rekorde, Konstanz)
 src/engine/achievements.js    Streaks, Abzeichen, Zielgewicht-Prognose
 src/engine/reminders.js       Erinnerungen, iCalendar-Export
 src/engine/quick.js           Schnelltraining: Ausrüstung + Fokus + Zeit → Aufgabenliste
-src/engine/gamification.js    XP, Level, Tagesziele, perfekte Tage
+src/engine/goals.js           Tagesziele, XP-Werte
+src/engine/challenges.js      Wochen- und Monats-Herausforderungen
+src/engine/gamification.js    XP, Level, perfekte Tage
 src/ui/*.js                   Ansichten: Onboarding, Heute, Schnelltraining, Plan, Training, Übungen, Fortschritt, Kalender, Ernährung, Coach, Mehr
 src/ui/foodpicker.js          Lebensmittel-Auswahl, Portionen, eigene Lebensmittel, Rezepte, Barcode
 src/ui/bodymap.js, timer.js   Körperkarte, Intervall-Timer
 src/ui/icons.js, celebrate.js Icon-Set, Konfetti und Feier-Dialog
+src/ui/motion.js              Zähl- und Balken-Animationen
 vendor/anthropic-sdk.js       Gebündeltes Anthropic-SDK (nur für den Coach, wird bei Bedarf geladen)
 tests/*.test.js               Unit-Tests (node --test)
 scripts/                      Icon-Generator, Einzeldatei-Build, SDK-Bündelung

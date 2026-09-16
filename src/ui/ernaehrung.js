@@ -1,6 +1,7 @@
 // Ernährung: Tagebuch, Ziele, Wochenrückblick.
 import { html, raw, esc, toast, num, openModal, closeModal, confirmDialog } from './dom.js';
 import * as store from '../state.js';
+import { animateAll } from './motion.js';
 import { computeNutrition, weightTrend, trendAdvice, ACTIVITY_LEVELS } from '../engine/nutrition.js';
 import { MEALS, dayTotals, macrosFor, weeklyReview } from '../engine/food.js';
 import { GOALS } from '../engine/plan.js';
@@ -148,6 +149,7 @@ export function renderErnaehrung(root) {
       </div>
     </section>`);
 
+  animateAll(root);
   const rerender = () => renderErnaehrung(root);
   root.querySelector('[data-act="prev"]').addEventListener('click', () => { viewDate = addDays(viewDate, -1); rerender(); });
   root.querySelector('[data-act="next"]').addEventListener('click', () => { viewDate = addDays(viewDate, 1); rerender(); });

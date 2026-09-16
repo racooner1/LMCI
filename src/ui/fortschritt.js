@@ -7,9 +7,12 @@ import { weightTrend } from '../engine/nutrition.js';
 import { getExercise } from '../data/exercises.js';
 import { MUSCLES } from '../data/muscles.js';
 import { toISODate, startOfWeek, formatDate, fromISODate, uid } from '../engine/util.js';
-import { badgeStatus, dailyStreak } from '../engine/achievements.js';
-import { totalXP, levelInfo, LEVEL_TITLES } from '../engine/gamification.js';
+import { badgeStatus, dailyStreak, BADGE_GROUPS } from '../engine/achievements.js';
+import { totalXP, levelInfo, LEVEL_TITLES, badgeExtra } from '../engine/gamification.js';
+import { weeklyChallenges, monthlyChallenge } from '../engine/challenges.js';
 import { icon } from './icons.js';
+import { challengeRow, noteNewBadges } from './heute.js';
+import { animateAll } from './motion.js';
 import { num } from './dom.js';
 
 const MEASURES = [['taille', 'Taille'], ['huefte', 'Hüfte'], ['brust', 'Brust'], ['arm', 'Oberarm'], ['oberschenkel', 'Oberschenkel'], ['schulter', 'Schulterumfang']];
@@ -39,8 +42,12 @@ export function renderFortschritt(root) {
   const trend = weightTrend(bodyLogs);
   const records = personalRecords(workouts).slice(0, 10);
   const recent = [...workouts].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 20);
-  const badges = badgeStatus(s, today);
+  noteNewBadges(s, today);
+  const badges = badgeStatus(s, today, badgeExtra(s, today));
   const earned = badges.filter((b) => b.earned);
+  const isNew = (b) => b.earned && s.meta.badgeDates?.[b.id] && (new Date(today) - new Date(s.meta.badgeDates[b.id])) / 86400000 <= 3;
+  const weekly = weeklyChallenges(s, startOfWeek(today));
+  const monthly = monthlyChallenge(s, today.slice(0, 7));
   const streak = dailyStreak(s, today);
   const measures = [...s.measurements].sort((a, b) => (a.date < b.date ? -1 : 1));
   const latestM = measures[measures.length - 1];
@@ -66,8 +73,20 @@ export function renderFortschritt(root) {
       </div>
 
       <div class="card">
+        <div class="card-title">Herausforderungen</div>
+        <div class="challenges">${raw(weekly.map((c) => challengeRow(c)).join(''))}${raw(challengeRow(monthly, { monthly: true }))}</div>
+        <p class="muted small">Drei Wochen-Herausforderungen wechseln jeden Montag, die Monats-Herausforderung am Ersten. Geschaffte bringen XP und zählen für Abzeichen.</p>
+      </div>
+
+      <div class="card">
         <div class="row between"><div class="card-title">Abzeichen</div><span class="muted small">${earned.length} / ${badges.length}</span></div>
-        <div class="badges">${badges.map((b) => html`<div class="badge-tile ${b.earned ? 'earned' : ''}" title="${b.desc}"><span class="badge-icon">${b.icon}</span><span class="badge-name">${b.name}</span><span class="muted small">${b.desc}</span></div>`)}</div>
+        ${BADGE_GROUPS.map(([gid, gname]) => {
+          const list = badges.filter((b) => b.group === gid);
+          return html`<div class="badge-group">
+            <div class="badge-group-title"><span>${gname}</span><span class="muted">${list.filter((b) => b.earned).length}/${list.length}</span></div>
+            <div class="badges">${list.map((b) => html`<div class="badge-tile ${b.earned ? 'earned' : ''} ${isNew(b) ? 'new' : ''}" title="${b.desc}">${isNew(b) ? html`<span class="new-tag">NEU</span>` : ''}<span class="badge-icon">${b.icon}</span><span class="badge-name">${b.name}</span><span class="muted small">${b.desc}</span></div>`)}</div>
+          </div>`;
+        })}
       </div>
 
       <div class="card">
@@ -115,6 +134,7 @@ export function renderFortschritt(root) {
       </div>
     </section>`);
 
+  animateAll(root);
   root.querySelector('[data-act="measure"]').addEventListener('click', () => openMeasure(root));
   root.querySelector('#measure-select')?.addEventListener('change', (e) => {
     selectedMeasure = e.target.value;

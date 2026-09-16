@@ -1,6 +1,7 @@
 // Planansicht: Kraft-Tage, Volumen, Cardio, Mobilität.
 import { html, raw, openModal, closeModal, toast, confirmDialog } from './dom.js';
 import * as store from '../state.js';
+import { animateAll } from './motion.js';
 import { planWeek, effectiveSets, rirForWeek, isMesoFinished, GOALS, EXPERIENCE, dayDuration } from '../engine/plan.js';
 import { openExerciseInfo } from './uebungen.js';
 import { getExercise } from '../data/exercises.js';
@@ -48,6 +49,7 @@ export function renderPlan(root) {
       </div>
     </section>`);
 
+  animateAll(root);
   root.querySelectorAll('[data-tab]').forEach((b) => b.addEventListener('click', () => {
     tab = b.dataset.tab;
     renderPlan(root);

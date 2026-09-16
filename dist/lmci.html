@@ -585,6 +585,64 @@ details.group .chips { margin-top: 10px; }
 /* Update-Hinweis */
 .update-banner { position: fixed; left: 50%; transform: translateX(-50%); top: calc(10px + env(safe-area-inset-top, 0px)); z-index: 45; background: var(--ink); color: var(--bg); padding: 10px 12px 10px 16px; border-radius: 14px; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-pop); font-weight: 600; font-size: 0.92rem; max-width: calc(100% - 24px); animation: rise 0.3s ease both; }
 
+/* ---------- Bewegung & Leben ---------- */
+@keyframes aurora { 0% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-6%, 8%) scale(1.15); } 100% { transform: translate(0, 0) scale(1); } }
+@keyframes aurora2 { 0% { transform: translate(0, 0) scale(1); } 50% { transform: translate(8%, -6%) scale(1.1); } 100% { transform: translate(0, 0) scale(1); } }
+.hero::before { content: ''; position: absolute; left: -30%; bottom: -60%; width: 90%; height: 160%; border-radius: 50%; background: radial-gradient(closest-side, rgba(255, 209, 102, 0.35), transparent 70%); pointer-events: none; animation: aurora 14s ease-in-out infinite; }
+.hero::after { animation: aurora2 18s ease-in-out infinite; background: radial-gradient(closest-side, rgba(255, 255, 255, 0.22), transparent 70%); width: 240px; height: 240px; right: -60px; top: -80px; }
+.hero > * { position: relative; }
+@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 209, 102, 0.5); } 50% { box-shadow: 0 0 0 10px rgba(255, 209, 102, 0); } }
+.streak-pill:not(.cold) { animation: pulse 2.4s ease-out infinite; }
+.xp-bar > div::after { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.45) 50%, transparent 70%); background-size: 200% 100%; animation: shimmer 2.8s linear infinite; }
+.xp-bar > div { position: relative; overflow: hidden; }
+.ring .fill { transition: stroke-dashoffset 1s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.kcal-bar > div, .mini-bar > div, .mbar-track > div, .vol-fill, .challenge-bar > div { transition: width 0.9s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.vol-fill { transition-property: width; }
+@keyframes stamp { 0% { transform: scale(1.6) rotate(-8deg); opacity: 0; } 60% { transform: scale(0.95) rotate(2deg); opacity: 1; } 100% { transform: scale(1) rotate(0); } }
+.stamp { animation: stamp 0.5s cubic-bezier(0.2, 1.3, 0.4, 1) both; }
+@keyframes wiggle { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-6deg) scale(1.08); } 75% { transform: rotate(6deg) scale(1.08); } }
+.badge-tile.earned:hover .badge-icon, .badge-tile.new .badge-icon { animation: wiggle 0.8s ease-in-out; }
+.badge-tile { position: relative; }
+.badge-tile .new-tag { position: absolute; top: 6px; right: 6px; font-size: 0.6rem; font-weight: 900; letter-spacing: 0.08em; background: var(--flame); color: #fff; padding: 2px 6px; border-radius: 999px; animation: pulse 2s ease-out infinite; box-shadow: 0 0 0 0 rgba(255, 106, 61, 0.6); }
+@keyframes glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(245, 166, 35, 0); } 50% { box-shadow: 0 0 24px 2px rgba(245, 166, 35, 0.45); } }
+.badge-tile.new { animation: glow 2.2s ease-in-out infinite; }
+.goal-check .ico { transform: scale(0); transition: transform 0.25s cubic-bezier(0.2, 1.4, 0.4, 1); }
+.goal.done .goal-check .ico { transform: scale(1); }
+.action .ico { transition: transform 0.2s cubic-bezier(0.2, 1.4, 0.4, 1); }
+.action:hover .ico { transform: translateY(-2px) scale(1.12); }
+.nav a .ico { transition: transform 0.2s cubic-bezier(0.2, 1.4, 0.4, 1); }
+.nav a.active .ico { transform: translateY(-2px) scale(1.12); }
+.set-row.done { animation: flash 0.5s ease both; }
+@keyframes flash { 0% { background: var(--ok-soft); } 100% { background: transparent; } }
+.ex-card.complete { animation: rise 0.3s ease both; }
+.ex-card.complete .ex-title::after { content: ' ✓'; color: var(--ok); }
+.celebrate-icon { position: relative; }
+.celebrate-hero::before { content: ''; position: absolute; inset: -40%; background: conic-gradient(from 0deg, transparent 0 20deg, rgba(255, 255, 255, 0.14) 20deg 40deg, transparent 40deg 60deg, rgba(255, 255, 255, 0.14) 60deg 80deg, transparent 80deg 100deg, rgba(255, 255, 255, 0.14) 100deg 120deg, transparent 120deg 140deg, rgba(255, 255, 255, 0.14) 140deg 160deg, transparent 160deg 180deg, rgba(255, 255, 255, 0.14) 180deg 200deg, transparent 200deg 220deg, rgba(255, 255, 255, 0.14) 220deg 240deg, transparent 240deg 260deg, rgba(255, 255, 255, 0.14) 260deg 280deg, transparent 280deg 300deg, rgba(255, 255, 255, 0.14) 300deg 320deg, transparent 320deg 340deg, rgba(255, 255, 255, 0.14) 340deg 360deg); animation: spin 14s linear infinite; pointer-events: none; }
+.celebrate-hero { position: relative; overflow: hidden; }
+.celebrate-hero > * { position: relative; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.celebrate-xp { animation: popin 0.7s 0.1s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
+
+/* Herausforderungen */
+.challenges { display: flex; flex-direction: column; gap: 8px; }
+.challenge { display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center; padding: 10px 12px; border-radius: var(--radius-s); background: var(--surface-2); position: relative; overflow: hidden; }
+.challenge.done { background: var(--ok-soft); }
+.challenge-icon { width: 38px; height: 38px; border-radius: 12px; background: var(--surface); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; }
+.challenge.done .challenge-icon { background: var(--ok); color: #fff; }
+.challenge.monthly .challenge-icon { color: var(--xp); }
+.challenge-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.challenge-text strong { font-weight: 700; line-height: 1.2; }
+.challenge-text span { font-size: 0.8rem; color: var(--muted); }
+.challenge-bar { height: 8px; border-radius: 4px; background: var(--surface-3); overflow: hidden; }
+.challenge-bar > div { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent), #6aa0ff); }
+.challenge.done .challenge-bar > div { background: var(--ok); }
+.challenge.monthly .challenge-bar > div { background: linear-gradient(90deg, var(--xp), #ff8c1a); }
+.challenge-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
+.challenge .done-stamp { position: absolute; right: 10px; top: 6px; font-size: 0.65rem; font-weight: 900; letter-spacing: 0.1em; color: var(--ok); border: 2px solid var(--ok); border-radius: 6px; padding: 1px 6px; transform: rotate(-8deg); background: var(--surface); }
+.badge-group { display: flex; flex-direction: column; gap: 8px; }
+.badge-group-title { display: flex; justify-content: space-between; font-weight: 700; font-size: 0.9rem; }
+.card:has(.hero-count) { }
+
 </style>
 </head>
 <body>
@@ -1029,7 +1087,7 @@ details.group .chips { margin-top: 10px; }
     let t2 = { error: on("error", r, n), warn: on("warn", r, n), info: on("info", r, n), debug: on("debug", r, n) };
     return ho.set(r, [n, t2]), t2;
   }
-  function C(r) {
+  function C2(r) {
     let n = r.logger, e = r.logLevel ?? "off";
     return n ? Cs(n, e) : oc;
   }
@@ -1234,7 +1292,7 @@ details.group .chips { margin-top: 10px; }
   }
   async function un(r, n) {
     let { response: e, requestLogID: t2, retryOfRequestLogID: s, startTime: i } = n, o = await (async () => {
-      if (n.options.stream) return C(r).debug("response", e.status, e.url, e.headers, e.body), oe.fromSSEResponse(e, n.controller, r);
+      if (n.options.stream) return C2(r).debug("response", e.status, e.url, e.headers, e.body), oe.fromSSEResponse(e, n.controller, r);
       if (e.status === 204) return null;
       if (n.options.__binaryResponse) return e;
       let u = e.headers.get("content-type")?.split(";")[0]?.trim();
@@ -1247,7 +1305,7 @@ details.group .chips { margin-top: 10px; }
     })().finally(() => {
       !n.options.stream && !n.options.__binaryResponse && _e(n.controller);
     });
-    return C(r).debug(`[${t2}] response parsed`, ye({ retryOfRequestLogID: s, url: e.url, status: e.status, body: o, durationMs: Date.now() - i })), o;
+    return C2(r).debug(`[${t2}] response parsed`, ye({ retryOfRequestLogID: s, url: e.url, status: e.status, body: o, durationMs: Date.now() - i })), o;
   }
   function hr(r, n) {
     return !r || typeof r != "object" || Array.isArray(r) ? r : Object.defineProperties(r, { _request_id: { value: n.headers.get("request-id"), enumerable: false }, _workspace_id: { value: n.headers.get("anthropic-workspace-id"), enumerable: false } });
@@ -1273,7 +1331,7 @@ details.group .chips { margin-top: 10px; }
   }
   function mc(r, n) {
     let e = /* @__PURE__ */ new WeakMap();
-    return { options: r, logger: n ? C(n) : po(), parse(t2) {
+    return { options: r, logger: n ? C2(n) : po(), parse(t2) {
       if (r?.stream && t2.ok) return Ao(t2, r, n);
       let s = e.get(t2);
       return s || (s = Ao(t2, r, n), e.set(t2, s)), s;
@@ -1911,7 +1969,7 @@ details.group .chips { margin-top: 10px; }
   function Fd(r, n) {
     return () => r.abort(n.reason);
   }
-  var Ca, ys, $a, Na, La, Fa, tr, Vr, Ci, Ha, Da, He, Re, y, H2, V, me, Qe, rr, Ze, et, tt, rt, nt, st, it, ot, F2, we, Xa, Qa, Za, ec, tc, rc, nc, be, No, Fo, Do, Uo, ra, Dn, ei, sa, ll, dl, ti, ri, ni, si, ia, Wa, $i, Y, ks, Jr, De, ue, ie, Di, ja, Li, Fi, Hi, sr, Yr, Bi, Xr, zi, As, Es, Rs, Ki, Qr, ge, Is, Vi, Gi, Xi, Yi, z, Ts, ro, no, Zr, We, so, io, at, oo, to, Ms, sc, N, sn, M, ao, co, uo, lr, an, cn, oc, ho, fo, Os, ye, ln, dn, ac, _o, go, $s, cc, wo, ee, te, dr, ur, oe, Fs, Eo, fr, pr, hn, Bs, Ws, U, S, fn, js, qs, ae, Io, bc, Us, Po, yc, kc, b, To, mn, Ac, Ks, l, Mo, Ec, h, ct, lt, dt, ke, gn, _r, ut, ht, ft, jo, mt, _t, Sn, gt, En, ce, Rn, In, Pn, br, yr, wt, bt, Tn, yt, kr, zc, Kc, Vc, Jc, Sr, Gc, kt, Me, St, zo, xt, xr, Mn, vt, qe, fe, B, On, J, Cn, vr, Fn, q, Et, ne, Rt, Oe, At, ve, Hn, Ar, le, $n, Zo, Vo, Jo, Yo, Qs, Go, Nn, Ln, Zs, Xo, ea, Qo, Zc, el, tl, rl, nl, sl, il, ol, Er, Bn, Rr, ii, Ir, It, oa, kl, Sl, oi, El, Wn, Un, Pt, Tt, jn, qn, Mt, zn, Ll, Ot, Fl, Hl, la, Ce, X, $e, Ct, Pr, Vn, Tr, Mr, Jn, Or, Se, Cr, Yn, Gn, ze, Xn, Qn, Zn, $r, li, da, Nr, di, ui, hi, ua, fi, ha, fa, Lr, $t, Ke, W2, Q, se, Ae, Ne, Fr, pa, _i, gi, ma, Vl, es, Nt, Lt, Ft, Ht, Dt, Bt, Wt, Ut, ts, rs, jt, ns, qt, zt, Kt, ss, is, os, Vt, Jt, as, cs, Yt, ls, Gt, ds, Xt, us, Hr, Ve, Je, de, Le, Qt, Dr, hs, Br, Wr, fs, Ur, xe, jr, ps, ms, Ye, _s, gs, ws, qr, yi, wa, ki, Si, xi, vi, ba, ya, Zt, zr, ka, Ad, Ge, er, Kr, Ei, Ri, bs, Sa, xa, va, Aa, Ii, Ta, Id, Ti;
+  var Ca, ys, $a, Na, La, Fa, tr, Vr, Ci, Ha, Da, He, Re, y, H2, V, me, Qe, rr, Ze, et, tt, rt, nt, st, it, ot, F2, we, Xa, Qa, Za, ec, tc, rc, nc, be, No, Fo, Do, Uo, ra, Dn, ei, sa, ll, dl, ti, ri, ni, si, ia, Wa, $i, Y, ks, Jr, De, ue, ie, Di, ja, Li, Fi, Hi, sr, Yr, Bi, Xr, zi, As, Es, Rs, Ki, Qr, ge, Is, Vi, Gi, Xi, Yi, z, Ts, ro, no, Zr, We, so, io, at, oo, to, Ms, sc, N, sn, M, ao, co, uo, lr, an, cn, oc, ho, fo, Os, ye, ln, dn, ac, _o, go, $s, cc, wo, ee, te, dr, ur, oe, Fs, Eo, fr, pr, hn, Bs, Ws, U, S, fn, js, qs, ae, Io, bc, Us, Po, yc, kc, b, To, mn, Ac, Ks, l, Mo, Ec, h, ct, lt, dt, ke, gn, _r, ut, ht, ft, jo, mt, _t, Sn, gt, En, ce, Rn, In, Pn, br, yr, wt, bt, Tn, yt, kr, zc, Kc, Vc, Jc, Sr, Gc, kt, Me, St, zo, xt, xr, Mn, vt, qe, fe, B2, On, J, Cn, vr, Fn, q, Et, ne, Rt, Oe, At, ve, Hn, Ar, le, $n, Zo, Vo, Jo, Yo, Qs, Go, Nn, Ln, Zs, Xo, ea, Qo, Zc, el, tl, rl, nl, sl, il, ol, Er, Bn, Rr, ii, Ir, It, oa, kl, Sl, oi, El, Wn, Un, Pt, Tt, jn, qn, Mt, zn, Ll, Ot, Fl, Hl, la, Ce, X, $e, Ct, Pr, Vn, Tr, Mr, Jn, Or, Se, Cr, Yn, Gn, ze, Xn, Qn, Zn, $r, li, da, Nr, di, ui, hi, ua, fi, ha, fa, Lr, $t, Ke, W2, Q, se, Ae, Ne, Fr, pa, _i, gi, ma, Vl, es, Nt, Lt, Ft, Ht, Dt, Bt, Wt, Ut, ts, rs, jt, ns, qt, zt, Kt, ss, is, os, Vt, Jt, as, cs, Yt, ls, Gt, ds, Xt, us, Hr, Ve, Je, de, Le, Qt, Dr, hs, Br, Wr, fs, Ur, xe, jr, ps, ms, Ye, _s, gs, ws, qr, yi, wa, ki, Si, xi, vi, ba, ya, Zt, zr, ka, Ad, Ge, er, Kr, Ei, Ri, bs, Sa, xa, va, Aa, Ii, Ta, Id, Ti;
   var init_anthropic_sdk = __esm({
     "vendor/anthropic-sdk.js"() {
       Ca = Object.create;
@@ -2688,7 +2746,7 @@ details.group .chips { margin-top: 10px; }
             return vo(e, t2);
           }
           static fromSSEResponse(e, t2, s) {
-            let i = false, o = s ? C(s) : console;
+            let i = false, o = s ? C2(s) : console;
             async function* c() {
               if (i) throw new y("Cannot iterate over a consumed stream, use `.tee()` to split the stream.");
               i = true;
@@ -3185,7 +3243,7 @@ ${p2}`);
           async *[(gt = /* @__PURE__ */ new WeakMap(), En = /* @__PURE__ */ new WeakMap(), ce = /* @__PURE__ */ new WeakMap(), Rn = /* @__PURE__ */ new WeakMap(), In = /* @__PURE__ */ new WeakMap(), Pn = /* @__PURE__ */ new WeakMap(), br = /* @__PURE__ */ new WeakMap(), yr = /* @__PURE__ */ new WeakMap(), wt = /* @__PURE__ */ new WeakMap(), Symbol.asyncIterator)]() {
             if (a(this, En, "f")) throw new y("Cannot iterate over a consumed WorkPoller");
             g(this, En, true, "f");
-            let e = C(this.client);
+            let e = C2(this.client);
             e.info("poller starting", { component: "work-poller", environment_id: this.environmentId });
             let t2 = new Gc(e, this.environmentId);
             try {
@@ -3326,7 +3384,7 @@ ${p2}`);
       Er = (() => {
         class r {
           constructor(e, t2) {
-            B.add(this), On.set(this, false), J.set(this, void 0), Cn.set(this, void 0), vr.set(this, void 0), Fn.set(this, void 0), q.set(this, void 0), Et.set(this, /* @__PURE__ */ new Set()), ne.set(this, /* @__PURE__ */ new Set()), Rt.set(this, /* @__PURE__ */ new Map()), Oe.set(this, /* @__PURE__ */ new Map()), At.set(this, new zo()), ve.set(this, 0), Hn.set(this, sl), Ar.set(this, null), le.set(this, void 0), this.client = t2.client, this.sessionId = e, this.tools = t2.tools, this.maxIdleMs = t2.maxIdleMs ?? il, g(this, q, C(t2.client), "f"), g(this, Fn, new Map(t2.tools.map((s) => [Xs(s), s])), "f"), g(this, J, new AbortController(), "f"), g(this, Cn, Pe(t2.signal, a(this, J, "f")), "f"), g(this, vr, t2.requestOptions, "f"), g(this, le, new ol(this.maxIdleMs, () => {
+            B2.add(this), On.set(this, false), J.set(this, void 0), Cn.set(this, void 0), vr.set(this, void 0), Fn.set(this, void 0), q.set(this, void 0), Et.set(this, /* @__PURE__ */ new Set()), ne.set(this, /* @__PURE__ */ new Set()), Rt.set(this, /* @__PURE__ */ new Map()), Oe.set(this, /* @__PURE__ */ new Map()), At.set(this, new zo()), ve.set(this, 0), Hn.set(this, sl), Ar.set(this, null), le.set(this, void 0), this.client = t2.client, this.sessionId = e, this.tools = t2.tools, this.maxIdleMs = t2.maxIdleMs ?? il, g(this, q, C2(t2.client), "f"), g(this, Fn, new Map(t2.tools.map((s) => [Xs(s), s])), "f"), g(this, J, new AbortController(), "f"), g(this, Cn, Pe(t2.signal, a(this, J, "f")), "f"), g(this, vr, t2.requestOptions, "f"), g(this, le, new ol(this.maxIdleMs, () => {
               a(this, q, "f").info("session idle after end_turn; stopping", { component: "session-tool-runner", session_id: this.sessionId, max_idle_ms: this.maxIdleMs }), a(this, J, "f").abort();
             }), "f");
           }
@@ -3339,10 +3397,10 @@ ${p2}`);
           _setSendRetryWindow(e) {
             g(this, Hn, e, "f");
           }
-          async *[(On = /* @__PURE__ */ new WeakMap(), J = /* @__PURE__ */ new WeakMap(), Cn = /* @__PURE__ */ new WeakMap(), vr = /* @__PURE__ */ new WeakMap(), Fn = /* @__PURE__ */ new WeakMap(), q = /* @__PURE__ */ new WeakMap(), Et = /* @__PURE__ */ new WeakMap(), ne = /* @__PURE__ */ new WeakMap(), Rt = /* @__PURE__ */ new WeakMap(), Oe = /* @__PURE__ */ new WeakMap(), At = /* @__PURE__ */ new WeakMap(), ve = /* @__PURE__ */ new WeakMap(), Hn = /* @__PURE__ */ new WeakMap(), Ar = /* @__PURE__ */ new WeakMap(), le = /* @__PURE__ */ new WeakMap(), B = /* @__PURE__ */ new WeakSet(), Symbol.asyncIterator)]() {
+          async *[(On = /* @__PURE__ */ new WeakMap(), J = /* @__PURE__ */ new WeakMap(), Cn = /* @__PURE__ */ new WeakMap(), vr = /* @__PURE__ */ new WeakMap(), Fn = /* @__PURE__ */ new WeakMap(), q = /* @__PURE__ */ new WeakMap(), Et = /* @__PURE__ */ new WeakMap(), ne = /* @__PURE__ */ new WeakMap(), Rt = /* @__PURE__ */ new WeakMap(), Oe = /* @__PURE__ */ new WeakMap(), At = /* @__PURE__ */ new WeakMap(), ve = /* @__PURE__ */ new WeakMap(), Hn = /* @__PURE__ */ new WeakMap(), Ar = /* @__PURE__ */ new WeakMap(), le = /* @__PURE__ */ new WeakMap(), B2 = /* @__PURE__ */ new WeakSet(), Symbol.asyncIterator)]() {
             if (a(this, On, "f")) throw new y("Cannot iterate over a consumed SessionToolRunner");
             g(this, On, true, "f"), a(this, q, "f").info("session tool runner starting", { component: "session-tool-runner", session_id: this.sessionId });
-            let e = a(this, B, "m", Zo).call(this).catch((t2) => {
+            let e = a(this, B2, "m", Zo).call(this).catch((t2) => {
               a(this, J, "f").signal.aborted || a(this, q, "f").error("stream loop failed", { error: String(t2) }), a(this, J, "f").abort();
             });
             try {
@@ -3357,7 +3415,7 @@ ${p2}`);
             } finally {
               a(this, J, "f").abort(), a(this, le, "f").disarm(), await e;
               try {
-                await a(this, B, "m", ea).call(this);
+                await a(this, B2, "m", ea).call(this);
               } catch (t2) {
                 a(this, q, "f").warn("drain failed", { error: String(t2) });
               }
@@ -3379,9 +3437,9 @@ ${p2}`);
         let n = a(this, J, "f"), e = Qo;
         for (; !n.signal.aborted; ) {
           try {
-            let t2 = await this.client.beta.sessions.events.stream(this.sessionId, {}, a(this, B, "m", $n).call(this));
-            await a(this, B, "m", Vo).call(this);
-            for await (let s of t2) if (e = Qo, await a(this, B, "m", Yo).call(this, s)) return;
+            let t2 = await this.client.beta.sessions.events.stream(this.sessionId, {}, a(this, B2, "m", $n).call(this));
+            await a(this, B2, "m", Vo).call(this);
+            for await (let s of t2) if (e = Qo, await a(this, B2, "m", Yo).call(this, s)) return;
           } catch (t2) {
             if (n.signal.throwIfAborted(), je(t2)) throw a(this, q, "f").error("permanent stream failure, shutting down", { error: String(t2) }), n.abort(), t2;
             a(this, q, "f").warn("stream disconnected, reconnecting", { error: String(t2), backoff_ms: e });
@@ -3391,7 +3449,7 @@ ${p2}`);
       }, Vo = async function() {
         let n = a(this, J, "f"), e = [], t2 = false;
         try {
-          for await (let o of this.client.beta.sessions.events.list(this.sessionId, { limit: 1e3 }, a(this, B, "m", $n).call(this))) a(this, B, "m", Jo).call(this, o, e), t2 = ta(o);
+          for await (let o of this.client.beta.sessions.events.list(this.sessionId, { limit: 1e3 }, a(this, B2, "m", $n).call(this))) a(this, B2, "m", Jo).call(this, o, e), t2 = ta(o);
         } catch (o) {
           n.signal.throwIfAborted(), a(this, q, "f").warn("reconcile list failed", { error: String(o) });
           for (let c of e) a(this, Et, "f").delete(c.id);
@@ -3399,10 +3457,10 @@ ${p2}`);
         }
         let s = e.filter((o) => !a(this, ne, "f").has(o.id));
         a(this, le, "f").disarm();
-        for (let o of s) await a(this, B, "m", Qs).call(this, o);
+        for (let o of s) await a(this, B2, "m", Qs).call(this, o);
         for (let o of [...a(this, Oe, "f").values()]) {
           let c = a(this, Rt, "f").get(o.id);
-          c !== void 0 && await a(this, B, "m", Nn).call(this, o, c);
+          c !== void 0 && await a(this, B2, "m", Nn).call(this, o, c);
         }
         let i = s.filter((o) => !a(this, ne, "f").has(o.id) && !a(this, Oe, "f").has(o.id));
         t2 && i.length === 0 ? a(this, le, "f").arm() : a(this, le, "f").disarm();
@@ -3412,9 +3470,9 @@ ${p2}`);
         switch (a(this, le, "f").noteEvent(n), n.type) {
           case "agent.tool_use":
           case "agent.custom_tool_use":
-            return a(this, Et, "f").has(n.id) || (a(this, Et, "f").add(n.id), await a(this, B, "m", Qs).call(this, n)), false;
+            return a(this, Et, "f").has(n.id) || (a(this, Et, "f").add(n.id), await a(this, B2, "m", Qs).call(this, n)), false;
           case "user.tool_confirmation":
-            return await a(this, B, "m", Go).call(this, n), false;
+            return await a(this, B2, "m", Go).call(this, n), false;
           case "user.tool_result":
             return a(this, ne, "f").add(n.tool_use_id), false;
           case "user.custom_tool_result":
@@ -3428,26 +3486,26 @@ ${p2}`);
       }, Qs = async function(n) {
         let e = n.evaluated_permission, t2 = e === "deny" ? "deny" : a(this, Rt, "f").get(n.id);
         if (t2 === void 0) {
-          e === void 0 || e === "allow" ? await a(this, B, "m", Zs).call(this, n, void 0) : a(this, Oe, "f").has(n.id) || (a(this, q, "f").info("tool call awaiting confirmation; holding", { component: "session-tool-runner", session_id: this.sessionId, tool: n.name, tool_use_id: n.id }), a(this, Oe, "f").set(n.id, n), a(this, le, "f").block(n.id));
+          e === void 0 || e === "allow" ? await a(this, B2, "m", Zs).call(this, n, void 0) : a(this, Oe, "f").has(n.id) || (a(this, q, "f").info("tool call awaiting confirmation; holding", { component: "session-tool-runner", session_id: this.sessionId, tool: n.name, tool_use_id: n.id }), a(this, Oe, "f").set(n.id, n), a(this, le, "f").block(n.id));
           return;
         }
-        await a(this, B, "m", Nn).call(this, n, t2);
+        await a(this, B2, "m", Nn).call(this, n, t2);
       }, Go = async function(n) {
         a(this, Rt, "f").set(n.tool_use_id, n.result);
         let e = a(this, Oe, "f").get(n.tool_use_id);
-        e !== void 0 && await a(this, B, "m", Nn).call(this, e, n.result);
+        e !== void 0 && await a(this, B2, "m", Nn).call(this, e, n.result);
       }, Nn = async function(n, e) {
         let t2 = a(this, Oe, "f").delete(n.id);
         if (e === "allow") {
           a(this, q, "f").info("tool call confirmed", { component: "session-tool-runner", session_id: this.sessionId, tool: n.name, tool_use_id: n.id }), t2 || a(this, le, "f").block(n.id);
           try {
-            await a(this, B, "m", Zs).call(this, n, "allow");
+            await a(this, B2, "m", Zs).call(this, n, "allow");
           } finally {
             a(this, le, "f").unblock(n.id);
           }
           return;
         }
-        t2 && a(this, le, "f").unblock(n.id), a(this, ne, "f").add(n.id), a(this, q, "f").info("tool call denied; not executing", { component: "session-tool-runner", session_id: this.sessionId, tool: n.name, tool_use_id: n.id }), a(this, B, "m", Ln).call(this, { event: n, toolUseId: n.id, name: n.name, isError: false, posted: false, confirmation: "deny" });
+        t2 && a(this, le, "f").unblock(n.id), a(this, ne, "f").add(n.id), a(this, q, "f").info("tool call denied; not executing", { component: "session-tool-runner", session_id: this.sessionId, tool: n.name, tool_use_id: n.id }), a(this, B2, "m", Ln).call(this, { event: n, toolUseId: n.id, name: n.name, isError: false, posted: false, confirmation: "deny" });
       }, Ln = function(n) {
         a(this, At, "f").push(n);
       }, Zs = async function(n, e) {
@@ -3457,7 +3515,7 @@ ${p2}`);
           try {
             let i = a(this, Fn, "f").get(n.name);
             if (!i) {
-              a(this, q, "f").info("tool not owned by this runner; leaving the tool_use_id pending for its owner", { component: "session-tool-runner", session_id: this.sessionId, tool: n.name, tool_use_id: n.id }), a(this, B, "m", Ln).call(this, { event: n, toolUseId: n.id, name: n.name, isError: false, posted: false, confirmation: e });
+              a(this, q, "f").info("tool not owned by this runner; leaving the tool_use_id pending for its owner", { component: "session-tool-runner", session_id: this.sessionId, tool: n.name, tool_use_id: n.id }), a(this, B2, "m", Ln).call(this, { event: n, toolUseId: n.id, name: n.name, isError: false, posted: false, confirmation: e });
               return;
             }
             let o, c, u = new AbortController(), d = Pe(a(this, J, "f").signal, u), m = setTimeout(() => u.abort(), el);
@@ -3467,8 +3525,8 @@ ${p2}`);
             } finally {
               clearTimeout(m), d();
             }
-            let p2 = al(n, c, cl(o)), f = await a(this, B, "m", Xo).call(this, p2, n.id);
-            a(this, B, "m", Ln).call(this, { event: n, result: p2, toolUseId: n.id, name: n.name, isError: c, posted: f, confirmation: e });
+            let p2 = al(n, c, cl(o)), f = await a(this, B2, "m", Xo).call(this, p2, n.id);
+            a(this, B2, "m", Ln).call(this, { event: n, result: p2, toolUseId: n.id, name: n.name, isError: c, posted: f, confirmation: e });
           } finally {
             g(this, ve, (s = a(this, ve, "f"), s--, s), "f"), a(this, ve, "f") === 0 && a(this, Ar, "f")?.call(this);
           }
@@ -3478,7 +3536,7 @@ ${p2}`);
         for (; ; ) {
           o++, t2.signal.throwIfAborted();
           try {
-            return await this.client.beta.sessions.events.send(this.sessionId, { events: [n] }, a(this, B, "m", $n).call(this)), a(this, ne, "f").add(e), true;
+            return await this.client.beta.sessions.events.send(this.sessionId, { events: [n] }, a(this, B2, "m", $n).call(this)), a(this, ne, "f").add(e), true;
           } catch (c) {
             if (i = c, je(c)) break;
             let u = a(this, Hn, "f") - (Date.now() - s);
@@ -3509,7 +3567,7 @@ ${p2}`);
               await a(this, Bn, "m", ii).call(this, c, s, o.signal);
             } catch (u) {
               if (o.signal?.aborted) throw u;
-              C(this.client).error("work item failed", { work_id: c.id, error: String(u) });
+              C2(this.client).error("work item failed", { work_id: c.id, error: String(u) });
             }
           }
           async handleItem(e) {
@@ -3523,7 +3581,7 @@ ${p2}`);
           }
         }
         return Rr = /* @__PURE__ */ new WeakMap(), Bn = /* @__PURE__ */ new WeakSet(), ii = async function(e, t2, s) {
-          let i = C(this.client), o = vl(e.secret), c = o ?? t2;
+          let i = C2(this.client), o = vl(e.secret), c = o ?? t2;
           if (c === void 0) throw new y("handleItem: the work item carried a secret payload but no sessions token could be extracted, and there is no environment key to fall back to; the poller must issue a secret whose payload carries `sessions_token`, or provide the environment key (pass it, construct the worker with it, or set ANTHROPIC_ENVIRONMENT_KEY)");
           e.secret && o === null && i.warn("work item carried a secret payload but no sessions token could be extracted; falling back to the environment key", { work_id: e.id });
           let u = An(this.client, { authToken: c, helper: "environments-worker" }), d = e.data.id, m = new AbortController(), p2 = Pe(s, m), f = new El(m), w = await Promise.resolve().then(() => (ia(), sa)), _, v, A2 = Il(u, e, f, i, this.requestOptions, (x) => {
@@ -5344,7 +5402,7 @@ you can set the \`dangerouslyAllowBrowser\` option to \`true\`, e.g.,
 
 new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
 `);
-            this.baseURL = c.baseURL, this._baseURLIsExplicit = o.__baseURLIsExplicit ?? !!e, this.timeout = c.timeout ?? Ri.DEFAULT_TIMEOUT, this.logger = c.logger ?? console, this.logLevel = lr, this.logLevel = cn(c.logLevel, "ClientOptions.logLevel", C(this)) ?? cn(M("ANTHROPIC_LOG"), "process.env['ANTHROPIC_LOG']", C(this)) ?? lr, this.fetchOptions = c.fetchOptions, this.maxRetries = Jr("maxRetries", c.maxRetries ?? 2), this.fetch = c.fetch ?? ji(), g(this, bs, zi, "f"), this.middleware = [...c.middleware ?? []];
+            this.baseURL = c.baseURL, this._baseURLIsExplicit = o.__baseURLIsExplicit ?? !!e, this.timeout = c.timeout ?? Ri.DEFAULT_TIMEOUT, this.logger = c.logger ?? console, this.logLevel = lr, this.logLevel = cn(c.logLevel, "ClientOptions.logLevel", C2(this)) ?? cn(M("ANTHROPIC_LOG"), "process.env['ANTHROPIC_LOG']", C2(this)) ?? lr, this.fetchOptions = c.fetchOptions, this.maxRetries = Jr("maxRetries", c.maxRetries ?? 2), this.fetch = c.fetch ?? ji(), g(this, bs, zi, "f"), this.middleware = [...c.middleware ?? []];
             let u = M("ANTHROPIC_CUSTOM_HEADERS");
             if (u) {
               let m = {};
@@ -5376,9 +5434,9 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
           }
           _credentialResolverOptions() {
             return { baseURL: this.baseURL, fetch: this._credentialsFetch(), userAgent: this.getUserAgent(), onCacheWriteError: (e) => {
-              C(this).debug("credential cache write failed (best-effort)", e);
+              C2(this).debug("credential cache write failed (best-effort)", e);
             }, onSafetyWarning: (e) => {
-              C(this).warn(e);
+              C2(this).warn(e);
             } };
           }
           _credentialsFetch() {
@@ -5386,7 +5444,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
           }
           _makeTokenCache(e) {
             return new sn(e, (t2) => {
-              C(this).debug("advisory token refresh failed; serving cached token", t2);
+              C2(this).debug("advisory token refresh failed; serving cached token", t2);
             });
           }
           withOptions(e) {
@@ -5493,23 +5551,23 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
               let k = `retrying, ${t2} attempts remaining`;
               if (i.signal?.aborted) throw new V();
               let I = Z(_) || /timed? ?out/i.test(String(_) + ("cause" in _ ? String(_.cause) : "")), x = this.middleware.length > 0 || !!i.middleware?.length || this.backendMiddleware().length > 0;
-              if (x && !I && !Ro(_)) throw C(this).info(`[${m}] middleware error (not retryable)`), C(this).debug(`[${m}] middleware error (not retryable)`, ye({ retryOfRequestLogID: s, url: u, durationMs: v - f, message: _.message })), _;
-              if (t2) return C(this).info(`[${m}] connection ${I ? "timed out" : "failed"} - ${k}`), C(this).debug(`[${m}] connection ${I ? "timed out" : "failed"} (${k})`, ye({ retryOfRequestLogID: s, url: u, durationMs: v - f, message: _.message })), this.retryRequest(i, t2, s ?? m);
-              throw C(this).info(`[${m}] connection ${I ? "timed out" : "failed"} - error; no more retries left`), C(this).debug(`[${m}] connection ${I ? "timed out" : "failed"} (error; no more retries left)`, ye({ retryOfRequestLogID: s, url: u, durationMs: v - f, message: _.message })), I ? new Qe() : x && !Hs(_) ? _ : new me({ cause: _ });
+              if (x && !I && !Ro(_)) throw C2(this).info(`[${m}] middleware error (not retryable)`), C2(this).debug(`[${m}] middleware error (not retryable)`, ye({ retryOfRequestLogID: s, url: u, durationMs: v - f, message: _.message })), _;
+              if (t2) return C2(this).info(`[${m}] connection ${I ? "timed out" : "failed"} - ${k}`), C2(this).debug(`[${m}] connection ${I ? "timed out" : "failed"} (${k})`, ye({ retryOfRequestLogID: s, url: u, durationMs: v - f, message: _.message })), this.retryRequest(i, t2, s ?? m);
+              throw C2(this).info(`[${m}] connection ${I ? "timed out" : "failed"} - error; no more retries left`), C2(this).debug(`[${m}] connection ${I ? "timed out" : "failed"} (error; no more retries left)`, ye({ retryOfRequestLogID: s, url: u, durationMs: v - f, message: _.message })), I ? new Qe() : x && !Hs(_) ? _ : new me({ cause: _ });
             }
             let A2 = [..._.headers.entries()].filter(([k]) => k === "request-id" || k === "anthropic-workspace-id").map(([k, I]) => ", " + k + ": " + JSON.stringify(I)).join(""), E = `[${m}${p2}${A2}] ${c.method} ${u} ${_.ok ? "succeeded" : "failed"} with status ${_.status} in ${v - f}ms`;
             if (!_.ok) {
               let k = await this.shouldRetry(_, i);
               if (t2 && k) {
                 let O = `retrying, ${t2} attempts remaining`;
-                return await qi(_.body), _e(w), C(this).info(`${E} - ${O}`), C(this).debug(`[${m}] response error (${O})`, ye({ retryOfRequestLogID: s, url: _.url, status: _.status, headers: _.headers, durationMs: v - f })), this.retryRequest(i, t2, s ?? m, _.headers);
+                return await qi(_.body), _e(w), C2(this).info(`${E} - ${O}`), C2(this).debug(`[${m}] response error (${O})`, ye({ retryOfRequestLogID: s, url: _.url, status: _.status, headers: _.headers, durationMs: v - f })), this.retryRequest(i, t2, s ?? m, _.headers);
               }
               let I = k ? "error; no more retries left" : "error; not retryable";
-              C(this).info(`${E} - ${I}`);
+              C2(this).info(`${E} - ${I}`);
               let x = await _.text().catch((O) => He(O).message), R = De(x), P2 = R ? void 0 : x;
-              throw C(this).debug(`[${m}] response error (${I})`, ye({ retryOfRequestLogID: s, url: _.url, status: _.status, headers: _.headers, message: P2, durationMs: Date.now() - f })), _e(w), this.makeStatusError(_.status, R, P2, _.headers);
+              throw C2(this).debug(`[${m}] response error (${I})`, ye({ retryOfRequestLogID: s, url: _.url, status: _.status, headers: _.headers, message: P2, durationMs: Date.now() - f })), _e(w), this.makeStatusError(_.status, R, P2, _.headers);
             }
-            return C(this).info(E), C(this).debug(`[${m}] response start`, ye({ retryOfRequestLogID: s, url: _.url, status: _.status, headers: _.headers, durationMs: v - f })), Ui(_.body ?? _, w), { response: _, options: i, controller: w, requestLogID: m, retryOfRequestLogID: s, startTime: f };
+            return C2(this).info(E), C2(this).debug(`[${m}] response start`, ye({ retryOfRequestLogID: s, url: _.url, status: _.status, headers: _.headers, durationMs: v - f })), Ui(_.body ?? _, w), { response: _, options: i, controller: w, requestLogID: m, retryOfRequestLogID: s, startTime: f };
           }
           getAPIList(e, t2, s) {
             return this.requestAPIList(t2, s && "then" in s ? s.then((i) => ({ method: "get", path: e, ...i })) : { method: "get", path: e, ...s });
@@ -5532,7 +5590,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
               }
             }, A2 = o === void 0 ? v : (async (x, R = {}) => {
               let P2 = typeof x == "string" ? x : x instanceof URL ? x.href : x.url;
-              return R.headers = R.headers instanceof Headers ? R.headers : new Headers(R.headers), await this.prepareRequest(R, { url: P2, options: o }), c && C(this).debug(`[${c.requestLogID}] sending request`, ye({ retryOfRequestLogID: c.retryOfRequestLogID, method: R.method, url: P2, options: o, headers: R.headers })), v(x, R);
+              return R.headers = R.headers instanceof Headers ? R.headers : new Headers(R.headers), await this.prepareRequest(R, { url: P2, options: o }), c && C2(this).debug(`[${c.requestLogID}] sending request`, ye({ retryOfRequestLogID: c.retryOfRequestLogID, method: R.method, url: P2, options: o, headers: R.headers })), v(x, R);
             }), E = o?.middleware, k = this.backendMiddleware(), I = E?.length || k.length ? [...this.middleware, ...E ?? [], ...k] : this.middleware;
             return await Ds(A2, I, o, this)(e, w);
           }
@@ -5771,6 +5829,8 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     if (!Array.isArray(s.measurements)) s.measurements = [];
     if (!Array.isArray(s.mobilityLogs)) s.mobilityLogs = [];
     if (!s.meta.celebrated) s.meta.celebrated = { level: 1, badges: [] };
+    if (!Array.isArray(s.meta.celebrated.challenges)) s.meta.celebrated.challenges = [];
+    if (!s.meta.badgeDates) s.meta.badgeDates = {};
     if (!s.coach) s.coach = { apiKey: "", model: "claude-opus-5", history: [] };
     if (!Array.isArray(s.coach.history)) s.coach.history = [];
     if (s.plan && !s.plan.muscleAdjust) s.plan.muscleAdjust = {};
@@ -6691,14 +6751,14 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
   }
   function buildMobilityPlan(profile) {
     const lim = profile.limitations || [];
-    const pick = (focus, n) => {
+    const pick2 = (focus, n) => {
       const scored = MOBILITY.map((m) => ({ m, s: m.focus.filter((f) => focus.includes(f)).length + (m.focus.some((f) => lim.includes(f)) ? 2 : 0) })).filter((x) => x.s > 0).sort((a2, b2) => b2.s - a2.s);
       return scored.slice(0, n).map((x) => x.m.id);
     };
     return {
-      unterkoerper: pick(["squat", "hinge", "huefte", "knie"], 6),
-      oberkoerper: pick(["push", "pull", "schulter", "handgelenk"], 6),
-      ruhetag: pick(["allgemein", "huefte", "schulter", "squat", "push"], 7)
+      unterkoerper: pick2(["squat", "hinge", "huefte", "knie"], 6),
+      oberkoerper: pick2(["push", "pull", "schulter", "handgelenk"], 6),
+      ruhetag: pick2(["allgemein", "huefte", "schulter", "squat", "push"], 7)
     };
   }
   function generatePlan(profile, opts = {}) {
@@ -6785,9 +6845,9 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
   }
   function effectiveSets(plan, day, pe, week) {
     const adj = plan.muscleAdjust?.[pe.muscle] ?? plan.volumeAdjust?.[day.id] ?? 0;
-    let sets = clamp(pe.sets + adj, 1, 6);
-    if (week === plan.deloadWeek) sets = Math.max(1, Math.ceil(sets / 2));
-    return sets;
+    let sets2 = clamp(pe.sets + adj, 1, 6);
+    if (week === plan.deloadWeek) sets2 = Math.max(1, Math.ceil(sets2 / 2));
+    return sets2;
   }
   function dayDuration(plan, day, week, profile) {
     let min = WARMUP_MINUTES;
@@ -6854,12 +6914,12 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const inc = ex2.load === "dumbbell" || ex2.load === "kettlebell" ? 1 : 2.5;
     const r = (x) => Math.max(ex2.load === "barbell" ? barWeight : inc, Math.round(x / inc) * inc);
     if (level === "kurz") return [{ weight: r(weight * 0.6), reps: 5 }];
-    const sets = [];
-    if (ex2.load === "barbell" && weight > barWeight * 1.5) sets.push({ weight: barWeight, reps: 10, note: "leere Stange" });
-    if (weight >= 30) sets.push({ weight: r(weight * 0.5), reps: 6 });
-    sets.push({ weight: r(weight * 0.7), reps: 4 });
-    if (weight >= 60) sets.push({ weight: r(weight * 0.85), reps: 2 });
-    return sets.filter((s, i, arr) => i === 0 || s.weight > arr[i - 1].weight);
+    const sets2 = [];
+    if (ex2.load === "barbell" && weight > barWeight * 1.5) sets2.push({ weight: barWeight, reps: 10, note: "leere Stange" });
+    if (weight >= 30) sets2.push({ weight: r(weight * 0.5), reps: 6 });
+    sets2.push({ weight: r(weight * 0.7), reps: 4 });
+    if (weight >= 60) sets2.push({ weight: r(weight * 0.85), reps: 2 });
+    return sets2.filter((s, i, arr) => i === 0 || s.weight > arr[i - 1].weight);
   }
   function nextSession(plan, workouts, todayIso = toISODate()) {
     const wd = (new Date(todayIso).getDay() + 6) % 7;
@@ -7316,11 +7376,11 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     return (entry?.sets || []).filter((s) => s && s.reps > 0);
   }
   function summarizeEntry(entry, ex2) {
-    const sets = workingSets(entry);
-    if (!sets.length) return "";
+    const sets2 = workingSets(entry);
+    if (!sets2.length) return "";
     const unit = ex2.load === "time" ? "s" : "";
-    const w = sets[0].weight || 0;
-    const reps = sets.map((s) => `${s.reps}${unit}`).join(", ");
+    const w = sets2[0].weight || 0;
+    const reps = sets2.map((s) => `${s.reps}${unit}`).join(", ");
     if (ex2.load === "bw" || ex2.load === "time" || ex2.load === "band") {
       return w ? `+${w} kg \xD7 ${reps}` : reps;
     }
@@ -7330,10 +7390,10 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const ex2 = getExercise(pe.exId);
     const inc = incrementFor(ex2);
     const last = history.length ? history[history.length - 1] : null;
-    const sets = workingSets(last);
+    const sets2 = workingSets(last);
     const isLoadable = !["bw", "time", "band"].includes(ex2.load);
     const unitLabel = ex2.load === "time" ? "Sekunden" : "Wdh.";
-    if (!sets.length) {
+    if (!sets2.length) {
       const est = ctx.profile ? estimateStartWeight(ex2, ctx.profile, pe.repMin, rirTarget, ctx.settings || {}) : null;
       const estReps = ctx.profile ? estimateStartReps(ex2, ctx.profile) : null;
       if (isLoadable && est) {
@@ -7365,9 +7425,9 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         prev: ""
       };
     }
-    const w = sets[0].weight || 0;
-    const minReps = Math.min(...sets.map((s) => s.reps));
-    const avgRir = sets.every((s) => s.rir != null) ? sets.reduce((a2, s) => a2 + s.rir, 0) / sets.length : null;
+    const w = sets2[0].weight || 0;
+    const minReps = Math.min(...sets2.map((s) => s.reps));
+    const avgRir = sets2.every((s) => s.rir != null) ? sets2.reduce((a2, s) => a2 + s.rir, 0) / sets2.length : null;
     const prev = summarizeEntry(last, ex2);
     if (deload) {
       return {
@@ -8110,6 +8170,62 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     return { days, loggedDays: logged.length, avgKcal, avgProtein, target, protein, proteinOk, trend, suggestion };
   }
 
+  // src/ui/motion.js
+  var reduced = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  function animateBars(root2, selector = ".xp-bar > div, .kcal-bar > div, .mini-bar > div, .mbar-track > div, .vol-fill, .goals-progress .xp-bar > div, .challenge-bar > div, .itimer-fill, .workout-progress .bar > div") {
+    if (reduced()) return;
+    const els = [...root2.querySelectorAll(selector)];
+    for (const el2 of els) {
+      const target = el2.style.width;
+      if (!target) continue;
+      el2.style.transition = "none";
+      el2.style.width = "0%";
+      el2.dataset.target = target;
+    }
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      for (const el2 of els) {
+        if (!el2.dataset.target) continue;
+        el2.style.transition = "";
+        el2.style.width = el2.dataset.target;
+      }
+    }));
+  }
+  function animateRings(root2) {
+    if (reduced()) return;
+    const els = [...root2.querySelectorAll(".ring .fill")];
+    for (const el2 of els) {
+      const target = el2.getAttribute("stroke-dashoffset");
+      const full = el2.getAttribute("stroke-dasharray");
+      el2.dataset.target = target;
+      el2.style.transition = "none";
+      el2.setAttribute("stroke-dashoffset", full);
+    }
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      for (const el2 of els) {
+        el2.style.transition = "";
+        el2.setAttribute("stroke-dashoffset", el2.dataset.target);
+      }
+    }));
+  }
+  function animateCounts(root2, duration = 900) {
+    const els = [...root2.querySelectorAll("[data-count]")];
+    if (reduced() || !els.length) return;
+    const start = performance.now();
+    const items = els.map((el2) => ({ el: el2, to: Number(el2.dataset.count) || 0, from: Number(el2.dataset.from ?? 0), suffix: el2.dataset.suffix || "" }));
+    const ease = (t2) => 1 - Math.pow(1 - t2, 3);
+    const frame = (now) => {
+      const p2 = Math.min(1, (now - start) / duration);
+      for (const it2 of items) it2.el.textContent = Math.round(it2.from + (it2.to - it2.from) * ease(p2)).toLocaleString("de-DE") + it2.suffix;
+      if (p2 < 1) requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+  }
+  function animateAll(root2) {
+    animateBars(root2);
+    animateRings(root2);
+    animateCounts(root2);
+  }
+
   // src/ui/foodpicker.js
   var tab = "zuletzt";
   var offTimer = null;
@@ -8129,7 +8245,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const q2 = m.querySelector("#fp-q");
     const list = m.querySelector("#fp-list");
     const status = m.querySelector("#fp-status");
-    const pick = (item) => openPortion(item, { date, meal, onDone: () => {
+    const pick2 = (item) => openPortion(item, { date, meal, onDone: () => {
       onDone?.();
     } });
     const renderList = (items, emptyText) => {
@@ -8141,7 +8257,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         const per = it2.portion ? macrosFor(it2.per100, it2.portion.grams) : null;
         return `<li><button class="link" data-i="${i}"><span><strong>${esc(it2.name)}</strong><div class="muted small">${esc(it2.brand || "")}${it2.portion ? ` \xB7 ${esc(it2.portion.name)} ${it2.portion.grams} g` : ""}</div></span><span class="food-kcal"><strong>${per ? per.kcal : it2.per100.kcal} kcal</strong>${per ? `${it2.per100.kcal} / 100 g` : "pro 100 g"} \xB7 P ${it2.per100.protein} g</span></button></li>`;
       }).join("");
-      list.querySelectorAll("[data-i]").forEach((b2) => b2.addEventListener("click", () => pick(items[Number(b2.dataset.i)])));
+      list.querySelectorAll("[data-i]").forEach((b2) => b2.addEventListener("click", () => pick2(items[Number(b2.dataset.i)])));
     };
     const refresh = () => {
       const s = get();
@@ -8191,8 +8307,8 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         const item = await offBarcode(code);
         const s = get();
         const own = s.customFoods.find((c) => c.barcode === code);
-        if (item) pick(item);
-        else if (own) pick(customFoodItem(own));
+        if (item) pick2(item);
+        else if (own) pick2(customFoodItem(own));
         else {
           toast("Produkt nicht gefunden \u2013 lege es als eigenes Lebensmittel an.", "warn");
           openCustomFood({ barcode: code }, () => {
@@ -8204,8 +8320,8 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       }
       status.hidden = true;
     }));
-    m.querySelector("#fp-custom").addEventListener("click", () => openCustomFood(null, (c) => pick(customFoodItem(c))));
-    m.querySelector("#fp-recipe").addEventListener("click", () => openRecipe(null, (rc2) => pick(recipeItem(rc2))));
+    m.querySelector("#fp-custom").addEventListener("click", () => openCustomFood(null, (c) => pick2(customFoodItem(c))));
+    m.querySelector("#fp-recipe").addEventListener("click", () => openRecipe(null, (rc2) => pick2(recipeItem(rc2))));
     refresh();
     q2.focus();
   }
@@ -8485,26 +8601,162 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     }
     return streak;
   }
-  var BADGES = [
-    { id: "erstes_training", name: "Erster Schritt", desc: "Erstes Training gespeichert", icon: "\u{1F3C1}", check: (s) => s.workouts.length >= 1 },
-    { id: "zehn_trainings", name: "Zehn im Kasten", desc: "10 Trainings", icon: "\u{1F51F}", check: (s) => s.workouts.length >= 10 },
-    { id: "fuenfzig_trainings", name: "Halbes Hundert", desc: "50 Trainings", icon: "\u{1F3CB}\uFE0F", check: (s) => s.workouts.length >= 50 },
-    { id: "hundert_trainings", name: "Hundert", desc: "100 Trainings", icon: "\u{1F4AF}", check: (s) => s.workouts.length >= 100 },
-    { id: "erster_rekord", name: "Neue Bestleistung", desc: "Erste pers\xF6nliche Bestleistung", icon: "\u{1F947}", check: (s) => s.workouts.length >= 2 && personalRecords(s.workouts).length >= 1 },
-    { id: "tausend_saetze", name: "1000 S\xE4tze", desc: "1000 Arbeitss\xE4tze insgesamt", icon: "\u{1F9F1}", check: (s) => s.workouts.reduce((a2, w) => a2 + totalSets(w), 0) >= 1e3 },
-    { id: "streak_7", name: "Eine Woche dran", desc: "7 Tage in Folge aktiv", icon: "\u{1F525}", check: (s, ctx) => ctx.streak >= 7 },
-    { id: "streak_30", name: "Ein Monat dran", desc: "30 Tage in Folge aktiv", icon: "\u{1F30B}", check: (s, ctx) => ctx.streak >= 30 },
-    { id: "meso_fertig", name: "Block abgeschlossen", desc: "Ersten Mesozyklus beendet", icon: "\u{1F4E6}", check: (s) => (s.planHistory || []).length >= 1 && s.workouts.length >= 8 },
-    { id: "cardio_10", name: "Ausdauer", desc: "10 Cardio-Einheiten", icon: "\u{1F3C3}", check: (s) => s.cardioLogs.length >= 10 },
-    { id: "cardio_600", name: "Zehn Stunden", desc: "600 Cardio-Minuten", icon: "\u23F1\uFE0F", check: (s) => s.cardioLogs.reduce((a2, c) => a2 + (c.minutes || 0), 0) >= 600 },
-    { id: "checkin_7", name: "Selbstkenntnis", desc: "7 Check-ins", icon: "\u{1F9ED}", check: (s) => (s.checkins || []).length >= 7 },
-    { id: "food_7", name: "Ern\xE4hrung im Blick", desc: "7 Tage Ern\xE4hrung erfasst", icon: "\u{1F957}", check: (s) => Object.values(s.foodLog || {}).filter((l2) => l2.length).length >= 7 },
-    { id: "gewicht_14", name: "Trendw\xE4chter", desc: "14 Gewichtseintr\xE4ge", icon: "\u2696\uFE0F", check: (s) => s.bodyLogs.length >= 14 },
-    { id: "frueh", name: "Fr\xFChaufsteher", desc: "Training vor 8 Uhr beendet", icon: "\u{1F305}", check: (s) => s.workouts.some((w) => w.finishedAt && new Date(w.finishedAt).getHours() < 8) },
-    { id: "tonnage_100t", name: "100 Tonnen", desc: "100.000 kg bewegt", icon: "\u{1F69A}", check: (s) => s.workouts.reduce((a2, w) => a2 + w.entries.reduce((b2, e) => b2 + e.sets.reduce((c, x) => c + (x.weight || 0) * (x.reps || 0), 0), 0), 0) >= 1e5 }
+  var tonnage = (s) => s.workouts.reduce((a2, w) => a2 + w.entries.reduce((b2, e) => b2 + e.sets.reduce((c, x) => c + (x.weight || 0) * (x.reps || 0), 0), 0), 0);
+  var sets = (s) => s.workouts.reduce((a2, w) => a2 + totalSets(w), 0);
+  var cardioMin = (s) => s.cardioLogs.reduce((a2, c) => a2 + (c.minutes || 0), 0);
+  var cardioKm = (s) => s.cardioLogs.reduce((a2, c) => a2 + (c.km || 0), 0);
+  var foodDays = (s) => Object.values(s.foodLog || {}).filter((l2) => l2.length >= 3).length;
+  var waterDays = (s) => Object.values(s.waterLog || {}).filter((ml2) => ml2 >= 1500).length;
+  var prCount = (s) => {
+    const sorted = [...s.workouts].sort((a2, b2) => a2.date < b2.date ? -1 : 1);
+    const best = {};
+    let n = 0;
+    for (const w of sorted) {
+      for (const e of w.entries) {
+        const r = personalRecords([w]).find((x) => x.exId === e.exId);
+        if (!r) continue;
+        const prev = best[e.exId];
+        const better = r.e1rm > 0 ? !prev || r.e1rm > prev.e1rm + 0.05 : !prev || r.reps > prev.reps;
+        if (better) {
+          if (prev) n += 1;
+          best[e.exId] = r;
+        }
+      }
+    }
+    return n;
+  };
+  var distinctExercises = (s) => new Set(s.workouts.flatMap((w) => w.entries.map((e) => e.exId))).size;
+  var allMusclesInWeek = (s) => {
+    const byWeek = {};
+    for (const w of s.workouts) {
+      const ws2 = addDays(w.date, -((new Date(w.date).getDay() + 6) % 7));
+      byWeek[ws2] || (byWeek[ws2] = /* @__PURE__ */ new Set());
+      for (const e of w.entries) for (const m of getExercise(e.exId)?.primary || []) byWeek[ws2].add(m);
+    }
+    return Object.values(byWeek).some((set) => MUSCLES.every((m) => set.has(m.id)));
+  };
+  var weekendWarrior = (s) => {
+    const days = new Set(s.workouts.map((w) => w.date));
+    return [...days].some((d) => new Date(d).getDay() === 6 && days.has(addDays(d, 1)));
+  };
+  var comeback = (s) => {
+    const dates = [...new Set(s.workouts.map((w) => w.date))].sort();
+    for (let i = 1; i < dates.length; i++) if ((new Date(dates[i]) - new Date(dates[i - 1])) / 864e5 >= 14) return true;
+    return false;
+  };
+  var doubleDay = (s) => {
+    const counts = {};
+    for (const w of s.workouts) counts[w.date] = (counts[w.date] || 0) + 1;
+    return Object.values(counts).some((c) => c >= 2);
+  };
+  var perfectDays = (s, ctx) => ctx.perfectDays;
+  var fullWeeks = (s, ctx) => ctx.fullWeeks;
+  var BADGE_GROUPS = [
+    ["training", "Training"],
+    ["kraft", "Kraft & Volumen"],
+    ["streak", "Konstanz"],
+    ["cardio", "Ausdauer"],
+    ["alltag", "Alltag & Erholung"],
+    ["special", "Besondere Momente"],
+    ["level", "Level"]
   ];
-  function badgeStatus(s, today = toISODate()) {
-    const ctx = { streak: dailyStreak(s, today) };
+  var B = (id, group, name, desc, icon2, check) => ({ id, group, name, desc, icon: icon2, check });
+  var BADGES = [
+    // Training
+    B("erstes_training", "training", "Erster Schritt", "Erstes Training gespeichert", "\u{1F3C1}", (s) => s.workouts.length >= 1),
+    B("zehn_trainings", "training", "Zehn im Kasten", "10 Trainings", "\u{1F51F}", (s) => s.workouts.length >= 10),
+    B("25_trainings", "training", "Viertelhundert", "25 Trainings", "\u{1F3AF}", (s) => s.workouts.length >= 25),
+    B("fuenfzig_trainings", "training", "Halbes Hundert", "50 Trainings", "\u{1F3CB}\uFE0F", (s) => s.workouts.length >= 50),
+    B("hundert_trainings", "training", "Hundert", "100 Trainings", "\u{1F4AF}", (s) => s.workouts.length >= 100),
+    B("250_trainings", "training", "Eisenroutine", "250 Trainings", "\u{1F6E1}\uFE0F", (s) => s.workouts.length >= 250),
+    B("500_trainings", "training", "Unaufhaltsam", "500 Trainings", "\u{1F451}", (s) => s.workouts.length >= 500),
+    B("meso_fertig", "training", "Block abgeschlossen", "Ersten Mesozyklus beendet", "\u{1F4E6}", (s) => (s.planHistory || []).length >= 1 && s.workouts.length >= 8),
+    B("meso_3", "training", "Drei Bl\xF6cke", "Drei Mesozyklen beendet", "\u{1F4DA}", (s) => (s.planHistory || []).length >= 3 && s.workouts.length >= 24),
+    B("quick_5", "training", "Improvisiert", "5 Schnelltrainings", "\u26A1", (s) => s.workouts.filter((w) => w.dayId === "schnell").length >= 5),
+    B("variety_25", "training", "Vielseitig", "25 verschiedene \xDCbungen", "\u{1F9E9}", (s) => distinctExercises(s) >= 25),
+    B("variety_60", "training", "Bewegungsbibliothek", "60 verschiedene \xDCbungen", "\u{1F4D6}", (s) => distinctExercises(s) >= 60),
+    B("alle_muskeln", "training", "Ganzk\xF6rper", "Alle 10 Muskelgruppen in einer Woche", "\u{1FAC0}", (s) => allMusclesInWeek(s)),
+    // Kraft & Volumen
+    B("erster_rekord", "kraft", "Neue Bestleistung", "Erste pers\xF6nliche Bestleistung", "\u{1F947}", (s) => s.workouts.length >= 2 && personalRecords(s.workouts).length >= 1),
+    B("pr_10", "kraft", "Rekordj\xE4ger", "10 Steigerungen der Bestleistung", "\u{1F3C6}", (s) => prCount(s) >= 10),
+    B("pr_50", "kraft", "St\xE4rker als gestern", "50 Steigerungen der Bestleistung", "\u{1F680}", (s) => prCount(s) >= 50),
+    B("hundert_saetze", "kraft", "100 S\xE4tze", "100 Arbeitss\xE4tze insgesamt", "\u{1F9F1}", (s) => sets(s) >= 100),
+    B("tausend_saetze", "kraft", "1000 S\xE4tze", "1000 Arbeitss\xE4tze insgesamt", "\u{1F3D7}\uFE0F", (s) => sets(s) >= 1e3),
+    B("5000_saetze", "kraft", "5000 S\xE4tze", "5000 Arbeitss\xE4tze insgesamt", "\u{1F3DB}\uFE0F", (s) => sets(s) >= 5e3),
+    B("tonnage_10t", "kraft", "10 Tonnen", "10.000 kg bewegt", "\u{1F69B}", (s) => tonnage(s) >= 1e4),
+    B("tonnage_100t", "kraft", "100 Tonnen", "100.000 kg bewegt", "\u{1F69A}", (s) => tonnage(s) >= 1e5),
+    B("tonnage_500t", "kraft", "Halbe Million", "500.000 kg bewegt", "\u{1F682}", (s) => tonnage(s) >= 5e5),
+    B("tonnage_1000t", "kraft", "Eine Million", "1.000.000 kg bewegt", "\u{1F30D}", (s) => tonnage(s) >= 1e6),
+    // Konstanz
+    B("streak_3", "streak", "Angefangen", "3 Tage in Folge aktiv", "\u2728", (s, ctx) => ctx.streak >= 3),
+    B("streak_7", "streak", "Eine Woche dran", "7 Tage in Folge aktiv", "\u{1F525}", (s, ctx) => ctx.streak >= 7),
+    B("streak_14", "streak", "Zwei Wochen", "14 Tage in Folge aktiv", "\u{1F525}", (s, ctx) => ctx.streak >= 14),
+    B("streak_30", "streak", "Ein Monat dran", "30 Tage in Folge aktiv", "\u{1F30B}", (s, ctx) => ctx.streak >= 30),
+    B("streak_60", "streak", "Gewohnheit", "60 Tage in Folge aktiv", "\u{1F48E}", (s, ctx) => ctx.streak >= 60),
+    B("streak_100", "streak", "Hundert Tage", "100 Tage in Folge aktiv", "\u{1F3D4}\uFE0F", (s, ctx) => ctx.streak >= 100),
+    B("perfect_1", "streak", "Perfekter Tag", "Alle Tagesziele an einem Tag", "\u2B50", (s, ctx) => perfectDays(s, ctx) >= 1),
+    B("perfect_7", "streak", "Perfekte Woche", "7 perfekte Tage", "\u{1F31F}", (s, ctx) => perfectDays(s, ctx) >= 7),
+    B("perfect_30", "streak", "Perfektionist", "30 perfekte Tage", "\u{1F4AB}", (s, ctx) => perfectDays(s, ctx) >= 30),
+    B("wochen_4", "streak", "Vier volle Wochen", "4 Wochen in Folge alle Einheiten", "\u{1F4C5}", (s, ctx) => fullWeeks(s, ctx) >= 4),
+    B("wochen_12", "streak", "Ein Quartal", "12 Wochen in Folge alle Einheiten", "\u{1F5D3}\uFE0F", (s, ctx) => fullWeeks(s, ctx) >= 12),
+    // Ausdauer
+    B("cardio_1", "cardio", "Warmgelaufen", "Erste Cardio-Einheit", "\u{1F45F}", (s) => s.cardioLogs.length >= 1),
+    B("cardio_10", "cardio", "Ausdauer", "10 Cardio-Einheiten", "\u{1F3C3}", (s) => s.cardioLogs.length >= 10),
+    B("cardio_50", "cardio", "L\xE4ufernatur", "50 Cardio-Einheiten", "\u{1F3C3}\u200D\u2642\uFE0F", (s) => s.cardioLogs.length >= 50),
+    B("cardio_600", "cardio", "Zehn Stunden", "600 Cardio-Minuten", "\u23F1\uFE0F", (s) => cardioMin(s) >= 600),
+    B("cardio_3000", "cardio", "F\xFCnfzig Stunden", "3000 Cardio-Minuten", "\u231B", (s) => cardioMin(s) >= 3e3),
+    B("km_100", "cardio", "Hundert Kilometer", "100 km erfasst", "\u{1F5FA}\uFE0F", (s) => cardioKm(s) >= 100),
+    B("km_1000", "cardio", "Tausend Kilometer", "1000 km erfasst", "\u{1F9ED}", (s) => cardioKm(s) >= 1e3),
+    // Alltag & Erholung
+    B("checkin_7", "alltag", "Selbstkenntnis", "7 Check-ins", "\u{1F9ED}", (s) => (s.checkins || []).length >= 7),
+    B("checkin_30", "alltag", "Achtsam", "30 Check-ins", "\u{1F9D8}", (s) => (s.checkins || []).length >= 30),
+    B("checkin_100", "alltag", "Innenschau", "100 Check-ins", "\u{1F52E}", (s) => (s.checkins || []).length >= 100),
+    B("food_7", "alltag", "Ern\xE4hrung im Blick", "7 Tage Ern\xE4hrung erfasst", "\u{1F957}", (s) => foodDays(s) >= 7),
+    B("food_30", "alltag", "K\xFCchenmeister", "30 Tage Ern\xE4hrung erfasst", "\u{1F468}\u200D\u{1F373}", (s) => foodDays(s) >= 30),
+    B("food_100", "alltag", "Ern\xE4hrungsprofi", "100 Tage Ern\xE4hrung erfasst", "\u{1F947}", (s) => foodDays(s) >= 100),
+    B("water_7", "alltag", "Gut hydriert", "7 Tage 1,5 l getrunken", "\u{1F4A7}", (s) => waterDays(s) >= 7),
+    B("water_30", "alltag", "Wasserfall", "30 Tage 1,5 l getrunken", "\u{1F30A}", (s) => waterDays(s) >= 30),
+    B("gewicht_14", "alltag", "Trendw\xE4chter", "14 Gewichtseintr\xE4ge", "\u2696\uFE0F", (s) => s.bodyLogs.length >= 14),
+    B("gewicht_60", "alltag", "Datenfreund", "60 Gewichtseintr\xE4ge", "\u{1F4C8}", (s) => s.bodyLogs.length >= 60),
+    B("mobility_10", "alltag", "Geschmeidig", "10 Mobilit\xE4ts-Routinen", "\u{1F938}", (s) => (s.mobilityLogs || []).length >= 10),
+    B("mobility_50", "alltag", "Gummiband", "50 Mobilit\xE4ts-Routinen", "\u{1F9D8}\u200D\u2642\uFE0F", (s) => (s.mobilityLogs || []).length >= 50),
+    B("masse_5", "alltag", "Ma\xDFband", "5 Messungen der K\xF6rperma\xDFe", "\u{1F4CF}", (s) => (s.measurements || []).length >= 5),
+    // Besondere Momente
+    B("frueh", "special", "Fr\xFChaufsteher", "Training vor 8 Uhr beendet", "\u{1F305}", (s) => s.workouts.some((w) => w.finishedAt && new Date(w.finishedAt).getHours() < 8)),
+    B("nachteule", "special", "Nachteule", "Training nach 21 Uhr beendet", "\u{1F989}", (s) => s.workouts.some((w) => w.finishedAt && new Date(w.finishedAt).getHours() >= 21)),
+    B("wochenende", "special", "Wochenendkrieger", "Samstag und Sonntag trainiert", "\u{1F6E1}\uFE0F", (s) => weekendWarrior(s)),
+    B("comeback", "special", "Comeback", "Nach 2 Wochen Pause zur\xFCck", "\u{1F501}", (s) => comeback(s)),
+    B("doppelschicht", "special", "Doppelschicht", "Zwei Trainings an einem Tag", "\u26A1\u26A1", (s) => doubleDay(s)),
+    B("leicht_ok", "special", "Klug gesteuert", "Eine leichte Version trainiert statt auszulassen", "\u{1F9E0}", (s) => s.workouts.some((w) => w.mode === "leicht")),
+    B("challenge_1", "special", "Herausforderer", "Erste Herausforderung geschafft", "\u{1F396}\uFE0F", (s, ctx) => ctx.challengesDone >= 1),
+    B("challenge_10", "special", "Serient\xE4ter", "10 Herausforderungen geschafft", "\u{1F3C5}", (s, ctx) => ctx.challengesDone >= 10),
+    // Level
+    B("level_5", "level", "Level 5", "Dranbleiber erreicht", "5\uFE0F\u20E3", (s, ctx) => ctx.level >= 5),
+    B("level_10", "level", "Level 10", "Zweistellig", "\u{1F51F}", (s, ctx) => ctx.level >= 10),
+    B("level_20", "level", "Level 20", "Maschine erreicht", "\u{1F916}", (s, ctx) => ctx.level >= 20)
+  ];
+  function badgeContext(s, today = toISODate(), extra = {}) {
+    const ctx = { streak: dailyStreak(s, today), perfectDays: 0, fullWeeks: 0, level: extra.level || 1, challengesDone: extra.challengesDone || 0 };
+    if (extra.isPerfectDay) {
+      const days = /* @__PURE__ */ new Set([...s.workouts.map((w) => w.date), ...(s.checkins || []).map((c) => c.date)]);
+      ctx.perfectDays = [...days].filter((d) => extra.isPerfectDay(s, d)).length;
+    }
+    if (s.plan) {
+      let ws2 = addDays(today, -((new Date(today).getDay() + 6) % 7) - 7);
+      let n = 0;
+      for (let i = 0; i < 60; i++) {
+        const end = addDays(ws2, 7);
+        const done = new Set(s.workouts.filter((w) => w.date >= ws2 && w.date < end && w.dayId !== "frei" && w.dayId !== "schnell").map((w) => w.dayId));
+        if (done.size >= s.plan.days.length && s.plan.days.length > 0) n += 1;
+        else break;
+        ws2 = addDays(ws2, -7);
+      }
+      ctx.fullWeeks = n;
+    }
+    return ctx;
+  }
+  function badgeStatus(s, today = toISODate(), extra = {}) {
+    const ctx = badgeContext(s, today, extra);
     return BADGES.map((b2) => ({ ...b2, earned: !!b2.check(s, ctx) }));
   }
   function goalProjection(profile, bodyLogs, trend) {
@@ -8660,6 +8912,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         </ul>
       </div>
     </section>`);
+    animateAll(root2);
     const rerender = () => renderErnaehrung(root2);
     root2.querySelector('[data-act="prev"]').addEventListener("click", () => {
       viewDate = addDays(viewDate, -1);
@@ -8812,24 +9065,8 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     });
   }
 
-  // src/engine/gamification.js
+  // src/engine/goals.js
   var XP = { workoutBase: 50, perSet: 8, pr: 25, cardioPerMin: 2, checkin: 10, food: 15, water: 5, weight: 5, mobility: 15, perfectDay: 40 };
-  var LEVEL_TITLES = [
-    [1, "Neuling"],
-    [3, "Einsteiger"],
-    [5, "Dranbleiber"],
-    [8, "Stammgast"],
-    [12, "Athlet"],
-    [16, "Kraftpaket"],
-    [20, "Maschine"],
-    [25, "Legende"]
-  ];
-  function xpForWorkout(w, prCount = 0) {
-    return XP.workoutBase + totalSets(w) * XP.perSet + prCount * XP.pr;
-  }
-  function xpForCardio(c) {
-    return Math.round(Math.min(120, c.minutes || 0) * XP.cardioPerMin);
-  }
   function dailyGoals(s, today = toISODate()) {
     const goals = [];
     const plan = s.plan;
@@ -8858,7 +9095,174 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const g2 = dailyGoals(s, date).filter((x) => !x.optional);
     return g2.length > 0 && g2.every((x) => x.done);
   }
-  function totalXP(s) {
+
+  // src/engine/challenges.js
+  var LEGS2 = /* @__PURE__ */ new Set(["quadrizeps", "beinbeuger", "gesaess", "waden"]);
+  function periodMetrics(s, from, to2) {
+    const inP = (d) => d >= from && d <= to2;
+    const workouts = s.workouts.filter((w) => inP(w.date));
+    const cardio = s.cardioLogs.filter((c) => inP(c.date));
+    const earlier = s.workouts.filter((w) => w.date < from);
+    let prs = 0;
+    const sorted = [...workouts].sort((a2, b2) => a2.date < b2.date ? -1 : 1);
+    const history = [...earlier];
+    for (const w of sorted) {
+      const before = Object.fromEntries(personalRecords(history).map((r) => [r.exId, r]));
+      for (const e of w.entries) {
+        const best = personalRecords([w]).find((r) => r.exId === e.exId);
+        if (!best) continue;
+        const prev = before[e.exId];
+        if (best.e1rm > 0 ? !prev || best.e1rm > prev.e1rm + 0.05 : !prev || best.reps > prev.reps) prs += 1;
+      }
+      history.push(w);
+    }
+    let legSets = 0;
+    const ex2 = /* @__PURE__ */ new Set();
+    for (const w of workouts) {
+      for (const e of w.entries) {
+        ex2.add(e.exId);
+        const x = getExercise(e.exId);
+        if (x && x.primary.some((m) => LEGS2.has(m))) legSets += e.sets.filter((st2) => st2.reps > 0).length;
+      }
+    }
+    const days = [];
+    for (let d = from; d <= to2; d = addDays(d, 1)) days.push(d);
+    return {
+      workouts: workouts.length,
+      sets: workouts.reduce((a2, w) => a2 + totalSets(w), 0),
+      tonnage: workouts.reduce((a2, w) => a2 + totalTonnage(w), 0),
+      cardioMin: cardio.reduce((a2, c) => a2 + (c.minutes || 0), 0),
+      cardioSessions: cardio.length,
+      checkins: (s.checkins || []).filter((c) => inP(c.date)).length,
+      foodDays: days.filter((d) => (s.foodLog?.[d] || []).length >= 3).length,
+      waterDays: days.filter((d) => (s.waterLog?.[d] || 0) >= 1500).length,
+      mobility: (s.mobilityLogs || []).filter((d) => inP(d)).length,
+      weights: s.bodyLogs.filter((b2) => inP(b2.date)).length,
+      perfectDays: days.filter((d) => d <= toISODate() && isPerfectDay(s, d)).length,
+      prs,
+      legSets,
+      quick: workouts.filter((w) => w.dayId === "schnell").length,
+      early: workouts.filter((w) => w.finishedAt && new Date(w.finishedAt).getHours() < 9).length,
+      variety: ex2.size,
+      activeDays: days.filter((d) => workouts.some((w) => w.date === d) || cardio.some((c) => c.date === d) || (s.mobilityLogs || []).includes(d)).length
+    };
+  }
+  var C = (id, name, icon2, metric, target, xp, desc, only = null) => ({ id, name, icon: icon2, metric, target, xp, desc, only });
+  var WEEKLY_POOL = [
+    C("kraft_all", "Alle Krafteinheiten", "dumbbell", "workouts", (p2) => Math.max(2, p2.strengthDays || 3), 60, (t2) => `${t2} Krafteinheiten diese Woche`),
+    C("cardio_min", "Ausdauer", "run", "cardioMin", (p2) => Math.max(60, (p2.cardioSessions || 2) * 30), 50, (t2) => `${t2} Cardio-Minuten`, (p2) => (p2.cardioSessions ?? 1) > 0),
+    C("checkins", "Selbstcheck", "sun", "checkins", () => 5, 40, (t2) => `${t2} Check-ins`),
+    C("food_days", "Ern\xE4hrung im Blick", "food", "foodDays", () => 5, 50, (t2) => `An ${t2} Tagen Ern\xE4hrung erfassen`),
+    C("water_days", "Hydriert", "drop", "waterDays", () => 5, 30, (t2) => `An ${t2} Tagen 1,5 l trinken`),
+    C("mobility", "Beweglich", "stretch", "mobility", () => 3, 40, (t2) => `${t2} Mobilit\xE4ts-Routinen`),
+    C("sets", "Volumen", "list", "sets", (p2) => Math.max(20, (p2.strengthDays || 3) * 14), 60, (t2) => `${t2} Arbeitss\xE4tze`),
+    C("tonnage", "Tonnen bewegen", "weight", "tonnage", (p2) => Math.round((p2.weightKg || 75) * 120 / 1e3) * 1e3, 60, (t2) => `${t2.toLocaleString("de-DE")} kg bewegen`),
+    C("pr", "Bestleistung", "trophy", "prs", () => 1, 50, (t2) => `${t2} neue Bestleistung${t2 > 1 ? "en" : ""}`),
+    C("perfect", "Perfekte Tage", "star", "perfectDays", () => 2, 70, (t2) => `${t2} perfekte Tage`),
+    C("legs", "Beintag", "bolt", "legSets", () => 12, 40, (t2) => `${t2} S\xE4tze f\xFCr Beine und Ges\xE4\xDF`),
+    C("quick", "Spontan", "zap", "quick", () => 1, 30, () => "Ein Schnelltraining"),
+    C("weigh", "Waage", "scale", "weights", () => 4, 25, (t2) => `${t2}\xD7 wiegen`),
+    C("early", "Fr\xFChstart", "sun", "early", () => 1, 30, () => "Ein Training vor 9 Uhr beenden"),
+    C("variety", "Abwechslung", "refresh", "variety", () => 15, 40, (t2) => `${t2} verschiedene \xDCbungen`),
+    C("active_days", "Jeden Tag etwas", "flame", "activeDays", () => 5, 60, (t2) => `An ${t2} Tagen aktiv (Training, Cardio oder Mobilit\xE4t)`)
+  ];
+  var MONTHLY_POOL = [
+    C("m_workouts", "Trainingsmonat", "dumbbell", "workouts", (p2) => Math.max(8, (p2.strengthDays || 3) * 4), 200, (t2) => `${t2} Trainings in diesem Monat`),
+    C("m_cardio", "Ausdauermonat", "run", "cardioMin", (p2) => Math.max(240, (p2.cardioSessions || 2) * 100), 180, (t2) => `${t2} Cardio-Minuten im Monat`, (p2) => (p2.cardioSessions ?? 1) > 0),
+    C("m_perfect", "Zehn perfekte Tage", "star", "perfectDays", () => 10, 250, (t2) => `${t2} perfekte Tage im Monat`),
+    C("m_tonnage", "Schwerlast", "weight", "tonnage", (p2) => Math.round((p2.weightKg || 75) * 500 / 5e3) * 5e3, 200, (t2) => `${t2.toLocaleString("de-DE")} kg im Monat bewegen`),
+    C("m_active", "Zwanzig aktive Tage", "flame", "activeDays", () => 20, 220, (t2) => `An ${t2} Tagen im Monat aktiv`),
+    C("m_checkins", "Achtsam", "sun", "checkins", () => 20, 150, (t2) => `${t2} Check-ins im Monat`)
+  ];
+  function hash(str) {
+    let h2 = 2166136261;
+    for (let i = 0; i < str.length; i++) h2 = Math.imul(h2 ^ str.charCodeAt(i), 16777619);
+    return h2 >>> 0;
+  }
+  function pick(pool, profile, seedStr, n) {
+    const rnd = seededRandom(hash(seedStr));
+    const eligible = pool.filter((c) => !c.only || c.only(profile));
+    const out = [];
+    const bag = [...eligible];
+    while (out.length < n && bag.length) out.push(bag.splice(Math.floor(rnd() * bag.length), 1)[0]);
+    return out;
+  }
+  function materialize(c, profile, metrics) {
+    const target = c.target(profile);
+    const value = Math.min(target, metrics[c.metric] || 0);
+    return { id: c.id, name: c.name, icon: c.icon, desc: c.desc(target), target, value, xp: c.xp, done: value >= target, progress: target ? value / target : 0 };
+  }
+  function weeklyChallenges(s, weekStart = startOfWeek(toISODate())) {
+    const m = periodMetrics(s, weekStart, addDays(weekStart, 6));
+    return pick(WEEKLY_POOL, s.profile || {}, `w:${weekStart}:${s.meta?.createdAt || ""}`, 3).map((c) => materialize(c, s.profile || {}, m));
+  }
+  function monthlyChallenge(s, monthKey = toISODate().slice(0, 7)) {
+    const from = `${monthKey}-01`;
+    const d = new Date(Number(monthKey.slice(0, 4)), Number(monthKey.slice(5, 7)), 0);
+    const to2 = toISODate(d);
+    const m = periodMetrics(s, from, to2);
+    return materialize(pick(MONTHLY_POOL, s.profile || {}, `m:${monthKey}:${s.meta?.createdAt || ""}`, 1)[0], s.profile || {}, m);
+  }
+  function challengeXP(s, today = toISODate()) {
+    const first = s.meta?.createdAt || today;
+    let xp = 0;
+    let ws2 = startOfWeek(first);
+    const cur = startOfWeek(today);
+    let guard = 0;
+    while (ws2 <= cur && guard++ < 520) {
+      for (const c of weeklyChallenges(s, ws2)) if (c.done) xp += c.xp;
+      ws2 = addDays(ws2, 7);
+    }
+    let mk = first.slice(0, 7);
+    const curMk = today.slice(0, 7);
+    guard = 0;
+    while (mk <= curMk && guard++ < 120) {
+      const c = monthlyChallenge(s, mk);
+      if (c.done) xp += c.xp;
+      const [y2, mo2] = mk.split("-").map(Number);
+      mk = `${mo2 === 12 ? y2 + 1 : y2}-${String(mo2 === 12 ? 1 : mo2 + 1).padStart(2, "0")}`;
+    }
+    return xp;
+  }
+  function completedChallenges(s, today = toISODate()) {
+    const first = s.meta?.createdAt || today;
+    let n = 0;
+    let ws2 = startOfWeek(first);
+    const cur = startOfWeek(today);
+    let guard = 0;
+    while (ws2 <= cur && guard++ < 520) {
+      n += weeklyChallenges(s, ws2).filter((c) => c.done).length;
+      ws2 = addDays(ws2, 7);
+    }
+    let mk = first.slice(0, 7);
+    const curMk = today.slice(0, 7);
+    guard = 0;
+    while (mk <= curMk && guard++ < 120) {
+      if (monthlyChallenge(s, mk).done) n += 1;
+      const [y2, mo2] = mk.split("-").map(Number);
+      mk = `${mo2 === 12 ? y2 + 1 : y2}-${String(mo2 === 12 ? 1 : mo2 + 1).padStart(2, "0")}`;
+    }
+    return n;
+  }
+
+  // src/engine/gamification.js
+  var LEVEL_TITLES = [
+    [1, "Neuling"],
+    [3, "Einsteiger"],
+    [5, "Dranbleiber"],
+    [8, "Stammgast"],
+    [12, "Athlet"],
+    [16, "Kraftpaket"],
+    [20, "Maschine"],
+    [25, "Legende"]
+  ];
+  function xpForWorkout(w, prCount2 = 0) {
+    return XP.workoutBase + totalSets(w) * XP.perSet + prCount2 * XP.pr;
+  }
+  function xpForCardio(c) {
+    return Math.round(Math.min(120, c.minutes || 0) * XP.cardioPerMin);
+  }
+  function baseXP(s) {
     let xp = 0;
     for (const w of s.workouts) xp += w.xp ?? xpForWorkout(w);
     for (const c of s.cardioLogs) xp += xpForCardio(c);
@@ -8870,6 +9274,9 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const days = /* @__PURE__ */ new Set([...s.workouts.map((w) => w.date), ...(s.checkins || []).map((c) => c.date)]);
     for (const d of days) if (isPerfectDay(s, d)) xp += XP.perfectDay;
     return xp;
+  }
+  function totalXP(s, today = toISODate()) {
+    return baseXP(s) + (s.meta ? challengeXP(s, today) : 0);
   }
   function levelInfo(xp) {
     const level = Math.floor(Math.sqrt(xp / 100)) + 1;
@@ -8889,7 +9296,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       bodyLogs: s.bodyLogs.filter((b2) => b2.date === today),
       mobilityLogs: (s.mobilityLogs || []).filter((d) => d === today)
     };
-    return totalXP(sub);
+    return baseXP(sub);
   }
   function motivation(s, { streak, goals, today = toISODate() }) {
     const done = goals.filter((g2) => !g2.optional && g2.done).length;
@@ -8901,6 +9308,9 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     if (done === 0) return "Ein H\xE4kchen reicht f\xFCr den Anfang. Der Check-in dauert 30 Sekunden.";
     if (done >= total - 1) return "Nur noch eins \u2013 dann ist der Tag perfekt.";
     return `${done} von ${total} Zielen geschafft. Weiter so.`;
+  }
+  function badgeExtra(s, today = toISODate()) {
+    return { level: levelInfo(totalXP(s, today)).level, challengesDone: s.meta ? completedChallenges(s, today) : 0, isPerfectDay };
   }
 
   // src/ui/celebrate.js
@@ -8956,7 +9366,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       `<div class="celebrate">
       <div class="celebrate-hero ${data.levelUp ? "levelup" : ""}">
         <div class="celebrate-icon">${icon(data.levelUp ? "trophy" : "star", { size: 40 })}</div>
-        <div class="celebrate-xp">+${data.xp} XP</div>
+        <div class="celebrate-xp">+<span data-count="${data.xp}" data-from="0">${data.xp}</span> XP</div>
         <div class="celebrate-sub">${esc(data.subtitle || "")}</div>
       </div>
       ${data.levelUp ? `<div class="levelup-banner">${icon("bolt", { size: 18 })} Level ${data.level.level} erreicht \u2013 ${esc(data.level.title)}!</div>` : `<div class="level-row"><span>Level ${data.level.level} \xB7 ${esc(data.level.title)}</span><span class="muted small">${data.level.toNext} XP bis Level ${data.level.level + 1}</span></div><div class="xp-bar"><div style="width:${(data.level.progress * 100).toFixed(0)}%"></div></div>`}
@@ -8968,6 +9378,8 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     </div>`,
       { title: data.title || "Geschafft!" }
     );
+    animateCounts(m, 1100);
+    animateBars(m);
     return m;
   }
   function pop(el2) {
@@ -8978,6 +9390,27 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
   }
 
   // src/ui/heute.js
+  var STREAK_MILESTONES = [3, 7, 14, 30, 60, 100, 365];
+  function challengeRow(c, { monthly = false } = {}) {
+    return `<div class="challenge ${c.done ? "done" : ""} ${monthly ? "monthly" : ""}">
+    <span class="challenge-icon">${icon(c.done ? "check" : c.icon, { size: 20 })}</span>
+    <span class="challenge-text"><strong>${c.name}${monthly ? " \xB7 Monat" : ""}</strong><span>${c.desc}</span><span class="challenge-bar"><div style="width:${(c.progress * 100).toFixed(0)}%"></div></span></span>
+    <span class="challenge-right"><span class="xp-chip">+${c.xp}</span><span>${typeof c.value === "number" && c.value >= 1e3 ? c.value.toLocaleString("de-DE") : c.value} / ${c.target >= 1e3 ? c.target.toLocaleString("de-DE") : c.target}</span></span>
+    ${c.done ? '<span class="done-stamp">GESCHAFFT</span>' : ""}
+  </div>`;
+  }
+  function noteNewBadges(s, today) {
+    const earned = badgeStatus(s, today, badgeExtra(s, today)).filter((b2) => b2.earned);
+    const fresh = earned.filter((b2) => !s.meta.badgeDates?.[b2.id]);
+    if (fresh.length) {
+      update((st2) => {
+        var _a2;
+        (_a2 = st2.meta).badgeDates || (_a2.badgeDates = {});
+        for (const b2 of fresh) st2.meta.badgeDates[b2.id] = today;
+      }, { silent: true });
+    }
+    return fresh;
+  }
   function ring(value, max, { label = "", cls = "" } = {}) {
     const r = 36;
     const c = 2 * Math.PI * r;
@@ -9014,6 +9447,8 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const hour = (/* @__PURE__ */ new Date()).getHours();
     const greet = hour < 11 ? "Guten Morgen" : hour < 18 ? "Hallo" : "Guten Abend";
     const sessionTitle = { heute: "Heute dran", nachholen: "Nachholen", erledigt: "Heute erledigt", naechste: "N\xE4chste Einheit" }[next.kind];
+    const challenges = weeklyChallenges(s, ws2);
+    const prevXp = Number(sessionStorage.getItem("lmci.xpShown") || xp);
     root2.innerHTML = String(html`
     <section class="page">
       <div class="card card-hero hero">
@@ -9024,7 +9459,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
           </div>
           <div class="streak-pill ${activeToday ? "" : "cold"}" title="Tage in Folge aktiv">${raw(icon("flame", { size: 22 }))} ${streak}</div>
         </div>
-        <div class="level-row"><span>Level ${lvl.level} · ${lvl.title}</span><span class="xp-chip">${raw(icon("bolt", { size: 14 }))} ${xp} XP</span></div>
+        <div class="level-row"><span>Level ${lvl.level} · ${lvl.title}</span><span class="xp-chip">${raw(icon("bolt", { size: 14 }))} <span data-count="${xp}" data-from="${Math.min(prevXp, xp)}">${xp}</span> XP</span></div>
         <div class="xp-bar"><div style="width:${(lvl.progress * 100).toFixed(0)}%"></div></div>
         <div class="small">${lvl.toNext} XP bis Level ${lvl.level + 1}${todayXp ? ` \xB7 heute schon +${todayXp} XP` : ""}</div>
       </div>
@@ -9045,6 +9480,12 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
           </button></li>`)}
         </ul>
         <p class="small ${perfect ? "" : "muted"}">${perfect ? raw(`${icon("star", { size: 16 })} `) : ""}${motivation(s, { streak, goals, today })}</p>
+      </div>
+
+      <div class="card">
+        <div class="row between"><div class="card-title">Herausforderungen der Woche</div><a class="btn btn-small btn-ghost" href="#/fortschritt">${raw(icon("trophy", { size: 16 }))} Alle</a></div>
+        <div class="challenges">${raw(challenges.map((c) => challengeRow(c)).join(""))}</div>
+        <p class="muted small">${challenges.filter((c) => c.done).length} von 3 geschafft · jede Woche drei neue, dazu eine im Monat.</p>
       </div>
 
       ${s.activeWorkout ? html`<div class="card card-accent">
@@ -9147,6 +9588,36 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       toast(`Gewicht gespeichert \xB7 +${XP.weight} XP`, "ok");
     });
     celebrateIfPerfect(s, today, perfect);
+    celebrateChallenges(s, ws2, challenges);
+    celebrateStreak(s, streak);
+    noteNewBadges(s, today);
+    try {
+      sessionStorage.setItem("lmci.xpShown", String(xp));
+    } catch {
+    }
+    animateAll(root2);
+  }
+  function celebrateChallenges(s, ws2, challenges) {
+    const done = challenges.filter((c) => c.done).map((c) => `${ws2}:${c.id}`);
+    const known = new Set(s.meta.celebrated?.challenges || []);
+    const fresh = done.filter((k) => !known.has(k));
+    if (!fresh.length) return;
+    update((st2) => {
+      st2.meta.celebrated.challenges = [...known, ...fresh].slice(-200);
+    }, { silent: true });
+    saveNow();
+    confetti({ count: 110 });
+    const names = challenges.filter((c) => fresh.includes(`${ws2}:${c.id}`));
+    toast(`Herausforderung geschafft: ${names.map((c) => c.name).join(", ")} \xB7 +${names.reduce((a2, c) => a2 + c.xp, 0)} XP`, "ok");
+  }
+  function celebrateStreak(s, streak) {
+    const reached = STREAK_MILESTONES.filter((m) => streak >= m).pop();
+    if (!reached) return;
+    if ((s.meta.celebrated?.streak || 0) >= reached) return;
+    update((st2) => st2.meta.celebrated.streak = reached, { silent: true });
+    saveNow();
+    confetti({ count: 80 });
+    toast(`${reached} Tage in Folge! Die Flamme brennt.`, "ok");
   }
   function celebrateIfPerfect(s, today, perfect) {
     if (!perfect) return;
@@ -9526,6 +9997,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         <button class="btn btn-ghost" data-act="regen">Plan neu berechnen</button>
       </div>
     </section>`);
+    animateAll(root2);
     root2.querySelectorAll("[data-tab]").forEach((b2) => b2.addEventListener("click", () => {
       tab2 = b2.dataset.tab;
       renderPlan(root2);
@@ -9810,7 +10282,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       timer.total += 3e4;
     });
   }
-  function makeEntry(st2, pe, sets, week, deload, rir, warmLevel) {
+  function makeEntry(st2, pe, sets2, week, deload, rir, warmLevel) {
     const ex2 = getExercise(pe.exId);
     const sug = suggestNext(pe, historyFor(st2.workouts, pe.exId), rir, deload, { profile: st2.profile, settings: st2.settings });
     return {
@@ -9820,11 +10292,11 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       repMax: pe.repMax,
       restSec: pe.restSec,
       main: !!pe.main,
-      baseSets: sets,
+      baseSets: sets2,
       suggestion: sug,
       warmup: warmLevel ? warmupSets(ex2, sug.weight, st2.settings.barWeight, warmLevel) : [],
       note: "",
-      sets: Array.from({ length: sets }, () => ({ weight: sug.weight, reps: null, rir: null, done: false }))
+      sets: Array.from({ length: sets2 }, () => ({ weight: sug.weight, reps: null, rir: null, done: false }))
     };
   }
   function buildWorkout(st2, day) {
@@ -9968,8 +10440,8 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
             level = firstHeavy && !deload ? "voll" : "kurz";
             firstHeavy = false;
           }
-          const sets = Math.max(1, pe.sets - (aw.mode === "leicht" && !minutes ? 1 : 0));
-          return makeEntry(st2, pe, sets, week, deload, rir, level);
+          const sets2 = Math.max(1, pe.sets - (aw.mode === "leicht" && !minutes ? 1 : 0));
+          return makeEntry(st2, pe, sets2, week, deload, rir, level);
         });
       }, { silent: true });
       closeModal();
@@ -10100,7 +10572,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       const records = newRecords(workout, s.workouts);
       workout.xp = xpForWorkout(workout, records.length);
       const xpBefore = totalXP(s);
-      const badgesBefore = new Set(badgeStatus(s, aw.date).filter((b2) => b2.earned).map((b2) => b2.id));
+      const badgesBefore = new Set(badgeStatus(s, aw.date, badgeExtra(s, aw.date)).filter((b2) => b2.earned).map((b2) => b2.id));
       stopRestTimer();
       let applied = [];
       update((st2) => {
@@ -10123,11 +10595,14 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       const xpAfter = totalXP(after);
       const lvlBefore = levelInfo(xpBefore);
       const lvlAfter = levelInfo(xpAfter);
-      const newBadges = badgeStatus(after, aw.date).filter((b2) => b2.earned && !badgesBefore.has(b2.id));
+      const newBadges = badgeStatus(after, aw.date, badgeExtra(after, aw.date)).filter((b2) => b2.earned && !badgesBefore.has(b2.id));
       if (lvlAfter.level > lvlBefore.level || newBadges.length) {
         update((st2) => {
+          var _a2, _b, _c2;
           st2.meta.celebrated.level = lvlAfter.level;
           st2.meta.celebrated.badges = [.../* @__PURE__ */ new Set([...st2.meta.celebrated.badges || [], ...newBadges.map((b2) => b2.id)])];
+          (_a2 = st2.meta).badgeDates || (_a2.badgeDates = {});
+          for (const b2 of newBadges) (_b = st2.meta.badgeDates)[_c2 = b2.id] || (_b[_c2] = aw.date);
         }, { silent: true });
       }
       const mins = Math.round((new Date(workout.finishedAt) - new Date(workout.startedAt)) / 6e4);
@@ -10171,8 +10646,12 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const trend = weightTrend(bodyLogs);
     const records = personalRecords(workouts).slice(0, 10);
     const recent = [...workouts].sort((a2, b2) => a2.date < b2.date ? 1 : -1).slice(0, 20);
-    const badges = badgeStatus(s, today);
+    noteNewBadges(s, today);
+    const badges = badgeStatus(s, today, badgeExtra(s, today));
     const earned = badges.filter((b2) => b2.earned);
+    const isNew = (b2) => b2.earned && s.meta.badgeDates?.[b2.id] && (new Date(today) - new Date(s.meta.badgeDates[b2.id])) / 864e5 <= 3;
+    const weekly = weeklyChallenges(s, startOfWeek(today));
+    const monthly = monthlyChallenge(s, today.slice(0, 7));
     const streak = dailyStreak(s, today);
     const measures = [...s.measurements].sort((a2, b2) => a2.date < b2.date ? -1 : 1);
     const latestM = measures[measures.length - 1];
@@ -10197,8 +10676,20 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       </div>
 
       <div class="card">
+        <div class="card-title">Herausforderungen</div>
+        <div class="challenges">${raw(weekly.map((c) => challengeRow(c)).join(""))}${raw(challengeRow(monthly, { monthly: true }))}</div>
+        <p class="muted small">Drei Wochen-Herausforderungen wechseln jeden Montag, die Monats-Herausforderung am Ersten. Geschaffte bringen XP und zählen für Abzeichen.</p>
+      </div>
+
+      <div class="card">
         <div class="row between"><div class="card-title">Abzeichen</div><span class="muted small">${earned.length} / ${badges.length}</span></div>
-        <div class="badges">${badges.map((b2) => html`<div class="badge-tile ${b2.earned ? "earned" : ""}" title="${b2.desc}"><span class="badge-icon">${b2.icon}</span><span class="badge-name">${b2.name}</span><span class="muted small">${b2.desc}</span></div>`)}</div>
+        ${BADGE_GROUPS.map(([gid, gname]) => {
+      const list = badges.filter((b2) => b2.group === gid);
+      return html`<div class="badge-group">
+            <div class="badge-group-title"><span>${gname}</span><span class="muted">${list.filter((b2) => b2.earned).length}/${list.length}</span></div>
+            <div class="badges">${list.map((b2) => html`<div class="badge-tile ${b2.earned ? "earned" : ""} ${isNew(b2) ? "new" : ""}" title="${b2.desc}">${isNew(b2) ? html`<span class="new-tag">NEU</span>` : ""}<span class="badge-icon">${b2.icon}</span><span class="badge-name">${b2.name}</span><span class="muted small">${b2.desc}</span></div>`)}</div>
+          </div>`;
+    })}
       </div>
 
       <div class="card">
@@ -10245,6 +10736,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         ${recent.length ? html`<ul class="list tappable">${recent.map((w) => html`<li><button class="link" data-w="${w.id}"><strong>${w.dayId === "frei" ? "Freies Training" : w.dayId === "schnell" ? "Schnelltraining" : plan.days.find((d) => d.id === w.dayId)?.name || s.planHistory.flatMap((p2) => p2.days).find((d) => d.id === w.dayId && p.id === w.planId)?.name || "Training"}</strong><div class="muted small">${formatDate(w.date)} · ${totalSets(w)} Sätze · ${totalTonnage(w).toLocaleString("de-DE")} kg${w.feedback ? ` \xB7 RPE ${w.feedback.rpe}` : ""}</div></button></li>`)}</ul>` : html`<p class="muted">Noch nichts geloggt – starte auf „Heute“.</p>`}
       </div>
     </section>`);
+    animateAll(root2);
     root2.querySelector('[data-act="measure"]').addEventListener("click", () => openMeasure(root2));
     root2.querySelector("#measure-select")?.addEventListener("change", (e) => {
       selectedMeasure = e.target.value;
@@ -10547,7 +11039,7 @@ ${buildContext(get())}` }
   }
 
   // src/ui/mehr.js
-  var APP_VERSION = "1.3.1";
+  var APP_VERSION = "1.4.0";
   function renderMehr(root2) {
     const s = get();
     const p2 = s.profile;
@@ -10825,13 +11317,13 @@ ${buildContext(get())}` }
     for (const f of opts.focus || []) for (const m of QUICK_FOCUS.find((x) => x.id === f)?.muscles || []) if (!muscles.includes(m)) muscles.push(m);
     if (!muscles.length) muscles.push(...QUICK_FOCUS[0].muscles);
     const maxEx = EX_PER_MINUTES.reduce((acc, [min, n]) => minutes >= min ? n : acc, 3);
-    const sets = intensity === "leicht" ? 2 : intensity === "hart" ? 4 : 3;
+    const sets2 = intensity === "leicht" ? 2 : intensity === "hart" ? 4 : 3;
     const rir = intensity === "leicht" ? 3 : intensity === "hart" ? 1 : 2;
     const used = /* @__PURE__ */ new Set();
     const usedPatterns = /* @__PURE__ */ new Set();
     const picks = [];
     const beginner = profile.experience === "anfaenger";
-    const pick = (muscle, tiers) => {
+    const pick2 = (muscle, tiers) => {
       const base = pool.filter((e) => e.primary.includes(muscle) && !used.has(e.id));
       let cands = base.filter((e) => tiers.includes(e.tier));
       if (!cands.length) cands = base;
@@ -10850,7 +11342,7 @@ ${buildContext(get())}` }
     for (const tiers of rounds) {
       for (const m of muscles) {
         if (picks.length >= maxEx) break;
-        const ex2 = pick(m, tiers);
+        const ex2 = pick2(m, tiers);
         if (ex2) picks.push({ ex: ex2, muscle: m });
       }
       if (picks.length >= maxEx) break;
@@ -10872,7 +11364,7 @@ ${buildContext(get())}` }
       }
       const weight = estimateStartWeight(ex2, profile, repMin, rir, {});
       const reps = ex2.bwReps ? estimateStartReps(ex2, profile) : null;
-      return { exId: ex2.id, muscle, tier: ex2.tier, sets, repMin, repMax, restSec: rest, rir, weight, estReps: reps, load: ex2.load };
+      return { exId: ex2.id, muscle, tier: ex2.tier, sets: sets2, repMin, repMax, restSec: rest, rir, weight, estReps: reps, load: ex2.load };
     });
     const warm = minutes <= 20 ? 4 : 6;
     const total = () => warm + tasks.reduce((a2, t2) => a2 + setCost(t2) * t2.sets, 0);
@@ -11044,8 +11536,8 @@ ${buildContext(get())}` }
   var nav = document.getElementById("nav");
   function route() {
     const s = get();
-    const hash = location.hash || "#/heute";
-    const [path, arg] = hash.replace(/^#\/?/, "").split("/");
+    const hash2 = location.hash || "#/heute";
+    const [path, arg] = hash2.replace(/^#\/?/, "").split("/");
     closeModal();
     if (!s.profile || !s.plan) {
       nav.hidden = true;

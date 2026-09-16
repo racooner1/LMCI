@@ -11,7 +11,7 @@ import { toISODate, uid, clamp } from '../engine/util.js';
 import { openExerciseInfo } from './uebungen.js';
 import { icon } from './icons.js';
 import { showCelebration, pop } from './celebrate.js';
-import { totalXP, levelInfo, xpForWorkout } from '../engine/gamification.js';
+import { totalXP, levelInfo, xpForWorkout, badgeExtra } from '../engine/gamification.js';
 import { badgeStatus } from '../engine/achievements.js';
 
 let timer = { end: 0, total: 0, handle: null };
@@ -522,7 +522,7 @@ function finishWorkout(root) {
     const records = newRecords(workout, s.workouts);
     workout.xp = xpForWorkout(workout, records.length);
     const xpBefore = totalXP(s);
-    const badgesBefore = new Set(badgeStatus(s, aw.date).filter((b) => b.earned).map((b) => b.id));
+    const badgesBefore = new Set(badgeStatus(s, aw.date, badgeExtra(s, aw.date)).filter((b) => b.earned).map((b) => b.id));
     stopRestTimer();
     let applied = [];
     store.update((st) => {
@@ -544,11 +544,13 @@ function finishWorkout(root) {
     const xpAfter = totalXP(after);
     const lvlBefore = levelInfo(xpBefore);
     const lvlAfter = levelInfo(xpAfter);
-    const newBadges = badgeStatus(after, aw.date).filter((b) => b.earned && !badgesBefore.has(b.id));
+    const newBadges = badgeStatus(after, aw.date, badgeExtra(after, aw.date)).filter((b) => b.earned && !badgesBefore.has(b.id));
     if (lvlAfter.level > lvlBefore.level || newBadges.length) {
       store.update((st) => {
         st.meta.celebrated.level = lvlAfter.level;
         st.meta.celebrated.badges = [...new Set([...(st.meta.celebrated.badges || []), ...newBadges.map((b) => b.id)])];
+        st.meta.badgeDates ||= {};
+        for (const b of newBadges) st.meta.badgeDates[b.id] ||= aw.date;
       }, { silent: true });
     }
     const mins = Math.round((new Date(workout.finishedAt) - new Date(workout.startedAt)) / 60000);

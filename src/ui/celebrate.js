@@ -1,6 +1,7 @@
 // Feier-Momente: Konfetti, XP-Anzeige, Level-up.
 import { esc, openModal } from './dom.js';
 import { icon } from './icons.js';
+import { animateCounts, animateBars } from './motion.js';
 
 const COLORS = ['#2F6BFF', '#F5A623', '#22C55E', '#FF6A3D', '#7C3AED', '#06B6D4'];
 
@@ -60,7 +61,7 @@ export function showCelebration(data) {
     `<div class="celebrate">
       <div class="celebrate-hero ${data.levelUp ? 'levelup' : ''}">
         <div class="celebrate-icon">${icon(data.levelUp ? 'trophy' : 'star', { size: 40 })}</div>
-        <div class="celebrate-xp">+${data.xp} XP</div>
+        <div class="celebrate-xp">+<span data-count="${data.xp}" data-from="0">${data.xp}</span> XP</div>
         <div class="celebrate-sub">${esc(data.subtitle || '')}</div>
       </div>
       ${data.levelUp ? `<div class="levelup-banner">${icon('bolt', { size: 18 })} Level ${data.level.level} erreicht – ${esc(data.level.title)}!</div>` : `<div class="level-row"><span>Level ${data.level.level} · ${esc(data.level.title)}</span><span class="muted small">${data.level.toNext} XP bis Level ${data.level.level + 1}</span></div><div class="xp-bar"><div style="width:${(data.level.progress * 100).toFixed(0)}%"></div></div>`}
@@ -72,6 +73,8 @@ export function showCelebration(data) {
     </div>`,
     { title: data.title || 'Geschafft!' },
   );
+  animateCounts(m, 1100);
+  animateBars(m);
   return m;
 }
 

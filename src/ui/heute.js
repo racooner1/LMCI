@@ -13,9 +13,36 @@ import { openIntervalTimer } from './timer.js';
 import { dayTotals } from '../engine/food.js';
 import { dailyTargets } from './ernaehrung.js';
 import { dailyStreak } from '../engine/achievements.js';
-import { totalXP, levelInfo, dailyGoals, xpToday, motivation, XP } from '../engine/gamification.js';
+import { totalXP, levelInfo, dailyGoals, xpToday, motivation, XP, badgeExtra } from '../engine/gamification.js';
+import { weeklyChallenges } from '../engine/challenges.js';
+import { badgeStatus } from '../engine/achievements.js';
 import { icon } from './icons.js';
 import { confetti, pop } from './celebrate.js';
+import { animateAll } from './motion.js';
+
+const STREAK_MILESTONES = [3, 7, 14, 30, 60, 100, 365];
+
+export function challengeRow(c, { monthly = false } = {}) {
+  return `<div class="challenge ${c.done ? 'done' : ''} ${monthly ? 'monthly' : ''}">
+    <span class="challenge-icon">${icon(c.done ? 'check' : c.icon, { size: 20 })}</span>
+    <span class="challenge-text"><strong>${c.name}${monthly ? ' · Monat' : ''}</strong><span>${c.desc}</span><span class="challenge-bar"><div style="width:${(c.progress * 100).toFixed(0)}%"></div></span></span>
+    <span class="challenge-right"><span class="xp-chip">+${c.xp}</span><span>${typeof c.value === 'number' && c.value >= 1000 ? c.value.toLocaleString('de-DE') : c.value} / ${c.target >= 1000 ? c.target.toLocaleString('de-DE') : c.target}</span></span>
+    ${c.done ? '<span class="done-stamp">GESCHAFFT</span>' : ''}
+  </div>`;
+}
+
+// Neue Abzeichen mit Datum versehen (für „NEU“-Marker) – gibt neu erkannte Abzeichen zurück.
+export function noteNewBadges(s, today) {
+  const earned = badgeStatus(s, today, badgeExtra(s, today)).filter((b) => b.earned);
+  const fresh = earned.filter((b) => !s.meta.badgeDates?.[b.id]);
+  if (fresh.length) {
+    store.update((st) => {
+      st.meta.badgeDates ||= {};
+      for (const b of fresh) st.meta.badgeDates[b.id] = today;
+    }, { silent: true });
+  }
+  return fresh;
+}
 
 export function ring(value, max, { label = '', cls = '' } = {}) {
   const r = 36;
@@ -54,6 +81,8 @@ export function renderHeute(root) {
   const hour = new Date().getHours();
   const greet = hour < 11 ? 'Guten Morgen' : hour < 18 ? 'Hallo' : 'Guten Abend';
   const sessionTitle = { heute: 'Heute dran', nachholen: 'Nachholen', erledigt: 'Heute erledigt', naechste: 'Nächste Einheit' }[next.kind];
+  const challenges = weeklyChallenges(s, ws);
+  const prevXp = Number(sessionStorage.getItem('lmci.xpShown') || xp);
 
   root.innerHTML = String(html`
     <section class="page">
@@ -65,7 +94,7 @@ export function renderHeute(root) {
           </div>
           <div class="streak-pill ${activeToday ? '' : 'cold'}" title="Tage in Folge aktiv">${raw(icon('flame', { size: 22 }))} ${streak}</div>
         </div>
-        <div class="level-row"><span>Level ${lvl.level} · ${lvl.title}</span><span class="xp-chip">${raw(icon('bolt', { size: 14 }))} ${xp} XP</span></div>
+        <div class="level-row"><span>Level ${lvl.level} · ${lvl.title}</span><span class="xp-chip">${raw(icon('bolt', { size: 14 }))} <span data-count="${xp}" data-from="${Math.min(prevXp, xp)}">${xp}</span> XP</span></div>
         <div class="xp-bar"><div style="width:${(lvl.progress * 100).toFixed(0)}%"></div></div>
         <div class="small">${lvl.toNext} XP bis Level ${lvl.level + 1}${todayXp ? ` · heute schon +${todayXp} XP` : ''}</div>
       </div>
@@ -86,6 +115,12 @@ export function renderHeute(root) {
           </button></li>`)}
         </ul>
         <p class="small ${perfect ? '' : 'muted'}">${perfect ? raw(`${icon('star', { size: 16 })} `) : ''}${motivation(s, { streak, goals, today })}</p>
+      </div>
+
+      <div class="card">
+        <div class="row between"><div class="card-title">Herausforderungen der Woche</div><a class="btn btn-small btn-ghost" href="#/fortschritt">${raw(icon('trophy', { size: 16 }))} Alle</a></div>
+        <div class="challenges">${raw(challenges.map((c) => challengeRow(c)).join(''))}</div>
+        <p class="muted small">${challenges.filter((c) => c.done).length} von 3 geschafft · jede Woche drei neue, dazu eine im Monat.</p>
       </div>
 
       ${s.activeWorkout ? html`<div class="card card-accent">
@@ -189,6 +224,39 @@ export function renderHeute(root) {
     toast(`Gewicht gespeichert · +${XP.weight} XP`, 'ok');
   });
   celebrateIfPerfect(s, today, perfect);
+  celebrateChallenges(s, ws, challenges);
+  celebrateStreak(s, streak);
+  noteNewBadges(s, today);
+  try {
+    sessionStorage.setItem('lmci.xpShown', String(xp));
+  } catch { /* egal */ }
+  animateAll(root);
+}
+
+// Abgeschlossene Herausforderungen einmalig feiern.
+function celebrateChallenges(s, ws, challenges) {
+  const done = challenges.filter((c) => c.done).map((c) => `${ws}:${c.id}`);
+  const known = new Set(s.meta.celebrated?.challenges || []);
+  const fresh = done.filter((k) => !known.has(k));
+  if (!fresh.length) return;
+  store.update((st) => {
+    st.meta.celebrated.challenges = [...known, ...fresh].slice(-200);
+  }, { silent: true });
+  store.saveNow();
+  confetti({ count: 110 });
+  const names = challenges.filter((c) => fresh.includes(`${ws}:${c.id}`));
+  toast(`Herausforderung geschafft: ${names.map((c) => c.name).join(', ')} · +${names.reduce((a, c) => a + c.xp, 0)} XP`, 'ok');
+}
+
+// Streak-Meilensteine einmalig feiern.
+function celebrateStreak(s, streak) {
+  const reached = STREAK_MILESTONES.filter((m) => streak >= m).pop();
+  if (!reached) return;
+  if ((s.meta.celebrated?.streak || 0) >= reached) return;
+  store.update((st) => (st.meta.celebrated.streak = reached), { silent: true });
+  store.saveNow();
+  confetti({ count: 80 });
+  toast(`${reached} Tage in Folge! Die Flamme brennt.`, 'ok');
 }
 
 // Perfekter Tag: einmal pro Tag Konfetti.

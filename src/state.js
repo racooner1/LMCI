@@ -80,6 +80,8 @@ function migrate(s) {
   if (!Array.isArray(s.measurements)) s.measurements = [];
   if (!Array.isArray(s.mobilityLogs)) s.mobilityLogs = [];
   if (!s.meta.celebrated) s.meta.celebrated = { level: 1, badges: [] };
+  if (!Array.isArray(s.meta.celebrated.challenges)) s.meta.celebrated.challenges = [];
+  if (!s.meta.badgeDates) s.meta.badgeDates = {};
   if (!s.coach) s.coach = { apiKey: '', model: 'claude-opus-5', history: [] };
   if (!Array.isArray(s.coach.history)) s.coach.history = [];
   if (s.plan && !s.plan.muscleAdjust) s.plan.muscleAdjust = {};

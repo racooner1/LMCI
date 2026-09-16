@@ -509,13 +509,22 @@ export function shortenDay(plan, day, week, minutes, profile) {
 // Startgewicht schätzen: 1RM-Verhältnis zum Körpergewicht, skaliert nach Erfahrung, Geschlecht und Alter.
 const EXP_FACTOR = { anfaenger: 0.6, fortgeschritten: 1.0, erfahren: 1.3 };
 const SEX_FACTOR = { m: 1.0, w: 0.65, d: 0.8 };
-export function estimateStartWeight(ex, profile, reps, rir = 2, settings = {}) {
-  if (!ex.ratio || ['bw', 'time', 'band'].includes(ex.load)) return null;
+// Referenz-1RM eines fortgeschrittenen Trainierenden mit diesem Körper (Gewicht, Geschlecht, Alter) – Basis für
+// Startgewichte und für die Ränge der Bestleistungen. 0, wenn die Übung kein 1RM-Verhältnis hat.
+export function referenceE1RM(ex, profile) {
+  if (!ex?.ratio || ['bw', 'time', 'band'].includes(ex.load)) return 0;
   const bw = clamp(profile.weightKg || 75, 45, 110);
-  let e1rm = ex.ratio * bw * (EXP_FACTOR[profile.experience] ?? 1) * (SEX_FACTOR[profile.sex] ?? 0.8);
+  let e1rm = ex.ratio * bw * (SEX_FACTOR[profile.sex] ?? 0.8);
   if (profile.age > 60) e1rm *= 0.75;
   else if (profile.age > 50) e1rm *= 0.85;
   else if (profile.age < 18) e1rm *= 0.8;
+  return e1rm;
+}
+
+export function estimateStartWeight(ex, profile, reps, rir = 2, settings = {}) {
+  const ref = referenceE1RM(ex, profile);
+  if (!ref) return null;
+  const e1rm = ref * (EXP_FACTOR[profile.experience] ?? 1);
   // Arbeitsgewicht für reps + rir Wiederholungen (Epley), konservativ abgerundet
   let w = e1rm / (1 + (reps + rir) / 30);
   const inc = ex.inc || 2.5;

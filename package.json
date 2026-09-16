@@ -1,6 +1,6 @@
 {
   "name": "lmci",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "LMCI – deine eigene, abofreie Trainings-App: individueller Kraft-, Cardio-, Mobilitäts- und Ernährungsplan, komplett offline auf deinem Gerät.",
   "type": "module",
   "private": true,

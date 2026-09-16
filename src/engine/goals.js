@@ -3,7 +3,7 @@ import { toISODate } from './util.js';
 import { nextSession } from './plan.js';
 import { dayTotals } from './food.js';
 
-export const XP = { workoutBase: 50, perSet: 8, pr: 25, cardioPerMin: 2, checkin: 10, food: 15, water: 5, weight: 5, mobility: 15, perfectDay: 40 };
+export const XP = { workoutBase: 50, perSet: 8, pr: 25, rankUp: 40, cardioPerMin: 2, checkin: 10, food: 15, water: 5, weight: 5, mobility: 15, perfectDay: 40 };
 
 // Tagesziele für ein Datum. Rückgabe: [{ id, label, hint, xp, done, href, act?, optional? }]
 export function dailyGoals(s, today = toISODate()) {

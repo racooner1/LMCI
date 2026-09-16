@@ -2,7 +2,7 @@
 import { html, raw, esc, openModal, closeModal, confirmDialog, toast, fmtKg } from './dom.js';
 import * as store from '../state.js';
 import { lineChart, barChart, volumeBars } from './charts.js';
-import { weeklySeries, weeklyVolume, e1rmHistory, personalRecords, totalSets, totalTonnage } from '../engine/analytics.js';
+import { weeklySeries, weeklyVolume, e1rmHistory, totalSets, totalTonnage } from '../engine/analytics.js';
 import { weightTrend } from '../engine/nutrition.js';
 import { getExercise } from '../data/exercises.js';
 import { MUSCLES } from '../data/muscles.js';
@@ -14,6 +14,8 @@ import { icon } from './icons.js';
 import { challengeRow, noteNewBadges } from './heute.js';
 import { animateAll } from './motion.js';
 import { num } from './dom.js';
+import { recordBoard } from '../engine/records.js';
+import { recordsCard, bindRecordsCard } from './records.js';
 
 const MEASURES = [['taille', 'Taille'], ['huefte', 'Hüfte'], ['brust', 'Brust'], ['arm', 'Oberarm'], ['oberschenkel', 'Oberschenkel'], ['schulter', 'Schulterumfang']];
 let selectedMeasure = 'taille';
@@ -40,7 +42,7 @@ export function renderFortschritt(root) {
     return { y: Math.round((win.reduce((a, b) => a + b.weightKg, 0) / win.length) * 10) / 10 };
   });
   const trend = weightTrend(bodyLogs);
-  const records = personalRecords(workouts).slice(0, 10);
+  const board = recordBoard(s, today);
   const recent = [...workouts].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 20);
   noteNewBadges(s, today);
   const badges = badgeStatus(s, today, badgeExtra(s, today));
@@ -69,7 +71,7 @@ export function renderFortschritt(root) {
             <div class="muted small" style="margin-top:4px">${lvl.toNext} XP bis Level ${lvl.level + 1}${nextTitle ? ` · „${nextTitle[1]}“ ab Level ${nextTitle[0]}` : ''}</div>
           </div>
         </div>
-        <p class="muted small">XP gibt es für jedes Training (50 + 8 pro Satz, +25 je Bestleistung), Cardio (2 pro Minute), Check-ins, erfasste Ernährung, Trinken, Wiegen, Mobilität und perfekte Tage.</p>
+        <p class="muted small">XP gibt es für jedes Training (50 + 8 pro Satz, +25 je Bestleistung, +40 je Rangaufstieg), Cardio (2 pro Minute), Check-ins, erfasste Ernährung, Trinken, Wiegen, Mobilität und perfekte Tage.</p>
       </div>
 
       <div class="card">
@@ -77,6 +79,8 @@ export function renderFortschritt(root) {
         <div class="challenges">${raw(weekly.map((c) => challengeRow(c)).join(''))}${raw(challengeRow(monthly, { monthly: true }))}</div>
         <p class="muted small">Drei Wochen-Herausforderungen wechseln jeden Montag, die Monats-Herausforderung am Ersten. Geschaffte bringen XP und zählen für Abzeichen.</p>
       </div>
+
+      ${recordsCard(board, s)}
 
       <div class="card">
         <div class="row between"><div class="card-title">Abzeichen</div><span class="muted small">${earned.length} / ${badges.length}</span></div>
@@ -124,17 +128,13 @@ export function renderFortschritt(root) {
       </div>
 
       <div class="card">
-        <div class="card-title">Bestleistungen</div>
-        ${records.length ? html`<table class="ex-table"><tbody>${records.map((r) => html`<tr><td><div class="ex-name">${getExercise(r.exId)?.name || r.exId}</div><div class="muted small">${formatDate(r.date)}</div></td><td class="num">${r.e1rm ? html`${fmtKg(r.weight)} × ${r.reps}<div class="muted small">e1RM ${r.e1rm} kg</div>` : html`${r.reps} Wdh.`}</td></tr>`)}</tbody></table>` : html`<p class="muted">Noch keine Trainings gespeichert.</p>`}
-      </div>
-
-      <div class="card">
         <div class="card-title">Letzte Trainings</div>
         ${recent.length ? html`<ul class="list tappable">${recent.map((w) => html`<li><button class="link" data-w="${w.id}"><strong>${w.dayId === 'frei' ? 'Freies Training' : w.dayId === 'schnell' ? 'Schnelltraining' : plan.days.find((d) => d.id === w.dayId)?.name || s.planHistory.flatMap((p) => p.days).find((d) => d.id === w.dayId && p.id === w.planId)?.name || 'Training'}</strong><div class="muted small">${formatDate(w.date)} · ${totalSets(w)} Sätze · ${totalTonnage(w).toLocaleString('de-DE')} kg${w.feedback ? ` · RPE ${w.feedback.rpe}` : ''}</div></button></li>`)}</ul>` : html`<p class="muted">Noch nichts geloggt – starte auf „Heute“.</p>`}
       </div>
     </section>`);
 
   animateAll(root);
+  bindRecordsCard(root, () => renderFortschritt(root));
   root.querySelector('[data-act="measure"]').addEventListener('click', () => openMeasure(root));
   root.querySelector('#measure-select')?.addEventListener('change', (e) => {
     selectedMeasure = e.target.value;

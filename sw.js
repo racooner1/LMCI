@@ -1,16 +1,16 @@
 // Service Worker: App-Shell offline verfügbar machen.
 // Wichtig: Alle App-Dateien einer Version werden gemeinsam vorgeladen und ausschließlich aus diesem Versions-Cache
 // bedient. Es werden nie einzelne Dateien im Hintergrund ausgetauscht – sonst passen die Module nicht mehr zusammen.
-const VERSION = 'lmci-v1.4.1';
+const VERSION = 'lmci-v1.5.0';
 const RUNTIME = 'lmci-runtime';
 const SHELL = [
   './', './index.html', './styles.css', './manifest.webmanifest',
   './src/app.js', './src/state.js',
   './src/data/exercises.js', './src/data/muscles.js', './src/data/mobility.js', './src/data/foods.js',
   './src/engine/util.js', './src/engine/plan.js', './src/engine/cardio.js', './src/engine/progression.js', './src/engine/nutrition.js', './src/engine/analytics.js',
-  './src/engine/recovery.js', './src/engine/food.js', './src/engine/achievements.js', './src/engine/reminders.js', './src/engine/quick.js', './src/engine/gamification.js', './src/engine/goals.js', './src/engine/challenges.js',
+  './src/engine/recovery.js', './src/engine/food.js', './src/engine/achievements.js', './src/engine/reminders.js', './src/engine/quick.js', './src/engine/gamification.js', './src/engine/goals.js', './src/engine/challenges.js', './src/engine/records.js',
   './src/ui/dom.js', './src/ui/charts.js', './src/ui/bodymap.js', './src/ui/timer.js', './src/ui/icons.js', './src/ui/celebrate.js', './src/ui/motion.js', './src/ui/onboarding.js', './src/ui/heute.js', './src/ui/planview.js', './src/ui/workout.js',
-  './src/ui/fortschritt.js', './src/ui/ernaehrung.js', './src/ui/foodpicker.js', './src/ui/mehr.js', './src/ui/uebungen.js', './src/ui/kalender.js', './src/ui/coach.js', './src/ui/schnell.js',
+  './src/ui/fortschritt.js', './src/ui/records.js', './src/ui/ernaehrung.js', './src/ui/foodpicker.js', './src/ui/mehr.js', './src/ui/uebungen.js', './src/ui/kalender.js', './src/ui/coach.js', './src/ui/schnell.js',
   './vendor/anthropic-sdk.js',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png',
 ];

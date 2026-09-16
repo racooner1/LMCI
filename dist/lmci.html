@@ -643,6 +643,110 @@ details.group .chips { margin-top: 10px; }
 .badge-group-title { display: flex; justify-content: space-between; font-weight: 700; font-size: 0.9rem; }
 .card:has(.hero-count) { }
 
+/* ---------- Bestleistungen: Ränge, Rekord-Serie, Ziele ---------- */
+.medal { width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff; flex: none; box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.18), 0 3px 8px -3px rgba(0, 0, 0, 0.45); position: relative; }
+.medal.s { width: 22px; height: 22px; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.18); }
+.medal.l { width: 60px; height: 60px; box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.18), 0 10px 22px -8px rgba(0, 0, 0, 0.5); }
+.medal.none { background: var(--surface-3); color: var(--muted); box-shadow: none; }
+.medal.bronze { background: linear-gradient(145deg, #e0a06a, #a4552a); }
+.medal.silber { background: linear-gradient(145deg, #f3f5f9, #9aa5b8); color: #2b3446; }
+.medal.gold { background: linear-gradient(145deg, #ffe58a, #e39d00); color: #4a3200; }
+.medal.platin { background: linear-gradient(145deg, #d8f6fb, #4fb0c6); color: #083a45; }
+.medal.diamant { background: linear-gradient(145deg, #c7dcff, #5b8dff 55%, #b06bff); color: #fff; }
+.medal.diamant::after, .medal.platin::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.55) 50%, transparent 65%); background-size: 200% 100%; animation: shimmer 3s linear infinite; pointer-events: none; }
+.rank-bar { display: block; height: 7px; border-radius: 4px; background: var(--surface-3); overflow: hidden; margin-top: 4px; }
+.rank-bar.big { height: 11px; margin-top: 0; background: rgba(255, 255, 255, 0.28); }
+.rank-bar > div { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.9s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.rank-bar > div.bronze { background: linear-gradient(90deg, #a4552a, #e0a06a); }
+.rank-bar > div.silber { background: linear-gradient(90deg, #8e99ad, #e6eaf2); }
+.rank-bar > div.gold { background: linear-gradient(90deg, #e39d00, #ffe58a); }
+.rank-bar > div.platin { background: linear-gradient(90deg, #3d9fb6, #cdf3f9); }
+.rank-bar > div.diamant { background: linear-gradient(90deg, #5b8dff, #b06bff); }
+.records-card { gap: 10px; }
+.records-hero { display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: var(--radius-s); color: #fff; position: relative; overflow: hidden; background: linear-gradient(135deg, #5b6b8a, #2c3650); }
+.records-hero.bronze { background: linear-gradient(135deg, #c77b3f, #7a3b18); }
+.records-hero.silber { background: linear-gradient(135deg, #8f9cb3, #4b5771); }
+.records-hero.gold { background: linear-gradient(135deg, #f0b323, #b86a00); }
+.records-hero.platin { background: linear-gradient(135deg, #3fa7bf, #1c5d72); }
+.records-hero.diamant { background: linear-gradient(135deg, #4a7dff, #7b3fe0); }
+.records-hero::after { content: ''; position: absolute; right: -50px; top: -60px; width: 200px; height: 200px; border-radius: 50%; background: rgba(255, 255, 255, 0.14); pointer-events: none; animation: aurora2 16s ease-in-out infinite; }
+.records-hero > * { position: relative; }
+.records-hero .small { color: rgba(255, 255, 255, 0.85); }
+.records-hero-top { display: flex; align-items: center; gap: 14px; }
+.records-hero-text { flex: 1; min-width: 0; line-height: 1.2; }
+.records-hero-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; opacity: 0.85; }
+.records-hero-rank { font-size: 1.7rem; font-weight: 900; letter-spacing: -0.01em; }
+.records-hero-next { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.records-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 2px; }
+.records-stat { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; background: rgba(255, 255, 255, 0.14); border-radius: 12px; padding: 8px 4px; line-height: 1.1; }
+.records-stat strong { font-size: 1.35rem; font-weight: 800; }
+.records-stat span { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.85; }
+.records-stat .ico { color: rgba(255, 255, 255, 0.85); }
+.records-stat.hot .ico { color: #ffd166; animation: flame 1.6s ease-in-out infinite; }
+.records-stat.risk .ico { color: #ffb4a0; }
+.record-weeks { display: flex; gap: 6px; }
+.record-week { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.66rem; color: var(--muted); font-weight: 600; }
+.record-week i { width: 100%; height: 22px; border-radius: 8px; background: var(--surface-3); display: inline-flex; align-items: center; justify-content: center; color: transparent; }
+.record-week.hit i { background: linear-gradient(135deg, var(--xp), #ff7a1a); color: #fff; box-shadow: 0 6px 14px -8px rgba(245, 166, 35, 0.8); }
+.record-week.current i { outline: 2px solid var(--accent); outline-offset: 1px; }
+.record-week.current span { color: var(--accent); }
+.targets { display: flex; flex-direction: column; gap: 8px; }
+.target { display: grid; grid-template-columns: 36px 1fr auto; gap: 10px; align-items: center; padding: 9px 12px; border-radius: var(--radius-s); background: var(--surface-2); border: 0; font: inherit; color: inherit; text-align: left; width: 100%; cursor: pointer; transition: transform 0.08s, background 0.15s; }
+.target:not(.static):active { transform: scale(0.99); }
+.target.static { cursor: default; }
+.target-icon { width: 34px; height: 34px; border-radius: 10px; background: var(--surface); color: var(--xp); display: inline-flex; align-items: center; justify-content: center; }
+.target-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.target-text strong { font-weight: 700; line-height: 1.2; }
+.target-text > span:not(.target-bar) { font-size: 0.8rem; color: var(--muted); }
+.target-bar { height: 6px; border-radius: 3px; background: var(--surface-3); overflow: hidden; display: block; }
+.target-bar > div { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--xp), #ff8c1a); transition: width 0.9s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.target-pct { font-weight: 800; color: var(--xp-deep); font-size: 0.95rem; }
+.tabs.mini { padding: 3px; }
+.tabs.mini .tab { padding: 5px 10px; font-size: 0.8rem; flex: none; }
+.record-list { display: flex; flex-direction: column; gap: 6px; }
+.record { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 9px 10px; border-radius: var(--radius-s); background: var(--surface-2); border: 0; font: inherit; color: inherit; text-align: left; width: 100%; cursor: pointer; position: relative; transition: transform 0.08s, background 0.15s; }
+.record:hover { background: var(--surface-3); }
+.record:active { transform: scale(0.99); }
+.record.new { background: var(--xp-soft); }
+.record-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.record-text strong { font-weight: 700; line-height: 1.2; }
+.record-text > span:not(.rank-bar) { font-size: 0.78rem; color: var(--muted); }
+.record-val { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.2; white-space: nowrap; font-size: 0.95rem; }
+.record-val strong { font-weight: 800; }
+.record-val .delta { font-size: 0.75rem; font-weight: 800; color: var(--ok); }
+.new-tag.static { position: static; animation: none; box-shadow: none; margin-left: 4px; vertical-align: middle; }
+.chronicle { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; }
+.chronicle li { display: grid; grid-template-columns: 62px 1fr auto; gap: 10px; align-items: center; padding: 7px 0; border-bottom: 1px dashed var(--line); font-size: 0.9rem; }
+.chronicle li:last-child { border-bottom: 0; }
+.chronicle-date { color: var(--muted); font-size: 0.8rem; font-weight: 600; }
+.chronicle-text { min-width: 0; }
+.chronicle-val { font-weight: 700; white-space: nowrap; color: var(--muted); font-size: 0.85rem; }
+.rankup-tag { display: inline-block; font-size: 0.68rem; font-weight: 900; letter-spacing: 0.06em; padding: 1px 7px; border-radius: 999px; color: #fff; background: var(--accent); vertical-align: middle; }
+.rankup-tag.bronze { background: #a4552a; }
+.rankup-tag.silber { background: #6f7b93; }
+.rankup-tag.gold { background: #d18f00; }
+.rankup-tag.platin { background: #2f8ca3; }
+.rankup-tag.diamant { background: linear-gradient(90deg, #5b8dff, #b06bff); }
+.records-empty { display: flex; gap: 14px; align-items: center; padding: 6px 0; }
+.record-detail { display: flex; flex-direction: column; gap: 10px; }
+.ladder { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.ladder li { display: grid; grid-template-columns: 26px 1fr auto 24px; gap: 10px; align-items: center; padding: 7px 10px; border-radius: var(--radius-xs); background: var(--surface-2); color: var(--muted); }
+.ladder li.reached { color: var(--ink); }
+.ladder li.current { background: var(--xp-soft); font-weight: 700; }
+.ladder li:not(.reached) .medal { filter: grayscale(1); opacity: 0.55; }
+.ladder-val { font-weight: 700; white-space: nowrap; }
+.ladder-check { color: var(--ok); display: inline-flex; justify-content: center; }
+.record-line { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--radius-s); background: var(--surface-2); color: inherit; text-decoration: none; font-size: 0.9rem; font-weight: 600; }
+.record-line .ico:first-child { color: var(--xp); flex: none; }
+.record-line .ico:last-child { color: var(--muted); margin-left: auto; flex: none; }
+.record-line span { flex: 1; min-width: 0; }
+.record-line.hot { background: var(--xp-soft); }
+.record-line.hot .ico:first-child { animation: wiggle 1.2s ease-in-out; }
+.record-line.risk { background: var(--flame-soft); }
+.reward.rankup { background: var(--xp-soft); }
+.reward.highlight.flame .ico { color: var(--flame); animation: flame 1.6s ease-in-out infinite; }
+@media (max-width: 400px) { .records-stat strong { font-size: 1.15rem; } .chronicle li { grid-template-columns: 56px 1fr auto; } }
+
 .boot-hint { color: var(--muted); text-align: center; padding: 40px 0; }
 
 </style>
@@ -5736,6 +5840,9 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     d.setDate(d.getDate() + n);
     return toISODate(d);
   }
+  function daysBetween(isoA, isoB) {
+    return Math.round((fromISODate(isoB) - fromISODate(isoA)) / DAY_MS);
+  }
   function weekdayIndex(iso) {
     const d = fromISODate(iso);
     return (d.getDay() + 6) % 7;
@@ -6890,13 +6997,19 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
   }
   var EXP_FACTOR = { anfaenger: 0.6, fortgeschritten: 1, erfahren: 1.3 };
   var SEX_FACTOR = { m: 1, w: 0.65, d: 0.8 };
-  function estimateStartWeight(ex2, profile, reps, rir = 2, settings = {}) {
-    if (!ex2.ratio || ["bw", "time", "band"].includes(ex2.load)) return null;
+  function referenceE1RM(ex2, profile) {
+    if (!ex2?.ratio || ["bw", "time", "band"].includes(ex2.load)) return 0;
     const bw = clamp(profile.weightKg || 75, 45, 110);
-    let e1rm = ex2.ratio * bw * (EXP_FACTOR[profile.experience] ?? 1) * (SEX_FACTOR[profile.sex] ?? 0.8);
+    let e1rm = ex2.ratio * bw * (SEX_FACTOR[profile.sex] ?? 0.8);
     if (profile.age > 60) e1rm *= 0.75;
     else if (profile.age > 50) e1rm *= 0.85;
     else if (profile.age < 18) e1rm *= 0.8;
+    return e1rm;
+  }
+  function estimateStartWeight(ex2, profile, reps, rir = 2, settings = {}) {
+    const ref = referenceE1RM(ex2, profile);
+    if (!ref) return null;
+    const e1rm = ref * (EXP_FACTOR[profile.experience] ?? 1);
     let w = e1rm / (1 + (reps + rir) / 30);
     const inc = ex2.inc || 2.5;
     w = Math.floor(w / inc) * inc;
@@ -7500,6 +7613,230 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     return { perSide: out, rest: Math.round(perSide * 100) / 100 };
   }
 
+  // src/engine/records.js
+  var RANKS = [
+    { id: "bronze", name: "Bronze", min: 0, emoji: "\u{1F949}" },
+    { id: "silber", name: "Silber", min: 55, emoji: "\u{1F948}" },
+    { id: "gold", name: "Gold", min: 80, emoji: "\u{1F947}" },
+    { id: "platin", name: "Platin", min: 105, emoji: "\u{1F4A0}" },
+    { id: "diamant", name: "Diamant", min: 130, emoji: "\u{1F48E}" }
+  ];
+  var RECORD_STREAK_MILESTONES = [3, 5, 8, 12, 20, 30];
+  var KG_CLUBS = [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 180, 200, 220, 250, 300];
+  var BW_MULTIPLES = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3];
+  var REP_CLUBS = [5, 10, 15, 20, 25, 30, 40, 50, 75, 100];
+  var round1 = (v) => Math.round(v * 10) / 10;
+  function bestSet(entry) {
+    const sets2 = (entry?.sets || []).filter((s) => s && s.reps > 0);
+    if (!sets2.length) return null;
+    let best = null;
+    for (const s of sets2) {
+      if (!s.weight) continue;
+      const e1rm = estimate1RM(s.weight, Math.min(s.reps, 12));
+      if (!best || e1rm > best.e1rm + 1e-9 || Math.abs(e1rm - best.e1rm) < 1e-9 && s.weight > best.weight) best = { e1rm, weight: s.weight, reps: s.reps };
+    }
+    if (best) return { ...best, e1rm: round1(best.e1rm) };
+    return { e1rm: 0, weight: 0, reps: Math.max(...sets2.map((s) => s.reps)) };
+  }
+  function referenceReps(ex2, profile) {
+    if (!ex2?.bwReps || !profile) return 0;
+    return estimateStartReps(ex2, { ...profile, experience: "fortgeschritten" }) || 0;
+  }
+  function strengthScore(ex2, perf, profile) {
+    if (!ex2 || !perf || !profile) return null;
+    if (["bw", "time", "band"].includes(ex2.load)) {
+      const ref2 = referenceReps(ex2, profile);
+      return ref2 && perf.reps > 0 ? Math.round(perf.reps / ref2 * 100) : null;
+    }
+    const ref = referenceE1RM(ex2, profile);
+    return ref && perf.e1rm > 0 ? Math.round(perf.e1rm / ref * 100) : null;
+  }
+  function rankInfo(score) {
+    if (score == null || Number.isNaN(score)) return null;
+    let idx = 0;
+    for (let i = 0; i < RANKS.length; i++) if (score >= RANKS[i].min) idx = i;
+    const rank = RANKS[idx];
+    const next = RANKS[idx + 1] || null;
+    const progress = next ? clamp((score - rank.min) / (next.min - rank.min), 0, 1) : 1;
+    return { ...rank, idx, next, progress, score, toNext: next ? next.min - score : 0 };
+  }
+  function recordEvents(workouts, profile = null) {
+    const sorted = [...workouts].sort((a2, b2) => a2.date < b2.date ? -1 : a2.date > b2.date ? 1 : (a2.finishedAt || "") < (b2.finishedAt || "") ? -1 : 1);
+    const best = {};
+    const events = [];
+    for (const w of sorted) {
+      for (const e of w.entries || []) {
+        const ex2 = getExercise(e.exId);
+        if (!ex2) continue;
+        const cur = bestSet(e);
+        if (!cur) continue;
+        const prev = best[e.exId];
+        const kg = cur.e1rm > 0;
+        const better = kg ? !prev || cur.e1rm > (prev.e1rm || 0) + 0.05 : !prev || !(prev.e1rm > 0) && cur.reps > prev.reps;
+        if (!better) continue;
+        const scoreBefore = prev ? strengthScore(ex2, prev, profile) : null;
+        const score = strengthScore(ex2, cur, profile);
+        const rankBefore = scoreBefore == null ? null : rankInfo(scoreBefore);
+        const rank = rankInfo(score);
+        events.push({
+          date: w.date,
+          workoutId: w.id || null,
+          exId: e.exId,
+          name: ex2.name,
+          kind: prev ? "improve" : "first",
+          mode: kg ? "kg" : "reps",
+          e1rm: cur.e1rm,
+          weight: cur.weight,
+          reps: cur.reps,
+          delta: prev ? kg ? round1(cur.e1rm - (prev.e1rm || 0)) : cur.reps - prev.reps : 0,
+          prev: prev ? { e1rm: prev.e1rm, weight: prev.weight, reps: prev.reps, date: prev.date } : null,
+          score,
+          rank,
+          rankUp: !!(prev && rank && rankBefore && rank.idx > rankBefore.idx),
+          rankBefore
+        });
+        best[e.exId] = { ...cur, date: w.date };
+      }
+    }
+    return events;
+  }
+  function newRecordEvents(workout, previousWorkouts, profile = null) {
+    const id = workout.id || "__neu__";
+    return recordEvents([...previousWorkouts, { ...workout, id }], profile).filter((ev) => ev.workoutId === id);
+  }
+  function recordStreak(events, today = toISODate()) {
+    const weeks = new Set(events.filter((e) => e.kind === "improve").map((e) => startOfWeek(e.date)));
+    const cur = startOfWeek(today);
+    let ws2 = weeks.has(cur) ? cur : addDays(cur, -7);
+    let streak = 0;
+    while (weeks.has(ws2) && streak < 520) {
+      streak += 1;
+      ws2 = addDays(ws2, -7);
+    }
+    let best = 0;
+    let run = 0;
+    let prev = null;
+    for (const w of [...weeks].sort()) {
+      run = prev && addDays(prev, 7) === w ? run + 1 : 1;
+      best = Math.max(best, run);
+      prev = w;
+    }
+    const thisWeek = weeks.has(cur);
+    return { weeks: streak, best: Math.max(best, streak), thisWeek, atRisk: streak > 0 && !thisWeek, daysLeft: 6 - (new Date(today).getDay() + 6) % 7 };
+  }
+  function recordWeeks(events, today = toISODate(), n = 8) {
+    const cur = startOfWeek(today);
+    const out = [];
+    for (let i = n - 1; i >= 0; i--) {
+      const ws2 = addDays(cur, -7 * i);
+      const end = addDays(ws2, 7);
+      out.push({ weekStart: ws2, count: events.filter((e) => e.kind === "improve" && e.date >= ws2 && e.date < end).length, current: i === 0 });
+    }
+    return out;
+  }
+  var fmtMult = (m) => `${String(m).replace(".", ",")}\xD7 K\xF6rpergewicht`;
+  function nextTargets(ex2, rec, profile) {
+    if (!ex2 || !rec) return [];
+    const out = [];
+    const push = (kind, label, target, current, unit) => {
+      if (target > current) out.push({ kind, label, target: round1(target), current, gap: round1(target - current), gapPct: (target - current) / Math.max(1, current), progress: current / target, unit });
+    };
+    if (rec.mode === "kg") {
+      const cur = rec.e1rm;
+      const ref = profile ? referenceE1RM(ex2, profile) : 0;
+      const rank = ref ? rankInfo(strengthScore(ex2, rec, profile)) : null;
+      if (rank?.next) push("rank", rank.next.name, rank.next.min / 100 * ref, cur, "kg");
+      const club = KG_CLUBS.find((c) => c > cur);
+      if (club) push("club", `${club}-kg-Club`, club, cur, "kg");
+      if (ex2.load === "barbell" && profile?.weightKg) {
+        const m = BW_MULTIPLES.find((x) => x * profile.weightKg > cur);
+        if (m) push("bw", fmtMult(m), m * profile.weightKg, cur, "kg");
+      }
+    } else {
+      const cur = rec.reps;
+      const ref = profile ? referenceReps(ex2, profile) : 0;
+      const rank = ref ? rankInfo(strengthScore(ex2, rec, profile)) : null;
+      if (rank?.next) push("rank", rank.next.name, Math.ceil(rank.next.min / 100 * ref), cur, ex2.load === "time" ? "s" : "Wdh.");
+      const club = REP_CLUBS.find((c) => c > cur);
+      if (club) push("club", `${club} ${ex2.load === "time" ? "Sekunden" : "Wiederholungen"}`, club, cur, ex2.load === "time" ? "s" : "Wdh.");
+    }
+    return out.sort((a2, b2) => a2.gapPct - b2.gapPct);
+  }
+  function overallRank(records) {
+    const byPattern = {};
+    for (const r of records) {
+      if (r.score == null) continue;
+      if (!byPattern[r.pattern] || r.score > byPattern[r.pattern].score) byPattern[r.pattern] = r;
+    }
+    const basis = Object.values(byPattern).sort((a2, b2) => b2.score - a2.score).slice(0, 5);
+    if (!basis.length) return null;
+    const score = Math.round(basis.reduce((a2, r) => a2 + r.score, 0) / basis.length);
+    return { ...rankInfo(score), basis: basis.map((r) => ({ exId: r.exId, name: r.name, pattern: r.pattern, score: r.score })) };
+  }
+  function recordBoard(s, today = toISODate()) {
+    const profile = s.profile || null;
+    const events = recordEvents(s.workouts || [], profile);
+    const byEx = /* @__PURE__ */ new Map();
+    for (const ev of events) {
+      if (!byEx.has(ev.exId)) byEx.set(ev.exId, []);
+      byEx.get(ev.exId).push(ev);
+    }
+    const records = [];
+    for (const [exId, list] of byEx) {
+      const ex2 = getExercise(exId);
+      const last = list[list.length - 1];
+      const perf = { e1rm: last.e1rm, weight: last.weight, reps: last.reps };
+      const score = strengthScore(ex2, perf, profile);
+      records.push({
+        exId,
+        name: ex2.name,
+        pattern: ex2.pattern,
+        tier: ex2.tier,
+        load: ex2.load,
+        mode: last.mode,
+        e1rm: last.e1rm,
+        weight: last.weight,
+        reps: last.reps,
+        date: last.date,
+        firstDate: list[0].date,
+        improvements: list.length - 1,
+        lastDelta: last.delta,
+        score,
+        rank: rankInfo(score),
+        targets: nextTargets(ex2, { mode: last.mode, e1rm: last.e1rm, reps: last.reps }, profile),
+        events: list,
+        isNew: daysBetween(last.date, today) <= 7
+      });
+    }
+    records.sort((a2, b2) => (b2.score ?? -1) - (a2.score ?? -1) || b2.e1rm - a2.e1rm || b2.reps - a2.reps);
+    const improvements = events.filter((e) => e.kind === "improve");
+    const ws2 = startOfWeek(today);
+    const lastImprovement = improvements.length ? improvements[improvements.length - 1] : null;
+    const perWorkout = {};
+    for (const e of improvements) perWorkout[e.workoutId || e.date] = (perWorkout[e.workoutId || e.date] || 0) + 1;
+    return {
+      records,
+      events,
+      improvements: improvements.length,
+      thisWeek: improvements.filter((e) => e.date >= ws2).length,
+      streak: recordStreak(events, today),
+      weeks: recordWeeks(events, today),
+      overall: overallRank(records),
+      lastImprovement,
+      daysSince: lastImprovement ? daysBetween(lastImprovement.date, today) : null,
+      bestDay: Math.max(0, ...Object.values(perWorkout)),
+      rankUps: events.filter((e) => e.rankUp).length,
+      targets: records.filter((r) => r.targets.length).map((r) => ({ ...r.targets[0], exId: r.exId, name: r.name, mode: r.mode })).sort((a2, b2) => a2.gapPct - b2.gapPct).slice(0, 3)
+    };
+  }
+  function rankLadder(ex2, profile) {
+    if (!ex2 || !profile) return [];
+    const isReps = ["bw", "time", "band"].includes(ex2.load);
+    const ref = isReps ? referenceReps(ex2, profile) : referenceE1RM(ex2, profile);
+    if (!ref) return [];
+    return RANKS.map((r) => ({ ...r, threshold: isReps ? Math.ceil(r.min / 100 * ref) : round1(r.min / 100 * ref), unit: isReps ? ex2.load === "time" ? "s" : "Wdh." : "kg" }));
+  }
+
   // src/engine/analytics.js
   function workoutsInWeek(workouts, weekStart) {
     const end = addDays(weekStart, 7);
@@ -7548,31 +7885,14 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const best = {};
     for (const w of workouts) {
       for (const e of w.entries) {
-        const v = bestE1RM(e);
-        const maxW = Math.max(0, ...e.sets.filter((s) => s.reps > 0).map((s) => s.weight || 0));
-        const maxReps = Math.max(0, ...e.sets.map((s) => s.reps || 0));
+        const b2 = bestSet(e);
+        if (!b2) continue;
         const cur = best[e.exId];
-        if (!cur || v > cur.e1rm || v === cur.e1rm && maxW > cur.weight) {
-          best[e.exId] = { exId: e.exId, e1rm: v, weight: maxW, reps: maxReps, date: w.date };
-        }
+        const better = !cur || b2.e1rm > cur.e1rm || b2.e1rm === cur.e1rm && (b2.weight > cur.weight || b2.e1rm === 0 && b2.reps > cur.reps);
+        if (better) best[e.exId] = { exId: e.exId, e1rm: b2.e1rm, weight: b2.weight, reps: b2.reps, date: w.date };
       }
     }
-    return Object.values(best).sort((a2, b2) => b2.e1rm - a2.e1rm);
-  }
-  function newRecords(workout, previousWorkouts) {
-    const prev = Object.fromEntries(personalRecords(previousWorkouts).map((r) => [r.exId, r]));
-    const out = [];
-    for (const e of workout.entries) {
-      const v = bestE1RM(e);
-      const ex2 = getExercise(e.exId);
-      if (!ex2) continue;
-      if (v > 0 && (!prev[e.exId] || v > prev[e.exId].e1rm + 0.05)) out.push({ exId: e.exId, e1rm: v, name: ex2.name });
-      else if (v === 0) {
-        const reps = Math.max(0, ...e.sets.map((s) => s.reps || 0));
-        if (reps > 0 && (!prev[e.exId] || reps > prev[e.exId].reps)) out.push({ exId: e.exId, reps, name: ex2.name });
-      }
-    }
-    return out;
+    return Object.values(best).sort((a2, b2) => b2.e1rm - a2.e1rm || b2.reps - a2.reps);
   }
   function adherence(plan, workouts, weekStart) {
     const done = workoutsInWeek(workouts, weekStart).filter((w) => w.planId === plan.id);
@@ -8609,24 +8929,14 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
   var cardioKm = (s) => s.cardioLogs.reduce((a2, c) => a2 + (c.km || 0), 0);
   var foodDays = (s) => Object.values(s.foodLog || {}).filter((l2) => l2.length >= 3).length;
   var waterDays = (s) => Object.values(s.waterLog || {}).filter((ml2) => ml2 >= 1500).length;
-  var prCount = (s) => {
-    const sorted = [...s.workouts].sort((a2, b2) => a2.date < b2.date ? -1 : 1);
-    const best = {};
-    let n = 0;
-    for (const w of sorted) {
-      for (const e of w.entries) {
-        const r = personalRecords([w]).find((x) => x.exId === e.exId);
-        if (!r) continue;
-        const prev = best[e.exId];
-        const better = r.e1rm > 0 ? !prev || r.e1rm > prev.e1rm + 0.05 : !prev || r.reps > prev.reps;
-        if (better) {
-          if (prev) n += 1;
-          best[e.exId] = r;
-        }
-      }
-    }
-    return n;
+  var prCount = (s, ctx) => ctx.board.improvements;
+  var BIG_LIFTS = { bench: ["bankdruecken_lh"], squat: ["kniebeuge_lh", "frontkniebeuge"], hinge: ["kreuzheben", "sumo_kreuzheben", "kreuzheben_trap_bar"] };
+  var bwRatio = (s, ctx, lift) => {
+    const bw = s.profile?.weightKg;
+    if (!bw) return 0;
+    return Math.max(0, ...ctx.board.records.filter((r) => r.mode === "kg" && BIG_LIFTS[lift].includes(r.exId)).map((r) => r.e1rm / bw));
   };
+  var bestRankIdx = (ctx) => Math.max(-1, ...ctx.board.records.map((r) => r.rank?.idx ?? -1));
   var distinctExercises = (s) => new Set(s.workouts.flatMap((w) => w.entries.map((e) => e.exId))).size;
   var allMusclesInWeek = (s) => {
     const byWeek = {};
@@ -8680,8 +8990,19 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     B("alle_muskeln", "training", "Ganzk\xF6rper", "Alle 10 Muskelgruppen in einer Woche", "\u{1FAC0}", (s) => allMusclesInWeek(s)),
     // Kraft & Volumen
     B("erster_rekord", "kraft", "Neue Bestleistung", "Erste pers\xF6nliche Bestleistung", "\u{1F947}", (s) => s.workouts.length >= 2 && personalRecords(s.workouts).length >= 1),
-    B("pr_10", "kraft", "Rekordj\xE4ger", "10 Steigerungen der Bestleistung", "\u{1F3C6}", (s) => prCount(s) >= 10),
-    B("pr_50", "kraft", "St\xE4rker als gestern", "50 Steigerungen der Bestleistung", "\u{1F680}", (s) => prCount(s) >= 50),
+    B("pr_10", "kraft", "Rekordj\xE4ger", "10 Steigerungen der Bestleistung", "\u{1F3C6}", (s, ctx) => prCount(s, ctx) >= 10),
+    B("pr_50", "kraft", "St\xE4rker als gestern", "50 Steigerungen der Bestleistung", "\u{1F680}", (s, ctx) => prCount(s, ctx) >= 50),
+    B("pr_day_3", "kraft", "Rekordtag", "3 Steigerungen in einem Training", "\u{1F386}", (s, ctx) => ctx.board.bestDay >= 3),
+    B("pr_streak_4", "kraft", "Vier Wochen st\xE4rker", "Rekord-Serie: 4 Wochen in Folge eine Steigerung", "\u{1FA9C}", (s, ctx) => ctx.board.streak.best >= 4),
+    B("pr_streak_8", "kraft", "Acht Wochen st\xE4rker", "Rekord-Serie: 8 Wochen in Folge eine Steigerung", "\u{1F9D7}", (s, ctx) => ctx.board.streak.best >= 8),
+    B("rank_gold", "kraft", "Goldstandard", "Gold-Rang in einer \xDCbung", "\u{1F3F5}\uFE0F", (s, ctx) => bestRankIdx(ctx) >= 2),
+    B("rank_platin", "kraft", "Platin", "Platin-Rang in einer \xDCbung", "\u{1F537}", (s, ctx) => bestRankIdx(ctx) >= 3),
+    B("rank_diamant", "kraft", "Diamant", "Diamant-Rang in einer \xDCbung", "\u{1F48E}", (s, ctx) => bestRankIdx(ctx) >= 4),
+    B("kraft_gold", "kraft", "Rundum stark", "Kraft-Rang Gold \xFCber alle Bewegungsmuster", "\u{1F981}", (s, ctx) => (ctx.board.overall?.idx ?? -1) >= 2),
+    B("club_100", "kraft", "100-kg-Club", "Gesch\xE4tztes 1RM von 100 kg in einer \xDCbung", "\u{1F4AA}", (s, ctx) => ctx.board.records.some((r) => r.mode === "kg" && r.e1rm >= 100)),
+    B("bw_bench", "kraft", "K\xF6rpergewicht gedr\xFCckt", "Bankdr\xFCcken (Langhantel): e1RM mindestens dein K\xF6rpergewicht", "\u{1F3BD}", (s, ctx) => bwRatio(s, ctx, "bench") >= 1),
+    B("bw_squat", "kraft", "Anderthalbfach", "Kniebeuge (Langhantel): e1RM 1,5\xD7 K\xF6rpergewicht", "\u{1F9B5}", (s, ctx) => bwRatio(s, ctx, "squat") >= 1.5),
+    B("bw_hinge", "kraft", "Doppelt so schwer", "Kreuzheben: e1RM 2\xD7 K\xF6rpergewicht", "\u{1F402}", (s, ctx) => bwRatio(s, ctx, "hinge") >= 2),
     B("hundert_saetze", "kraft", "100 S\xE4tze", "100 Arbeitss\xE4tze insgesamt", "\u{1F9F1}", (s) => sets(s) >= 100),
     B("tausend_saetze", "kraft", "1000 S\xE4tze", "1000 Arbeitss\xE4tze insgesamt", "\u{1F3D7}\uFE0F", (s) => sets(s) >= 1e3),
     B("5000_saetze", "kraft", "5000 S\xE4tze", "5000 Arbeitss\xE4tze insgesamt", "\u{1F3DB}\uFE0F", (s) => sets(s) >= 5e3),
@@ -8738,7 +9059,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     B("level_20", "level", "Level 20", "Maschine erreicht", "\u{1F916}", (s, ctx) => ctx.level >= 20)
   ];
   function badgeContext(s, today = toISODate(), extra = {}) {
-    const ctx = { streak: dailyStreak(s, today), perfectDays: 0, fullWeeks: 0, level: extra.level || 1, challengesDone: extra.challengesDone || 0 };
+    const ctx = { streak: dailyStreak(s, today), perfectDays: 0, fullWeeks: 0, level: extra.level || 1, challengesDone: extra.challengesDone || 0, board: recordBoard(s, today) };
     if (extra.isPerfectDay) {
       const days = /* @__PURE__ */ new Set([...s.workouts.map((w) => w.date), ...(s.checkins || []).map((c) => c.date)]);
       ctx.perfectDays = [...days].filter((d) => extra.isPerfectDay(s, d)).length;
@@ -8811,7 +9132,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const advice = trendAdvice(trend, profile);
     const [lo2, hi2] = n.expectedRate;
     const yesterday = addDays(viewDate, -1);
-    const pct = (v, t2) => Math.min(100, t2 ? v / t2 * 100 : 0).toFixed(0);
+    const pct2 = (v, t2) => Math.min(100, t2 ? v / t2 * 100 : 0).toFixed(0);
     const maxDay = Math.max(n.target, ...review.days.map((d) => d.kcal));
     const goal = goalProjection(profile, s.bodyLogs, trend);
     root2.innerHTML = String(html`
@@ -8827,11 +9148,11 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
 
       <div class="card card-accent">
         <div class="kcal-head"><span class="stat-num">${totals.kcal}</span><span class="muted">von ${n.target} kcal</span><span class="muted">·</span><strong class="${remaining < 0 ? "danger-text" : ""}">${remaining >= 0 ? `${remaining} \xFCbrig` : `${-remaining} dr\xFCber`}</strong></div>
-        <div class="kcal-bar"><div class="${remaining < 0 ? "over" : ""}" style="width:${pct(totals.kcal, n.target)}%"></div></div>
+        <div class="kcal-bar"><div class="${remaining < 0 ? "over" : ""}" style="width:${pct2(totals.kcal, n.target)}%"></div></div>
         <div class="macro-bars">
-          <div class="mbar protein"><span class="mbar-label">Protein</span><span><span class="mbar-num">${totals.protein}</span> / ${n.protein} g</span><div class="mbar-track"><div style="width:${pct(totals.protein, n.protein)}%"></div></div></div>
-          <div class="mbar carbs"><span class="mbar-label">Kohlenhydrate</span><span><span class="mbar-num">${totals.carbs}</span> / ${n.carbs} g</span><div class="mbar-track"><div style="width:${pct(totals.carbs, n.carbs)}%"></div></div></div>
-          <div class="mbar fat"><span class="mbar-label">Fett</span><span><span class="mbar-num">${totals.fat}</span> / ${n.fat} g</span><div class="mbar-track"><div style="width:${pct(totals.fat, n.fat)}%"></div></div></div>
+          <div class="mbar protein"><span class="mbar-label">Protein</span><span><span class="mbar-num">${totals.protein}</span> / ${n.protein} g</span><div class="mbar-track"><div style="width:${pct2(totals.protein, n.protein)}%"></div></div></div>
+          <div class="mbar carbs"><span class="mbar-label">Kohlenhydrate</span><span><span class="mbar-num">${totals.carbs}</span> / ${n.carbs} g</span><div class="mbar-track"><div style="width:${pct2(totals.carbs, n.carbs)}%"></div></div></div>
+          <div class="mbar fat"><span class="mbar-label">Fett</span><span><span class="mbar-num">${totals.fat}</span> / ${n.fat} g</span><div class="mbar-track"><div style="width:${pct2(totals.fat, n.fat)}%"></div></div></div>
         </div>
         <p class="muted small">Ballaststoffe ${totals.fiber} / ${n.fiber} g. Protein ist die wichtigste Zahl – Kohlenhydrate und Fett dürfen flexibel sein.</p>
       </div>
@@ -9068,7 +9389,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
   }
 
   // src/engine/goals.js
-  var XP = { workoutBase: 50, perSet: 8, pr: 25, cardioPerMin: 2, checkin: 10, food: 15, water: 5, weight: 5, mobility: 15, perfectDay: 40 };
+  var XP = { workoutBase: 50, perSet: 8, pr: 25, rankUp: 40, cardioPerMin: 2, checkin: 10, food: 15, water: 5, weight: 5, mobility: 15, perfectDay: 40 };
   function dailyGoals(s, today = toISODate()) {
     const goals = [];
     const plan = s.plan;
@@ -9258,8 +9579,8 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     [20, "Maschine"],
     [25, "Legende"]
   ];
-  function xpForWorkout(w, prCount2 = 0) {
-    return XP.workoutBase + totalSets(w) * XP.perSet + prCount2 * XP.pr;
+  function xpForWorkout(w, prCount2 = 0, rankUps = 0) {
+    return XP.workoutBase + totalSets(w) * XP.perSet + prCount2 * XP.pr + rankUps * XP.rankUp;
   }
   function xpForCardio(c) {
     return Math.round(Math.min(120, c.minutes || 0) * XP.cardioPerMin);
@@ -9362,6 +9683,10 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     };
     requestAnimationFrame(frame);
   }
+  function medal(rank, { size = "m" } = {}) {
+    const cls = rank ? rank.id : "none";
+    return `<span class="medal ${cls} ${size}" title="${rank ? esc(rank.name) : "Ohne Rang"}" aria-label="${rank ? esc(rank.name) : "Ohne Rang"}">${icon(rank ? "trophy" : "dumbbell", { size: size === "l" ? 26 : size === "s" ? 12 : 16 })}</span>`;
+  }
   function showCelebration(data) {
     confetti();
     const m = openModal(
@@ -9373,7 +9698,8 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       </div>
       ${data.levelUp ? `<div class="levelup-banner">${icon("bolt", { size: 18 })} Level ${data.level.level} erreicht \u2013 ${esc(data.level.title)}!</div>` : `<div class="level-row"><span>Level ${data.level.level} \xB7 ${esc(data.level.title)}</span><span class="muted small">${data.level.toNext} XP bis Level ${data.level.level + 1}</span></div><div class="xp-bar"><div style="width:${(data.level.progress * 100).toFixed(0)}%"></div></div>`}
       ${data.stats?.length ? `<div class="summary center">${data.stats.map((s) => `<div class="stat"><span class="stat-num">${esc(s.num)}</span><span class="stat-unit">${esc(s.unit)}</span></div>`).join("")}</div>` : ""}
-      ${data.records?.length ? `<div class="reward-list"><div class="card-title">Neue Bestleistungen</div>${data.records.map((r) => `<div class="reward">${icon("trophy", { size: 18 })}<span>${esc(r)}</span></div>`).join("")}</div>` : ""}
+      ${data.highlights?.length ? `<div class="reward-list">${data.highlights.map((h2) => `<div class="reward highlight ${esc(h2.cls || "")}">${icon(h2.icon || "star", { size: 18 })}<span>${esc(h2.text)}</span></div>`).join("")}</div>` : ""}
+      ${data.records?.length ? `<div class="reward-list"><div class="card-title">Neue Bestleistungen</div>${data.records.map((r) => typeof r === "string" ? `<div class="reward">${icon("trophy", { size: 18 })}<span>${esc(r)}</span></div>` : `<div class="reward ${r.rankUp ? "rankup" : ""}">${medal(r.rank)}<span><strong>${esc(r.title)}</strong> ${esc(r.text)}${r.sub ? `<br><span class="small muted">${esc(r.sub)}</span>` : ""}</span></div>`).join("")}</div>` : ""}
       ${data.badges?.length ? `<div class="reward-list"><div class="card-title">Neue Abzeichen</div>${data.badges.map((b2) => `<div class="reward"><span class="badge-icon">${b2.icon}</span><span><strong>${esc(b2.name)}</strong> \xB7 ${esc(b2.desc)}</span></div>`).join("")}</div>` : ""}
       ${data.note ? `<p class="small muted">${esc(data.note)}</p>` : ""}
       <a class="btn btn-primary btn-big" href="${data.href || "#/heute"}" data-close-modal>Weiter</a>
@@ -9389,6 +9715,354 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     el2.classList.remove("pop");
     void el2.offsetWidth;
     el2.classList.add("pop");
+  }
+
+  // src/ui/charts.js
+  var W = 640;
+  var H = 220;
+  var PAD = { l: 44, r: 16, t: 16, b: 34 };
+  function scale(domain, range) {
+    const [d0, d1] = domain;
+    const [r0, r12] = range;
+    const span = d1 - d0 || 1;
+    return (v) => r0 + (v - d0) / span * (r12 - r0);
+  }
+  function niceTicks(min, max, n = 4) {
+    const span = max - min || 1;
+    const raw2 = span / n;
+    const mag = Math.pow(10, Math.floor(Math.log10(raw2)));
+    const norm = raw2 / mag;
+    const step2 = (norm < 1.5 ? 1 : norm < 3 ? 2 : norm < 7 ? 5 : 10) * mag;
+    const start = Math.floor(min / step2) * step2;
+    const ticks = [];
+    for (let v = start; v <= max + step2 * 0.01; v += step2) ticks.push(Math.round(v * 1e3) / 1e3);
+    return ticks;
+  }
+  function lineChart(points, { yLabel = "", secondary = null, unit = "", minZero = false } = {}) {
+    if (!points.length) return `<div class="chart-empty">Noch keine Daten.</div>`;
+    const ys2 = points.map((p2) => p2.y).concat(secondary ? secondary.map((p2) => p2.y) : []);
+    let yMin = minZero ? 0 : Math.min(...ys2);
+    let yMax = Math.max(...ys2);
+    if (yMin === yMax) {
+      yMin -= 1;
+      yMax += 1;
+    }
+    const padY = (yMax - yMin) * 0.1;
+    yMin = minZero ? 0 : yMin - padY;
+    yMax += padY;
+    const x = scale([0, Math.max(1, points.length - 1)], [PAD.l, W - PAD.r]);
+    const y2 = scale([yMin, yMax], [H - PAD.b, PAD.t]);
+    const ticks = niceTicks(yMin, yMax);
+    const path = (pts) => pts.map((p2, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y2(p2.y).toFixed(1)}`).join(" ");
+    const area = `${path(points)} L${x(points.length - 1).toFixed(1)},${H - PAD.b} L${PAD.l},${H - PAD.b} Z`;
+    const labelEvery = Math.max(1, Math.ceil(points.length / 6));
+    const last = points[points.length - 1];
+    return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(yLabel)}">
+    ${ticks.map((t2) => `<g><line x1="${PAD.l}" x2="${W - PAD.r}" y1="${y2(t2).toFixed(1)}" y2="${y2(t2).toFixed(1)}" class="grid"/><text x="${PAD.l - 6}" y="${(y2(t2) + 4).toFixed(1)}" class="tick" text-anchor="end">${esc(t2)}</text></g>`).join("")}
+    <path d="${area}" class="area"/>
+    ${secondary ? `<path d="${path(secondary)}" class="line-secondary"/>` : ""}
+    <path d="${path(points)}" class="line"/>
+    ${points.map((p2, i) => i % labelEvery === 0 || i === points.length - 1 ? `<text x="${x(i).toFixed(1)}" y="${H - 10}" class="tick" text-anchor="middle">${esc(p2.label)}</text>` : "").join("")}
+    <circle cx="${x(points.length - 1).toFixed(1)}" cy="${y2(last.y).toFixed(1)}" r="4" class="dot"/>
+    <text x="${Math.min(x(points.length - 1), W - PAD.r - 40).toFixed(1)}" y="${(y2(last.y) - 10).toFixed(1)}" class="tick strong" text-anchor="middle">${esc(last.y)}${esc(unit)}</text>
+  </svg>`;
+  }
+  function barChart(bars, { unit = "", target = null } = {}) {
+    if (!bars.length) return `<div class="chart-empty">Noch keine Daten.</div>`;
+    const max = Math.max(1, ...bars.map((b2) => b2.y), target || 0) * 1.15;
+    const y2 = scale([0, max], [H - PAD.b, PAD.t]);
+    const n = bars.length;
+    const bw = (W - PAD.l - PAD.r) / n;
+    const ticks = niceTicks(0, max, 4);
+    return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img">
+    ${ticks.map((t2) => `<g><line x1="${PAD.l}" x2="${W - PAD.r}" y1="${y2(t2).toFixed(1)}" y2="${y2(t2).toFixed(1)}" class="grid"/><text x="${PAD.l - 6}" y="${(y2(t2) + 4).toFixed(1)}" class="tick" text-anchor="end">${esc(t2)}</text></g>`).join("")}
+    ${target ? `<line x1="${PAD.l}" x2="${W - PAD.r}" y1="${y2(target).toFixed(1)}" y2="${y2(target).toFixed(1)}" class="target"/>` : ""}
+    ${bars.map((b2, i) => {
+      const bx = PAD.l + i * bw + bw * 0.15;
+      const w = bw * 0.7;
+      const top = y2(b2.y);
+      return `<g><rect x="${bx.toFixed(1)}" y="${top.toFixed(1)}" width="${w.toFixed(1)}" height="${(H - PAD.b - top).toFixed(1)}" rx="3" class="bar ${b2.cls || ""}"/>
+        ${b2.y ? `<text x="${(bx + w / 2).toFixed(1)}" y="${(top - 5).toFixed(1)}" class="tick" text-anchor="middle">${esc(b2.y)}${esc(unit)}</text>` : ""}
+        <text x="${(bx + w / 2).toFixed(1)}" y="${H - 10}" class="tick" text-anchor="middle">${esc(b2.label)}</text></g>`;
+    }).join("")}
+  </svg>`;
+  }
+  function volumeBars(rows) {
+    const max = Math.max(1, ...rows.map((r) => Math.max(r.value, r.max)));
+    return `<div class="vol-list">${rows.map((r) => {
+      const pct2 = (v) => `${Math.min(100, v / max * 100).toFixed(1)}%`;
+      const state2 = r.value < r.min ? "low" : r.value > r.max ? "high" : "ok";
+      return `<div class="vol-row">
+        <div class="vol-label">${esc(r.label)}</div>
+        <div class="vol-track"><div class="vol-range" style="left:${pct2(r.min)};width:calc(${pct2(r.max)} - ${pct2(r.min)})"></div><div class="vol-fill ${state2}" style="width:${pct2(r.value)}"></div></div>
+        <div class="vol-num">${esc(r.value)}<span class="muted">/${esc(r.target)}</span></div>
+      </div>`;
+    }).join("")}</div>`;
+  }
+
+  // src/ui/bodymap.js
+  var FRONT = [
+    ["brust", '<path d="M54 50h52l4 30-30 12-30-12z"/>'],
+    ["schultern", '<ellipse cx="40" cy="52" rx="12" ry="9"/><ellipse cx="120" cy="52" rx="12" ry="9"/>'],
+    ["bizeps", '<rect x="27" y="58" width="12" height="32" rx="6"/><rect x="121" y="58" width="12" height="32" rx="6"/>'],
+    ["bauch", '<rect x="64" y="96" width="32" height="44" rx="6"/>'],
+    ["quadrizeps", '<rect x="57" y="148" width="18" height="60" rx="8"/><rect x="85" y="148" width="18" height="60" rx="8"/>'],
+    ["waden", '<rect x="59" y="216" width="14" height="40" rx="7"/><rect x="87" y="216" width="14" height="40" rx="7"/>']
+  ];
+  var BACK = [
+    ["schultern", '<ellipse cx="40" cy="52" rx="12" ry="9"/><ellipse cx="120" cy="52" rx="12" ry="9"/>'],
+    ["ruecken", '<path d="M52 50h56l2 66-30 10-30-10z"/>'],
+    ["trizeps", '<rect x="27" y="58" width="12" height="32" rx="6"/><rect x="121" y="58" width="12" height="32" rx="6"/>'],
+    ["gesaess", '<path d="M52 130h56v16a28 14 0 0 1-56 0z"/>'],
+    ["beinbeuger", '<rect x="57" y="156" width="18" height="54" rx="8"/><rect x="85" y="156" width="18" height="54" rx="8"/>'],
+    ["waden", '<rect x="59" y="216" width="14" height="40" rx="7"/><rect x="87" y="216" width="14" height="40" rx="7"/>']
+  ];
+  var SILHOUETTE = `<g class="silhouette">
+  <circle cx="80" cy="20" r="13"/>
+  <rect x="74" y="31" width="12" height="12"/>
+  <path d="M44 44h72l6 100H38z"/>
+  <rect x="24" y="46" width="18" height="80" rx="9"/>
+  <rect x="118" y="46" width="18" height="80" rx="9"/>
+  <rect x="54" y="140" width="24" height="122" rx="11"/>
+  <rect x="82" y="140" width="24" height="122" rx="11"/>
+</g>`;
+  function view(regions, primary, secondary, label) {
+    const shapes = regions.map(([m, svg]) => {
+      const cls = primary.includes(m) ? "m-primary" : secondary.includes(m) ? "m-secondary" : "m-none";
+      return `<g class="${cls}" data-muscle="${m}">${svg}</g>`;
+    }).join("");
+    return `<svg viewBox="0 0 160 270" class="bodymap" role="img" aria-label="${esc(label)}">${SILHOUETTE}${shapes}<text x="80" y="266" text-anchor="middle" class="bodymap-label">${esc(label)}</text></svg>`;
+  }
+  function bodyMap(primary = [], secondary = []) {
+    return `<div class="bodymap-wrap">${view(FRONT, primary, secondary, "vorn")}${view(BACK, primary, secondary, "hinten")}</div>`;
+  }
+
+  // src/ui/uebungen.js
+  var LOAD_NAMES = { barbell: "Langhantel", dumbbell: "Kurzhantel", machine: "Maschine", cable: "Kabelzug", bw: "K\xF6rpergewicht", band: "Band", time: "Zeit", kettlebell: "Kettlebell" };
+  var TIER_NAMES = { 1: "Grund\xFCbung", 2: "Mehrgelenkig", 3: "Isolation" };
+  var filter = { q: "", muscle: "", onlyAvailable: true, load: "" };
+  function renderUebungen(root2, exId) {
+    var _a2;
+    const s = get();
+    const profile = s.profile;
+    const list = EXERCISES.filter((e) => {
+      if (filter.onlyAvailable && !isAvailable(e, profile)) return false;
+      if (filter.muscle && !e.primary.includes(filter.muscle) && !e.secondary.includes(filter.muscle)) return false;
+      if (filter.load && e.load !== filter.load) return false;
+      if (filter.q) {
+        const q2 = filter.q.toLowerCase();
+        if (!e.name.toLowerCase().includes(q2) && !e.en.toLowerCase().includes(q2)) return false;
+      }
+      return true;
+    });
+    const grouped = {};
+    for (const e of list) (grouped[_a2 = e.primary[0]] || (grouped[_a2] = [])).push(e);
+    root2.innerHTML = String(html`
+    <section class="page">
+      <header class="page-head"><div><h1>Übungen</h1><p class="muted">${EXERCISES.length} Übungen · ${list.length} angezeigt</p></div></header>
+      <div class="card filters">
+        <input id="ex-q" class="search" placeholder="Suchen (deutsch oder englisch)…" value="${filter.q}" aria-label="Übung suchen">
+        <div class="row gap wrap">
+          <select id="ex-muscle" class="select auto" aria-label="Muskel"><option value="">Alle Muskeln</option>${MUSCLES.map((m) => html`<option value="${m.id}" ${filter.muscle === m.id ? "selected" : ""}>${m.name}</option>`)}</select>
+          <select id="ex-load" class="select auto" aria-label="Gerät"><option value="">Alle Geräte</option>${Object.entries(LOAD_NAMES).map(([id, n]) => html`<option value="${id}" ${filter.load === id ? "selected" : ""}>${n}</option>`)}</select>
+          <label class="chip"><input type="checkbox" id="ex-avail" ${filter.onlyAvailable ? "checked" : ""}><span>Nur mit meiner Ausrüstung</span></label>
+        </div>
+      </div>
+      ${MUSCLES.filter((m) => grouped[m.id]).map((m) => html`<div class="card">
+        <div class="card-title">${m.name}</div>
+        <ul class="list tappable">${grouped[m.id].map((e) => html`<li><button class="link" data-ex="${e.id}"><strong>${e.name}</strong><div class="muted small">${e.en} · ${LOAD_NAMES[e.load]} · ${TIER_NAMES[e.tier]}${e.secondary.length ? ` \xB7 auch ${e.secondary.map((x) => MUSCLE_BY_ID[x].short).join(", ")}` : ""}</div></button></li>`)}</ul>
+      </div>`)}
+      ${list.length ? "" : html`<div class="card"><p class="muted">Nichts gefunden. Filter lockern oder „Nur mit meiner Ausrüstung“ abwählen.</p></div>`}
+    </section>`);
+    root2.querySelector("#ex-q").addEventListener("input", (e) => {
+      filter.q = e.target.value;
+      const val = e.target.value;
+      renderUebungen(root2);
+      const inp = root2.querySelector("#ex-q");
+      inp.focus();
+      inp.setSelectionRange(val.length, val.length);
+    });
+    root2.querySelector("#ex-muscle").addEventListener("change", (e) => {
+      filter.muscle = e.target.value;
+      renderUebungen(root2);
+    });
+    root2.querySelector("#ex-load").addEventListener("change", (e) => {
+      filter.load = e.target.value;
+      renderUebungen(root2);
+    });
+    root2.querySelector("#ex-avail").addEventListener("change", (e) => {
+      filter.onlyAvailable = e.target.checked;
+      renderUebungen(root2);
+    });
+    root2.querySelectorAll("[data-ex]").forEach((b2) => b2.addEventListener("click", () => openExerciseInfo(b2.dataset.ex)));
+    if (exId && getExercise(exId)) openExerciseInfo(exId);
+  }
+  function openExerciseInfo(exId, { onPick = null, pickLabel = "Alternativen" } = {}) {
+    const s = get();
+    const ex2 = getExercise(exId);
+    if (!ex2) return null;
+    const hist = historyFor(s.workouts, exId, 5);
+    const e1 = e1rmHistory(s.workouts, exId);
+    const pr2 = personalRecords(s.workouts).find((r) => r.exId === exId);
+    const alts = alternativesFor(exId, s.profile).slice(0, 8);
+    const gear = ex2.gear.map((g2) => GEAR_BY_ID[g2]?.name || g2).join(", ");
+    const m = openModal(
+      `<p class="muted small">${esc(ex2.en)} \xB7 ${LOAD_NAMES[ex2.load]} \xB7 ${TIER_NAMES[ex2.tier]}${gear ? ` \xB7 Zuhause: ${esc(gear)}` : ""}</p>
+     ${bodyMap(ex2.primary, ex2.secondary)}
+     <p class="small"><strong>${ex2.primary.map((x) => MUSCLE_BY_ID[x].name).join(", ")}</strong>${ex2.secondary.length ? `<span class="muted"> \xB7 Nebenmuskeln: ${ex2.secondary.map((x) => MUSCLE_BY_ID[x].name).join(", ")}</span>` : ""}</p>
+     ${ex2.cue ? `<p class="cue">${esc(ex2.cue)}</p>` : ""}
+     ${ex2.contra.length ? `<p class="muted small">Vorsicht bei: ${ex2.contra.map((c) => ({ knie: "Knie", schulter: "Schulter", ruecken_unten: "unterer R\xFCcken", handgelenk: "Handgelenk", huefte: "H\xFCfte" })[c] || c).join(", ")}</p>` : ""}
+     <a class="btn btn-small" href="${videoSearchUrl(ex2)}" target="_blank" rel="noopener">Technik-Videos ansehen \u2197</a>
+     ${pr2 ? `<h3>Deine Bestleistung</h3><p>${pr2.e1rm ? `${fmtKg(pr2.weight)} \xD7 ${pr2.reps} (gesch\xE4tztes 1RM ${pr2.e1rm} kg)` : `${pr2.reps} Wiederholungen`} \xB7 ${formatDate(pr2.date)}</p>` : ""}
+     ${hist.length ? `<h3>Letzte Einheiten</h3><ul class="bullets small">${hist.slice().reverse().map((h2) => `<li>${formatDate(h2.date)}: ${h2.sets.map((x) => `${x.weight ? `${x.weight} kg \xD7 ` : ""}${x.reps}${x.rir != null ? ` @${x.rir}` : ""}`).join(", ")}</li>`).join("")}</ul>` : ""}
+     ${e1.length > 1 ? `<p class="muted small">Entwicklung gesch\xE4tztes 1RM: ${e1[0].e1rm} \u2192 ${e1[e1.length - 1].e1rm} kg</p>` : ""}
+     <h3>${esc(pickLabel)}</h3>
+     ${alts.length ? `<ul class="list tappable">${alts.map((a2) => `<li><button class="link" data-alt="${a2.id}"><strong>${esc(a2.name)}</strong><div class="muted small">${esc(a2.en)} \xB7 ${LOAD_NAMES[a2.load]}</div></button></li>`).join("")}</ul>` : '<p class="muted">Keine passende Alternative mit deiner Ausr\xFCstung.</p>'}`,
+      { title: ex2.name }
+    );
+    m.querySelectorAll("[data-alt]").forEach((b2) => b2.addEventListener("click", () => {
+      if (onPick) onPick(b2.dataset.alt);
+      else openExerciseInfo(b2.dataset.alt);
+    }));
+    return m;
+  }
+
+  // src/ui/records.js
+  var sortMode = "rang";
+  var showAll = false;
+  var fmt1 = (v) => (Math.round(v * 10) / 10).toString().replace(".", ",");
+  var fmtVal = (t2) => t2.unit === "kg" ? `${fmt1(t2.target)} kg` : `${t2.target} ${t2.unit}`;
+  var fmtGap = (t2) => t2.unit === "kg" ? `${fmt1(t2.gap)} kg` : `${t2.gap} ${t2.unit}`;
+  var pct = (t2) => Math.min(99, Math.floor(Math.min(1, t2.progress) * 100));
+  var targetText = (t2) => {
+    const e1 = t2.unit === "kg" ? " e1RM" : "";
+    if (t2.kind === "rank") return `Rang ${t2.label} ab ${fmtVal(t2)}${e1} \xB7 noch ${fmtGap(t2)}`;
+    if (t2.kind === "bw") return `${t2.label} (${fmtVal(t2)}${e1}) \xB7 noch ${fmtGap(t2)}`;
+    return `noch ${fmtGap(t2)}${e1} bis ${t2.unit === "kg" ? "zum" : "zu"} ${t2.label}`;
+  };
+  var perfText = (r) => r.mode === "kg" ? `${fmtKg(r.weight)} \xD7 ${r.reps}` : `${r.reps} ${getExercise(r.exId)?.load === "time" ? "s" : "Wdh."}`;
+  var deltaText = (ev) => ev.mode === "kg" ? `+${fmt1(ev.delta)} kg e1RM` : `+${ev.delta} ${getExercise(ev.exId)?.load === "time" ? "s" : "Wdh."}`;
+  function weekLabel(iso) {
+    const d = fromISODate(iso);
+    return `${d.getDate()}.${d.getMonth() + 1}.`;
+  }
+  function recordsCard(board, s) {
+    const { overall, streak, records, targets, events } = board;
+    const hasProfile = !!s.profile;
+    const recent = events.filter((e) => e.kind === "improve").slice(-6).reverse();
+    const sorted = sortMode === "neu" ? [...records].sort((a2, b2) => a2.date < b2.date ? 1 : a2.date > b2.date ? -1 : 0) : records;
+    const shown = showAll ? sorted : sorted.slice(0, 8);
+    const streakText = streak.weeks === 0 ? "Noch keine Serie \u2013 eine Steigerung diese Woche startet sie." : streak.atRisk ? `Serie l\xE4uft \u2013 noch ${streak.daysLeft === 0 ? "heute" : `${streak.daysLeft} Tag${streak.daysLeft === 1 ? "" : "e"}`} Zeit f\xFCr eine Steigerung, sonst rei\xDFt sie.` : `Diese Woche schon gesichert. Beste Serie: ${streak.best} Woche${streak.best === 1 ? "" : "n"}.`;
+    return html`
+    <div class="card records-card">
+      <div class="row between"><div class="card-title">Bestleistungen</div><span class="muted small">${records.length} Übung${records.length === 1 ? "" : "en"} · ${board.improvements} Steigerung${board.improvements === 1 ? "" : "en"}</span></div>
+
+      ${records.length ? html`
+      <div class="records-hero ${overall ? overall.id : "none"}">
+        <div class="records-hero-top">
+          ${raw(medal(overall, { size: "l" }))}
+          <div class="records-hero-text">
+            <div class="records-hero-label">Kraft-Rang</div>
+            <div class="records-hero-rank">${overall ? overall.name : "Ohne Rang"}</div>
+            <div class="small">${overall ? html`${overall.score} Punkte${overall.next ? ` \xB7 ${overall.next.name} ab ${overall.next.min}` : " \xB7 h\xF6chster Rang"}` : hasProfile ? "Noch keine \xDCbung mit Vergleichswert \u2013 Grund\xFCbungen mit Gewicht loggen." : "Profil anlegen, dann gibt es R\xE4nge."}</div>
+          </div>
+          ${overall?.next ? html`<div class="records-hero-next"><span class="records-hero-label">Nächster</span>${raw(medal(overall.next, { size: "s" }))}</div>` : ""}
+        </div>
+        ${overall ? html`<div class="rank-bar big"><div class="${overall.id}" style="width:${(overall.progress * 100).toFixed(0)}%"></div></div>
+        <div class="small">${overall.next ? `Noch ${overall.toNext} Punkte bis ${overall.next.name}` : "Diamant \u2013 st\xE4rker geht es in dieser Skala nicht."} · 100 Punkte = Fortgeschritten bei deinem Körpergewicht</div>` : ""}
+        <div class="records-stats">
+          <div class="records-stat ${streak.weeks > 0 && !streak.atRisk ? "hot" : streak.atRisk ? "risk" : ""}">${raw(icon("flame", { size: 22 }))}<strong data-count="${streak.weeks}">${streak.weeks}</strong><span>Wochen Serie</span></div>
+          <div class="records-stat">${raw(icon("up", { size: 22 }))}<strong data-count="${board.thisWeek}">${board.thisWeek}</strong><span>diese Woche</span></div>
+          <div class="records-stat">${raw(icon("timer", { size: 22 }))}<strong>${board.daysSince == null ? "\u2013" : board.daysSince === 0 ? "heute" : `${board.daysSince} T.`}</strong><span>seit letzter</span></div>
+        </div>
+      </div>
+      <div class="record-weeks" aria-label="Steigerungen je Woche">
+        ${board.weeks.map((w) => html`<div class="record-week ${w.count ? "hit" : ""} ${w.current ? "current" : ""}" title="Woche ab ${weekLabel(w.weekStart)}: ${w.count} Steigerung${w.count === 1 ? "" : "en"}"><i>${w.count ? raw(icon("trophy", { size: 12 })) : ""}</i><span>${weekLabel(w.weekStart)}</span></div>`)}
+      </div>
+      <p class="small ${streak.atRisk ? "warn-text" : "muted"}">${streakText} Zählt jede Woche, in der du eine Bestleistung schlägst.</p>
+
+      ${targets.length ? html`<div class="card-title" style="margin-top:6px">Nächste Ziele</div>
+      <div class="targets">${targets.map((t2) => html`<button class="target" data-rec="${t2.exId}">
+        <span class="target-icon">${raw(icon(t2.kind === "rank" ? "trophy" : t2.kind === "bw" ? "scale" : "weight", { size: 18 }))}</span>
+        <span class="target-text"><strong>${t2.name}</strong><span>${targetText(t2)}</span><span class="target-bar"><div style="width:${pct(t2)}%"></div></span></span>
+        <span class="target-pct">${pct(t2)}%</span>
+      </button>`)}</div>` : ""}
+
+      <div class="row between" style="margin-top:6px"><div class="card-title">Rangliste</div>
+        <div class="tabs mini"><button class="tab ${sortMode === "rang" ? "active" : ""}" data-sort="rang">Stärkste</button><button class="tab ${sortMode === "neu" ? "active" : ""}" data-sort="neu">Neueste</button></div></div>
+      <div class="record-list">${shown.map((r) => recordRow(r))}</div>
+      ${sorted.length > 8 ? html`<button class="btn btn-small btn-ghost" data-act="toggle-all">${showAll ? "Weniger anzeigen" : `Alle ${sorted.length} anzeigen`}</button>` : ""}
+
+      ${recent.length ? html`<div class="card-title" style="margin-top:6px">Chronik</div>
+      <ul class="chronicle">${recent.map((ev) => html`<li><span class="chronicle-date">${formatDate(ev.date)}</span><span class="chronicle-text"><strong>${ev.name}</strong> ${deltaText(ev)}${ev.rankUp ? html` <span class="rankup-tag ${ev.rank.id}">↑ ${ev.rank.name}</span>` : ""}</span><span class="chronicle-val">${perfText(ev)}</span></li>`)}</ul>` : ""}
+      <p class="muted small">Ränge vergleichen dein geschätztes 1RM (Epley aus Gewicht × Wiederholungen) mit dem Referenzwert eines Fortgeschrittenen bei deinem Körpergewicht, Geschlecht und Alter: Bronze, ab 55 Punkten Silber, 80 Gold, 105 Platin, 130 Diamant. Körpergewichtsübungen zählen Wiederholungen. Jede Steigerung bringt +${XP.pr} XP, jeder Rangaufstieg +${XP.rankUp} XP.</p>
+      ` : html`<div class="records-empty">${raw(medal(null, { size: "l" }))}<div><strong>Noch keine Bestleistung.</strong><p class="muted small">Nach dem ersten Training erscheinen hier Ränge von Bronze bis Diamant, eine Rekord-Serie wie bei der Flamme und deine nächsten Ziele.</p></div></div>`}
+    </div>`;
+  }
+  function recordRow(r) {
+    return html`<button class="record ${r.isNew ? "new" : ""}" data-rec="${r.exId}">
+    ${raw(medal(r.rank))}
+    <span class="record-text">
+      <strong>${r.name}${r.isNew ? html` <span class="new-tag static">NEU</span>` : ""}</strong>
+      <span>${r.rank ? `${r.rank.name} \xB7 ${r.score} P.` : "Ohne Rang"} · ${formatDate(r.date)}${r.improvements ? ` \xB7 ${r.improvements}\xD7 gesteigert` : " \xB7 erster Eintrag"}</span>
+      ${r.rank ? html`<span class="rank-bar"><div class="${r.rank.id}" style="width:${(r.rank.progress * 100).toFixed(0)}%"></div></span>` : ""}
+    </span>
+    <span class="record-val"><strong>${perfText(r)}</strong>${r.mode === "kg" ? html`<span class="muted small">e1RM ${fmt1(r.e1rm)} kg</span>` : ""}${r.lastDelta ? html`<span class="delta">+${r.mode === "kg" ? `${fmt1(r.lastDelta)} kg` : r.lastDelta}</span>` : ""}</span>
+  </button>`;
+  }
+  function bindRecordsCard(root2, rerender) {
+    root2.querySelectorAll("[data-sort]").forEach((b2) => b2.addEventListener("click", () => {
+      sortMode = b2.dataset.sort;
+      rerender();
+    }));
+    root2.querySelector('[data-act="toggle-all"]')?.addEventListener("click", () => {
+      showAll = !showAll;
+      rerender();
+    });
+    root2.querySelectorAll("[data-rec]").forEach((b2) => b2.addEventListener("click", () => openRecordDetail(b2.dataset.rec)));
+  }
+  function openRecordDetail(exId) {
+    const s = get();
+    const board = recordBoard(s, toISODate());
+    const r = board.records.find((x) => x.exId === exId);
+    const ex2 = getExercise(exId);
+    if (!r || !ex2) return;
+    const ladder = rankLadder(ex2, s.profile);
+    const cur = r.mode === "kg" ? r.e1rm : r.reps;
+    const e1 = e1rmHistory(s.workouts, exId);
+    const m = openModal(
+      `<div class="record-detail">
+      <div class="records-hero ${r.rank ? r.rank.id : "none"}">
+        <div class="records-hero-top">
+          ${medal(r.rank, { size: "l" })}
+          <div class="records-hero-text">
+            <div class="records-hero-label">${r.rank ? `Rang \xB7 ${r.score} Punkte` : "Ohne Rang"}</div>
+            <div class="records-hero-rank">${r.rank ? esc(r.rank.name) : esc(perfText(r))}</div>
+            <div class="small">${esc(perfText(r))}${r.mode === "kg" ? ` \xB7 e1RM ${fmt1(r.e1rm)} kg` : ""} \xB7 ${formatDate(r.date)}</div>
+          </div>
+        </div>
+        ${r.rank ? `<div class="rank-bar big"><div class="${r.rank.id}" style="width:${(r.rank.progress * 100).toFixed(0)}%"></div></div><div class="small">${r.rank.next ? `Noch ${r.rank.toNext} Punkte bis ${esc(r.rank.next.name)}` : "H\xF6chster Rang erreicht"}</div>` : `<div class="small">${s.profile ? "F\xFCr diese \xDCbung gibt es keinen Vergleichswert \u2013 die Bestleistung z\xE4hlt trotzdem." : "Ohne Profil keine R\xE4nge."}</div>`}
+      </div>
+      ${ladder.length ? `<div class="card-title">Rangleiter</div><ol class="ladder">${ladder.map((l2) => `<li class="${cur >= l2.threshold ? "reached" : ""} ${r.rank?.id === l2.id ? "current" : ""}">${medal(l2, { size: "s" })}<span class="ladder-name">${esc(l2.name)}</span><span class="ladder-val">${l2.unit === "kg" ? `${fmt1(l2.threshold)} kg` : `${l2.threshold} ${l2.unit}`}</span><span class="ladder-check">${cur >= l2.threshold ? icon("check", { size: 16 }) : ""}</span></li>`).join("")}</ol>` : ""}
+      ${r.targets.length ? `<div class="card-title">N\xE4chste Ziele</div><div class="targets">${r.targets.map((t2) => `<div class="target static"><span class="target-icon">${icon(t2.kind === "rank" ? "trophy" : t2.kind === "bw" ? "scale" : "weight", { size: 18 })}</span><span class="target-text"><strong>${t2.kind === "rank" ? `Rang ${esc(t2.label)}` : esc(t2.label)}</strong><span>${esc(targetText(t2))}</span><span class="target-bar"><div style="width:${pct(t2)}%"></div></span></span><span class="target-pct">${pct(t2)}%</span></div>`).join("")}</div>` : ""}
+      ${e1.length > 1 ? `<div class="card-title">Verlauf gesch\xE4tztes 1RM</div>${lineChart(e1.map((p2) => ({ label: formatDate(p2.date, { weekday: false }), y: p2.e1rm })), { unit: " kg" })}` : ""}
+      <div class="card-title">Chronik</div>
+      <ul class="chronicle">${[...r.events].reverse().map((ev) => `<li><span class="chronicle-date">${formatDate(ev.date)}</span><span class="chronicle-text">${ev.kind === "first" ? "Erster Eintrag" : esc(deltaText(ev))}${ev.rankUp ? ` <span class="rankup-tag ${ev.rank.id}">\u2191 ${esc(ev.rank.name)}</span>` : ""}</span><span class="chronicle-val">${esc(perfText(ev))}</span></li>`).join("")}</ul>
+      <div class="row gap"><button class="btn btn-small" data-act="ex-info">${icon("info", { size: 16 })} \xDCbung ansehen</button><a class="btn btn-small btn-ghost" href="#/uebungen/${esc(exId)}" data-close-modal>Bibliothek</a></div>
+    </div>`,
+      { title: ex2.name }
+    );
+    m.querySelector('[data-act="ex-info"]').addEventListener("click", () => openExerciseInfo(exId));
+    return m;
+  }
+  function recordsWeekLine(board) {
+    if (!board.records.length) return "";
+    const { streak } = board;
+    const n = board.thisWeek;
+    const serie = streak.weeks ? `Rekord-Serie ${streak.weeks} Woche${streak.weeks === 1 ? "" : "n"}` : "keine Rekord-Serie";
+    if (n) return `${n} Steigerung${n === 1 ? "" : "en"} diese Woche \xB7 ${serie}`;
+    if (streak.atRisk) return `${serie} \u2013 diese Woche noch keine Steigerung${streak.daysLeft <= 1 ? ", letzte Chance" : ""}`;
+    return `Noch keine Steigerung diese Woche \xB7 ${serie}`;
   }
 
   // src/ui/heute.js
@@ -9450,6 +10124,8 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const greet = hour < 11 ? "Guten Morgen" : hour < 18 ? "Hallo" : "Guten Abend";
     const sessionTitle = { heute: "Heute dran", nachholen: "Nachholen", erledigt: "Heute erledigt", naechste: "N\xE4chste Einheit" }[next.kind];
     const challenges = weeklyChallenges(s, ws2);
+    const board = recordBoard(s, today);
+    const recordLine = recordsWeekLine(board);
     let prevXp = xp;
     try {
       prevXp = Number(sessionStorage.getItem("lmci.xpShown") || xp);
@@ -9540,6 +10216,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
           ${plan.cardio.sessions.length ? html`<button class="btn btn-small" data-timer="${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length].id}">${raw(icon("timer", { size: 16 }))} Timer</button>` : ""}
         </div>
         <p class="muted small">${streakWeeks(plan, s.workouts, today)} Woche${streakWeeks(plan, s.workouts, today) === 1 ? "" : "n"} in Folge dran · ${s.workouts.length} Trainings gesamt</p>
+        ${recordLine ? html`<a class="record-line ${board.streak.atRisk ? "risk" : board.thisWeek ? "hot" : ""}" href="#/fortschritt">${raw(icon("trophy", { size: 18 }))}<span>${recordLine}</span>${raw(icon("right", { size: 16 }))}</a>` : ""}
       </div>
 
       <div class="grid2">
@@ -9596,6 +10273,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     celebrateIfPerfect(s, today, perfect);
     celebrateChallenges(s, ws2, challenges);
     celebrateStreak(s, streak);
+    celebrateRecordStreak(s, board.streak.weeks);
     noteNewBadges(s, today);
     try {
       sessionStorage.setItem("lmci.xpShown", String(xp));
@@ -9624,6 +10302,15 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     saveNow();
     confetti({ count: 80 });
     toast(`${reached} Tage in Folge! Die Flamme brennt.`, "ok");
+  }
+  function celebrateRecordStreak(s, weeks) {
+    const reached = RECORD_STREAK_MILESTONES.filter((m) => weeks >= m).pop();
+    if (!reached) return;
+    if ((s.meta.celebrated?.recordStreak || 0) >= reached) return;
+    update((st2) => st2.meta.celebrated.recordStreak = reached, { silent: true });
+    saveNow();
+    confetti({ count: 80 });
+    toast(`Rekord-Serie: ${reached} Wochen in Folge st\xE4rker geworden!`, "ok");
   }
   function celebrateIfPerfect(s, today, perfect) {
     if (!perfect) return;
@@ -9756,216 +10443,6 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       }
       closeModal();
     });
-  }
-
-  // src/ui/bodymap.js
-  var FRONT = [
-    ["brust", '<path d="M54 50h52l4 30-30 12-30-12z"/>'],
-    ["schultern", '<ellipse cx="40" cy="52" rx="12" ry="9"/><ellipse cx="120" cy="52" rx="12" ry="9"/>'],
-    ["bizeps", '<rect x="27" y="58" width="12" height="32" rx="6"/><rect x="121" y="58" width="12" height="32" rx="6"/>'],
-    ["bauch", '<rect x="64" y="96" width="32" height="44" rx="6"/>'],
-    ["quadrizeps", '<rect x="57" y="148" width="18" height="60" rx="8"/><rect x="85" y="148" width="18" height="60" rx="8"/>'],
-    ["waden", '<rect x="59" y="216" width="14" height="40" rx="7"/><rect x="87" y="216" width="14" height="40" rx="7"/>']
-  ];
-  var BACK = [
-    ["schultern", '<ellipse cx="40" cy="52" rx="12" ry="9"/><ellipse cx="120" cy="52" rx="12" ry="9"/>'],
-    ["ruecken", '<path d="M52 50h56l2 66-30 10-30-10z"/>'],
-    ["trizeps", '<rect x="27" y="58" width="12" height="32" rx="6"/><rect x="121" y="58" width="12" height="32" rx="6"/>'],
-    ["gesaess", '<path d="M52 130h56v16a28 14 0 0 1-56 0z"/>'],
-    ["beinbeuger", '<rect x="57" y="156" width="18" height="54" rx="8"/><rect x="85" y="156" width="18" height="54" rx="8"/>'],
-    ["waden", '<rect x="59" y="216" width="14" height="40" rx="7"/><rect x="87" y="216" width="14" height="40" rx="7"/>']
-  ];
-  var SILHOUETTE = `<g class="silhouette">
-  <circle cx="80" cy="20" r="13"/>
-  <rect x="74" y="31" width="12" height="12"/>
-  <path d="M44 44h72l6 100H38z"/>
-  <rect x="24" y="46" width="18" height="80" rx="9"/>
-  <rect x="118" y="46" width="18" height="80" rx="9"/>
-  <rect x="54" y="140" width="24" height="122" rx="11"/>
-  <rect x="82" y="140" width="24" height="122" rx="11"/>
-</g>`;
-  function view(regions, primary, secondary, label) {
-    const shapes = regions.map(([m, svg]) => {
-      const cls = primary.includes(m) ? "m-primary" : secondary.includes(m) ? "m-secondary" : "m-none";
-      return `<g class="${cls}" data-muscle="${m}">${svg}</g>`;
-    }).join("");
-    return `<svg viewBox="0 0 160 270" class="bodymap" role="img" aria-label="${esc(label)}">${SILHOUETTE}${shapes}<text x="80" y="266" text-anchor="middle" class="bodymap-label">${esc(label)}</text></svg>`;
-  }
-  function bodyMap(primary = [], secondary = []) {
-    return `<div class="bodymap-wrap">${view(FRONT, primary, secondary, "vorn")}${view(BACK, primary, secondary, "hinten")}</div>`;
-  }
-
-  // src/ui/uebungen.js
-  var LOAD_NAMES = { barbell: "Langhantel", dumbbell: "Kurzhantel", machine: "Maschine", cable: "Kabelzug", bw: "K\xF6rpergewicht", band: "Band", time: "Zeit", kettlebell: "Kettlebell" };
-  var TIER_NAMES = { 1: "Grund\xFCbung", 2: "Mehrgelenkig", 3: "Isolation" };
-  var filter = { q: "", muscle: "", onlyAvailable: true, load: "" };
-  function renderUebungen(root2, exId) {
-    var _a2;
-    const s = get();
-    const profile = s.profile;
-    const list = EXERCISES.filter((e) => {
-      if (filter.onlyAvailable && !isAvailable(e, profile)) return false;
-      if (filter.muscle && !e.primary.includes(filter.muscle) && !e.secondary.includes(filter.muscle)) return false;
-      if (filter.load && e.load !== filter.load) return false;
-      if (filter.q) {
-        const q2 = filter.q.toLowerCase();
-        if (!e.name.toLowerCase().includes(q2) && !e.en.toLowerCase().includes(q2)) return false;
-      }
-      return true;
-    });
-    const grouped = {};
-    for (const e of list) (grouped[_a2 = e.primary[0]] || (grouped[_a2] = [])).push(e);
-    root2.innerHTML = String(html`
-    <section class="page">
-      <header class="page-head"><div><h1>Übungen</h1><p class="muted">${EXERCISES.length} Übungen · ${list.length} angezeigt</p></div></header>
-      <div class="card filters">
-        <input id="ex-q" class="search" placeholder="Suchen (deutsch oder englisch)…" value="${filter.q}" aria-label="Übung suchen">
-        <div class="row gap wrap">
-          <select id="ex-muscle" class="select auto" aria-label="Muskel"><option value="">Alle Muskeln</option>${MUSCLES.map((m) => html`<option value="${m.id}" ${filter.muscle === m.id ? "selected" : ""}>${m.name}</option>`)}</select>
-          <select id="ex-load" class="select auto" aria-label="Gerät"><option value="">Alle Geräte</option>${Object.entries(LOAD_NAMES).map(([id, n]) => html`<option value="${id}" ${filter.load === id ? "selected" : ""}>${n}</option>`)}</select>
-          <label class="chip"><input type="checkbox" id="ex-avail" ${filter.onlyAvailable ? "checked" : ""}><span>Nur mit meiner Ausrüstung</span></label>
-        </div>
-      </div>
-      ${MUSCLES.filter((m) => grouped[m.id]).map((m) => html`<div class="card">
-        <div class="card-title">${m.name}</div>
-        <ul class="list tappable">${grouped[m.id].map((e) => html`<li><button class="link" data-ex="${e.id}"><strong>${e.name}</strong><div class="muted small">${e.en} · ${LOAD_NAMES[e.load]} · ${TIER_NAMES[e.tier]}${e.secondary.length ? ` \xB7 auch ${e.secondary.map((x) => MUSCLE_BY_ID[x].short).join(", ")}` : ""}</div></button></li>`)}</ul>
-      </div>`)}
-      ${list.length ? "" : html`<div class="card"><p class="muted">Nichts gefunden. Filter lockern oder „Nur mit meiner Ausrüstung“ abwählen.</p></div>`}
-    </section>`);
-    root2.querySelector("#ex-q").addEventListener("input", (e) => {
-      filter.q = e.target.value;
-      const val = e.target.value;
-      renderUebungen(root2);
-      const inp = root2.querySelector("#ex-q");
-      inp.focus();
-      inp.setSelectionRange(val.length, val.length);
-    });
-    root2.querySelector("#ex-muscle").addEventListener("change", (e) => {
-      filter.muscle = e.target.value;
-      renderUebungen(root2);
-    });
-    root2.querySelector("#ex-load").addEventListener("change", (e) => {
-      filter.load = e.target.value;
-      renderUebungen(root2);
-    });
-    root2.querySelector("#ex-avail").addEventListener("change", (e) => {
-      filter.onlyAvailable = e.target.checked;
-      renderUebungen(root2);
-    });
-    root2.querySelectorAll("[data-ex]").forEach((b2) => b2.addEventListener("click", () => openExerciseInfo(b2.dataset.ex)));
-    if (exId && getExercise(exId)) openExerciseInfo(exId);
-  }
-  function openExerciseInfo(exId, { onPick = null, pickLabel = "Alternativen" } = {}) {
-    const s = get();
-    const ex2 = getExercise(exId);
-    if (!ex2) return null;
-    const hist = historyFor(s.workouts, exId, 5);
-    const e1 = e1rmHistory(s.workouts, exId);
-    const pr2 = personalRecords(s.workouts).find((r) => r.exId === exId);
-    const alts = alternativesFor(exId, s.profile).slice(0, 8);
-    const gear = ex2.gear.map((g2) => GEAR_BY_ID[g2]?.name || g2).join(", ");
-    const m = openModal(
-      `<p class="muted small">${esc(ex2.en)} \xB7 ${LOAD_NAMES[ex2.load]} \xB7 ${TIER_NAMES[ex2.tier]}${gear ? ` \xB7 Zuhause: ${esc(gear)}` : ""}</p>
-     ${bodyMap(ex2.primary, ex2.secondary)}
-     <p class="small"><strong>${ex2.primary.map((x) => MUSCLE_BY_ID[x].name).join(", ")}</strong>${ex2.secondary.length ? `<span class="muted"> \xB7 Nebenmuskeln: ${ex2.secondary.map((x) => MUSCLE_BY_ID[x].name).join(", ")}</span>` : ""}</p>
-     ${ex2.cue ? `<p class="cue">${esc(ex2.cue)}</p>` : ""}
-     ${ex2.contra.length ? `<p class="muted small">Vorsicht bei: ${ex2.contra.map((c) => ({ knie: "Knie", schulter: "Schulter", ruecken_unten: "unterer R\xFCcken", handgelenk: "Handgelenk", huefte: "H\xFCfte" })[c] || c).join(", ")}</p>` : ""}
-     <a class="btn btn-small" href="${videoSearchUrl(ex2)}" target="_blank" rel="noopener">Technik-Videos ansehen \u2197</a>
-     ${pr2 ? `<h3>Deine Bestleistung</h3><p>${pr2.e1rm ? `${fmtKg(pr2.weight)} \xD7 ${pr2.reps} (gesch\xE4tztes 1RM ${pr2.e1rm} kg)` : `${pr2.reps} Wiederholungen`} \xB7 ${formatDate(pr2.date)}</p>` : ""}
-     ${hist.length ? `<h3>Letzte Einheiten</h3><ul class="bullets small">${hist.slice().reverse().map((h2) => `<li>${formatDate(h2.date)}: ${h2.sets.map((x) => `${x.weight ? `${x.weight} kg \xD7 ` : ""}${x.reps}${x.rir != null ? ` @${x.rir}` : ""}`).join(", ")}</li>`).join("")}</ul>` : ""}
-     ${e1.length > 1 ? `<p class="muted small">Entwicklung gesch\xE4tztes 1RM: ${e1[0].e1rm} \u2192 ${e1[e1.length - 1].e1rm} kg</p>` : ""}
-     <h3>${esc(pickLabel)}</h3>
-     ${alts.length ? `<ul class="list tappable">${alts.map((a2) => `<li><button class="link" data-alt="${a2.id}"><strong>${esc(a2.name)}</strong><div class="muted small">${esc(a2.en)} \xB7 ${LOAD_NAMES[a2.load]}</div></button></li>`).join("")}</ul>` : '<p class="muted">Keine passende Alternative mit deiner Ausr\xFCstung.</p>'}`,
-      { title: ex2.name }
-    );
-    m.querySelectorAll("[data-alt]").forEach((b2) => b2.addEventListener("click", () => {
-      if (onPick) onPick(b2.dataset.alt);
-      else openExerciseInfo(b2.dataset.alt);
-    }));
-    return m;
-  }
-
-  // src/ui/charts.js
-  var W = 640;
-  var H = 220;
-  var PAD = { l: 44, r: 16, t: 16, b: 34 };
-  function scale(domain, range) {
-    const [d0, d1] = domain;
-    const [r0, r12] = range;
-    const span = d1 - d0 || 1;
-    return (v) => r0 + (v - d0) / span * (r12 - r0);
-  }
-  function niceTicks(min, max, n = 4) {
-    const span = max - min || 1;
-    const raw2 = span / n;
-    const mag = Math.pow(10, Math.floor(Math.log10(raw2)));
-    const norm = raw2 / mag;
-    const step2 = (norm < 1.5 ? 1 : norm < 3 ? 2 : norm < 7 ? 5 : 10) * mag;
-    const start = Math.floor(min / step2) * step2;
-    const ticks = [];
-    for (let v = start; v <= max + step2 * 0.01; v += step2) ticks.push(Math.round(v * 1e3) / 1e3);
-    return ticks;
-  }
-  function lineChart(points, { yLabel = "", secondary = null, unit = "", minZero = false } = {}) {
-    if (!points.length) return `<div class="chart-empty">Noch keine Daten.</div>`;
-    const ys2 = points.map((p2) => p2.y).concat(secondary ? secondary.map((p2) => p2.y) : []);
-    let yMin = minZero ? 0 : Math.min(...ys2);
-    let yMax = Math.max(...ys2);
-    if (yMin === yMax) {
-      yMin -= 1;
-      yMax += 1;
-    }
-    const padY = (yMax - yMin) * 0.1;
-    yMin = minZero ? 0 : yMin - padY;
-    yMax += padY;
-    const x = scale([0, Math.max(1, points.length - 1)], [PAD.l, W - PAD.r]);
-    const y2 = scale([yMin, yMax], [H - PAD.b, PAD.t]);
-    const ticks = niceTicks(yMin, yMax);
-    const path = (pts) => pts.map((p2, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y2(p2.y).toFixed(1)}`).join(" ");
-    const area = `${path(points)} L${x(points.length - 1).toFixed(1)},${H - PAD.b} L${PAD.l},${H - PAD.b} Z`;
-    const labelEvery = Math.max(1, Math.ceil(points.length / 6));
-    const last = points[points.length - 1];
-    return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(yLabel)}">
-    ${ticks.map((t2) => `<g><line x1="${PAD.l}" x2="${W - PAD.r}" y1="${y2(t2).toFixed(1)}" y2="${y2(t2).toFixed(1)}" class="grid"/><text x="${PAD.l - 6}" y="${(y2(t2) + 4).toFixed(1)}" class="tick" text-anchor="end">${esc(t2)}</text></g>`).join("")}
-    <path d="${area}" class="area"/>
-    ${secondary ? `<path d="${path(secondary)}" class="line-secondary"/>` : ""}
-    <path d="${path(points)}" class="line"/>
-    ${points.map((p2, i) => i % labelEvery === 0 || i === points.length - 1 ? `<text x="${x(i).toFixed(1)}" y="${H - 10}" class="tick" text-anchor="middle">${esc(p2.label)}</text>` : "").join("")}
-    <circle cx="${x(points.length - 1).toFixed(1)}" cy="${y2(last.y).toFixed(1)}" r="4" class="dot"/>
-    <text x="${Math.min(x(points.length - 1), W - PAD.r - 40).toFixed(1)}" y="${(y2(last.y) - 10).toFixed(1)}" class="tick strong" text-anchor="middle">${esc(last.y)}${esc(unit)}</text>
-  </svg>`;
-  }
-  function barChart(bars, { unit = "", target = null } = {}) {
-    if (!bars.length) return `<div class="chart-empty">Noch keine Daten.</div>`;
-    const max = Math.max(1, ...bars.map((b2) => b2.y), target || 0) * 1.15;
-    const y2 = scale([0, max], [H - PAD.b, PAD.t]);
-    const n = bars.length;
-    const bw = (W - PAD.l - PAD.r) / n;
-    const ticks = niceTicks(0, max, 4);
-    return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img">
-    ${ticks.map((t2) => `<g><line x1="${PAD.l}" x2="${W - PAD.r}" y1="${y2(t2).toFixed(1)}" y2="${y2(t2).toFixed(1)}" class="grid"/><text x="${PAD.l - 6}" y="${(y2(t2) + 4).toFixed(1)}" class="tick" text-anchor="end">${esc(t2)}</text></g>`).join("")}
-    ${target ? `<line x1="${PAD.l}" x2="${W - PAD.r}" y1="${y2(target).toFixed(1)}" y2="${y2(target).toFixed(1)}" class="target"/>` : ""}
-    ${bars.map((b2, i) => {
-      const bx = PAD.l + i * bw + bw * 0.15;
-      const w = bw * 0.7;
-      const top = y2(b2.y);
-      return `<g><rect x="${bx.toFixed(1)}" y="${top.toFixed(1)}" width="${w.toFixed(1)}" height="${(H - PAD.b - top).toFixed(1)}" rx="3" class="bar ${b2.cls || ""}"/>
-        ${b2.y ? `<text x="${(bx + w / 2).toFixed(1)}" y="${(top - 5).toFixed(1)}" class="tick" text-anchor="middle">${esc(b2.y)}${esc(unit)}</text>` : ""}
-        <text x="${(bx + w / 2).toFixed(1)}" y="${H - 10}" class="tick" text-anchor="middle">${esc(b2.label)}</text></g>`;
-    }).join("")}
-  </svg>`;
-  }
-  function volumeBars(rows) {
-    const max = Math.max(1, ...rows.map((r) => Math.max(r.value, r.max)));
-    return `<div class="vol-list">${rows.map((r) => {
-      const pct = (v) => `${Math.min(100, v / max * 100).toFixed(1)}%`;
-      const state2 = r.value < r.min ? "low" : r.value > r.max ? "high" : "ok";
-      return `<div class="vol-row">
-        <div class="vol-label">${esc(r.label)}</div>
-        <div class="vol-track"><div class="vol-range" style="left:${pct(r.min)};width:calc(${pct(r.max)} - ${pct(r.min)})"></div><div class="vol-fill ${state2}" style="width:${pct(r.value)}"></div></div>
-        <div class="vol-num">${esc(r.value)}<span class="muted">/${esc(r.target)}</span></div>
-      </div>`;
-    }).join("")}</div>`;
   }
 
   // src/ui/planview.js
@@ -10575,8 +11052,10 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       };
       const deltas = aw.dayId === "frei" || aw.dayId === "schnell" ? {} : muscleDeltasFromFeedback(feedback, trained);
       const workout = { id: aw.id, planId: aw.planId, dayId: aw.dayId, week: aw.week, date: aw.date, startedAt: aw.startedAt, finishedAt: (/* @__PURE__ */ new Date()).toISOString(), mode: aw.mode, entries, feedback };
-      const records = newRecords(workout, s.workouts);
-      workout.xp = xpForWorkout(workout, records.length);
+      const records = newRecordEvents(workout, s.workouts, s.profile);
+      const rankUps = records.filter((r) => r.rankUp).length;
+      workout.xp = xpForWorkout(workout, records.length, rankUps);
+      const streakBefore = recordStreak(recordEvents(s.workouts, s.profile), aw.date).weeks;
       const xpBefore = totalXP(s);
       const badgesBefore = new Set(badgeStatus(s, aw.date, badgeExtra(s, aw.date)).filter((b2) => b2.earned).map((b2) => b2.id));
       stopRestTimer();
@@ -10612,13 +11091,25 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         }, { silent: true });
       }
       const mins = Math.round((new Date(workout.finishedAt) - new Date(workout.startedAt)) / 6e4);
+      const streakAfter = recordStreak(recordEvents(after.workouts, after.profile), aw.date);
+      const fmt12 = (v) => (Math.round(v * 10) / 10).toString().replace(".", ",");
+      const highlights = [];
+      if (streakAfter.weeks > streakBefore && streakAfter.weeks >= 2) highlights.push({ icon: "flame", cls: "flame", text: `Rekord-Serie: ${streakAfter.weeks} Wochen in Folge st\xE4rker geworden!` });
+      else if (streakAfter.weeks >= 2 && records.some((r) => r.kind === "improve")) highlights.push({ icon: "flame", cls: "flame", text: `Rekord-Serie gesichert \u2013 ${streakAfter.weeks} Wochen in Folge.` });
       window.__lmci.afterRoute(() => showCelebration({
-        title: lvlAfter.level > lvlBefore.level ? "Level up!" : records.length ? "Neue Bestleistung!" : "Training geschafft!",
+        title: lvlAfter.level > lvlBefore.level ? "Level up!" : rankUps ? "Rangaufstieg!" : records.length ? "Neue Bestleistung!" : "Training geschafft!",
         subtitle: `${totalSets(workout)} S\xE4tze \xB7 ${totalTonnage(workout).toLocaleString("de-DE")} kg bewegt \xB7 ${mins} min`,
         xp: xpAfter - xpBefore,
         level: lvlAfter,
         levelUp: lvlAfter.level > lvlBefore.level,
-        records: records.map((r) => `${r.name}: ${r.e1rm ? `gesch\xE4tztes 1RM ${r.e1rm} kg` : `${r.reps} Wiederholungen`}`),
+        highlights,
+        records: records.map((r) => ({
+          title: r.name,
+          text: r.mode === "kg" ? `e1RM ${fmt12(r.e1rm)} kg${r.kind === "improve" ? ` (+${fmt12(r.delta)} kg)` : ""}` : `${r.reps} ${getExercise(r.exId)?.load === "time" ? "Sekunden" : "Wiederholungen"}${r.kind === "improve" ? ` (+${r.delta})` : ""}`,
+          sub: r.rankUp ? `Aufstieg auf ${r.rank.name} \xB7 +${XP.rankUp} XP` : r.kind === "first" ? `Erster Eintrag${r.rank ? ` \xB7 Rang ${r.rank.name}` : ""} \xB7 +${XP.pr} XP` : `${r.rank ? `Rang ${r.rank.name}${r.rank.next ? ` \xB7 ${r.rank.toNext} Punkte bis ${r.rank.next.name}` : ""} \xB7 ` : ""}+${XP.pr} XP`,
+          rank: r.rank,
+          rankUp: r.rankUp
+        })),
         badges: newBadges,
         note: applied.length ? `Volumen angepasst (S\xE4tze pro \xDCbung): ${applied.join(", ")}.` : aw.dayId === "frei" || aw.dayId === "schnell" ? "" : "Volumen bleibt \u2013 passt."
       }));
@@ -10650,7 +11141,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       return { y: Math.round(win.reduce((a2, b2) => a2 + b2.weightKg, 0) / win.length * 10) / 10 };
     });
     const trend = weightTrend(bodyLogs);
-    const records = personalRecords(workouts).slice(0, 10);
+    const board = recordBoard(s, today);
     const recent = [...workouts].sort((a2, b2) => a2.date < b2.date ? 1 : -1).slice(0, 20);
     noteNewBadges(s, today);
     const badges = badgeStatus(s, today, badgeExtra(s, today));
@@ -10678,7 +11169,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
             <div class="muted small" style="margin-top:4px">${lvl.toNext} XP bis Level ${lvl.level + 1}${nextTitle ? ` \xB7 \u201E${nextTitle[1]}\u201C ab Level ${nextTitle[0]}` : ""}</div>
           </div>
         </div>
-        <p class="muted small">XP gibt es für jedes Training (50 + 8 pro Satz, +25 je Bestleistung), Cardio (2 pro Minute), Check-ins, erfasste Ernährung, Trinken, Wiegen, Mobilität und perfekte Tage.</p>
+        <p class="muted small">XP gibt es für jedes Training (50 + 8 pro Satz, +25 je Bestleistung, +40 je Rangaufstieg), Cardio (2 pro Minute), Check-ins, erfasste Ernährung, Trinken, Wiegen, Mobilität und perfekte Tage.</p>
       </div>
 
       <div class="card">
@@ -10686,6 +11177,8 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         <div class="challenges">${raw(weekly.map((c) => challengeRow(c)).join(""))}${raw(challengeRow(monthly, { monthly: true }))}</div>
         <p class="muted small">Drei Wochen-Herausforderungen wechseln jeden Montag, die Monats-Herausforderung am Ersten. Geschaffte bringen XP und zählen für Abzeichen.</p>
       </div>
+
+      ${recordsCard(board, s)}
 
       <div class="card">
         <div class="row between"><div class="card-title">Abzeichen</div><span class="muted small">${earned.length} / ${badges.length}</span></div>
@@ -10733,16 +11226,12 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       </div>
 
       <div class="card">
-        <div class="card-title">Bestleistungen</div>
-        ${records.length ? html`<table class="ex-table"><tbody>${records.map((r) => html`<tr><td><div class="ex-name">${getExercise(r.exId)?.name || r.exId}</div><div class="muted small">${formatDate(r.date)}</div></td><td class="num">${r.e1rm ? html`${fmtKg(r.weight)} × ${r.reps}<div class="muted small">e1RM ${r.e1rm} kg</div>` : html`${r.reps} Wdh.`}</td></tr>`)}</tbody></table>` : html`<p class="muted">Noch keine Trainings gespeichert.</p>`}
-      </div>
-
-      <div class="card">
         <div class="card-title">Letzte Trainings</div>
         ${recent.length ? html`<ul class="list tappable">${recent.map((w) => html`<li><button class="link" data-w="${w.id}"><strong>${w.dayId === "frei" ? "Freies Training" : w.dayId === "schnell" ? "Schnelltraining" : plan.days.find((d) => d.id === w.dayId)?.name || s.planHistory.flatMap((p2) => p2.days).find((d) => d.id === w.dayId && p.id === w.planId)?.name || "Training"}</strong><div class="muted small">${formatDate(w.date)} · ${totalSets(w)} Sätze · ${totalTonnage(w).toLocaleString("de-DE")} kg${w.feedback ? ` \xB7 RPE ${w.feedback.rpe}` : ""}</div></button></li>`)}</ul>` : html`<p class="muted">Noch nichts geloggt – starte auf „Heute“.</p>`}
       </div>
     </section>`);
     animateAll(root2);
+    bindRecordsCard(root2, () => renderFortschritt(root2));
     root2.querySelector('[data-act="measure"]').addEventListener("click", () => openMeasure(root2));
     root2.querySelector("#measure-select")?.addEventListener("change", (e) => {
       selectedMeasure = e.target.value;

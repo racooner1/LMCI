@@ -19,6 +19,8 @@ import { badgeStatus } from '../engine/achievements.js';
 import { icon } from './icons.js';
 import { confetti, pop } from './celebrate.js';
 import { animateAll } from './motion.js';
+import { recordBoard, RECORD_STREAK_MILESTONES } from '../engine/records.js';
+import { recordsWeekLine } from './records.js';
 
 const STREAK_MILESTONES = [3, 7, 14, 30, 60, 100, 365];
 
@@ -82,6 +84,8 @@ export function renderHeute(root) {
   const greet = hour < 11 ? 'Guten Morgen' : hour < 18 ? 'Hallo' : 'Guten Abend';
   const sessionTitle = { heute: 'Heute dran', nachholen: 'Nachholen', erledigt: 'Heute erledigt', naechste: 'Nächste Einheit' }[next.kind];
   const challenges = weeklyChallenges(s, ws);
+  const board = recordBoard(s, today);
+  const recordLine = recordsWeekLine(board);
   let prevXp = xp;
   try {
     prevXp = Number(sessionStorage.getItem('lmci.xpShown') || xp);
@@ -172,6 +176,7 @@ export function renderHeute(root) {
           ${plan.cardio.sessions.length ? html`<button class="btn btn-small" data-timer="${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length].id}">${raw(icon('timer', { size: 16 }))} Timer</button>` : ''}
         </div>
         <p class="muted small">${streakWeeks(plan, s.workouts, today)} Woche${streakWeeks(plan, s.workouts, today) === 1 ? '' : 'n'} in Folge dran · ${s.workouts.length} Trainings gesamt</p>
+        ${recordLine ? html`<a class="record-line ${board.streak.atRisk ? 'risk' : board.thisWeek ? 'hot' : ''}" href="#/fortschritt">${raw(icon('trophy', { size: 18 }))}<span>${recordLine}</span>${raw(icon('right', { size: 16 }))}</a>` : ''}
       </div>
 
       <div class="grid2">
@@ -229,6 +234,7 @@ export function renderHeute(root) {
   celebrateIfPerfect(s, today, perfect);
   celebrateChallenges(s, ws, challenges);
   celebrateStreak(s, streak);
+  celebrateRecordStreak(s, board.streak.weeks);
   noteNewBadges(s, today);
   try {
     sessionStorage.setItem('lmci.xpShown', String(xp));
@@ -260,6 +266,17 @@ function celebrateStreak(s, streak) {
   store.saveNow();
   confetti({ count: 80 });
   toast(`${reached} Tage in Folge! Die Flamme brennt.`, 'ok');
+}
+
+// Rekord-Serie (Wochen in Folge mit einer Steigerung): Meilensteine einmalig feiern.
+function celebrateRecordStreak(s, weeks) {
+  const reached = RECORD_STREAK_MILESTONES.filter((m) => weeks >= m).pop();
+  if (!reached) return;
+  if ((s.meta.celebrated?.recordStreak || 0) >= reached) return;
+  store.update((st) => (st.meta.celebrated.recordStreak = reached), { silent: true });
+  store.saveNow();
+  confetti({ count: 80 });
+  toast(`Rekord-Serie: ${reached} Wochen in Folge stärker geworden!`, 'ok');
 }
 
 // Perfekter Tag: einmal pro Tag Konfetti.

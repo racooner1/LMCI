@@ -10,8 +10,8 @@ export const LEVEL_TITLES = [
   [1, 'Neuling'], [3, 'Einsteiger'], [5, 'Dranbleiber'], [8, 'Stammgast'], [12, 'Athlet'], [16, 'Kraftpaket'], [20, 'Maschine'], [25, 'Legende'],
 ];
 
-export function xpForWorkout(w, prCount = 0) {
-  return XP.workoutBase + totalSets(w) * XP.perSet + prCount * XP.pr;
+export function xpForWorkout(w, prCount = 0, rankUps = 0) {
+  return XP.workoutBase + totalSets(w) * XP.perSet + prCount * XP.pr + rankUps * XP.rankUp;
 }
 
 export function xpForCardio(c) {

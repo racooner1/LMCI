@@ -1,6 +1,7 @@
 // Streaks und Abzeichen – berechnet aus den vorhandenen Daten, nichts wird doppelt gespeichert.
 import { addDays, toISODate } from './util.js';
 import { personalRecords, totalSets } from './analytics.js';
+import { recordBoard } from './records.js';
 
 // Tage mit irgendeiner Aktivität (Training, Cardio, Check-in, Ernährung, Gewicht).
 export function activeDays(s) {
@@ -34,25 +35,16 @@ const cardioMin = (s) => s.cardioLogs.reduce((a, c) => a + (c.minutes || 0), 0);
 const cardioKm = (s) => s.cardioLogs.reduce((a, c) => a + (c.km || 0), 0);
 const foodDays = (s) => Object.values(s.foodLog || {}).filter((l) => l.length >= 3).length;
 const waterDays = (s) => Object.values(s.waterLog || {}).filter((ml) => ml >= 1500).length;
-const prCount = (s) => {
-  // Anzahl Bestleistungen über die gesamte Historie (chronologisch)
-  const sorted = [...s.workouts].sort((a, b) => (a.date < b.date ? -1 : 1));
-  const best = {};
-  let n = 0;
-  for (const w of sorted) {
-    for (const e of w.entries) {
-      const r = personalRecords([w]).find((x) => x.exId === e.exId);
-      if (!r) continue;
-      const prev = best[e.exId];
-      const better = r.e1rm > 0 ? !prev || r.e1rm > prev.e1rm + 0.05 : !prev || r.reps > prev.reps;
-      if (better) {
-        if (prev) n += 1; // die allererste Leistung zählt nicht als Steigerung
-        best[e.exId] = r;
-      }
-    }
-  }
-  return n;
+// Steigerungen der Bestleistung über die gesamte Historie (die allererste Leistung zählt nicht als Steigerung).
+const prCount = (s, ctx) => ctx.board.improvements;
+// Bestes Verhältnis e1RM zu Körpergewicht bei den klassischen Langhantel-Übungen.
+const BIG_LIFTS = { bench: ['bankdruecken_lh'], squat: ['kniebeuge_lh', 'frontkniebeuge'], hinge: ['kreuzheben', 'sumo_kreuzheben', 'kreuzheben_trap_bar'] };
+const bwRatio = (s, ctx, lift) => {
+  const bw = s.profile?.weightKg;
+  if (!bw) return 0;
+  return Math.max(0, ...ctx.board.records.filter((r) => r.mode === 'kg' && BIG_LIFTS[lift].includes(r.exId)).map((r) => r.e1rm / bw));
 };
+const bestRankIdx = (ctx) => Math.max(-1, ...ctx.board.records.map((r) => r.rank?.idx ?? -1));
 const distinctExercises = (s) => new Set(s.workouts.flatMap((w) => w.entries.map((e) => e.exId))).size;
 const allMusclesInWeek = (s) => {
   const byWeek = {};
@@ -103,8 +95,19 @@ export const BADGES = [
   B('alle_muskeln', 'training', 'Ganzkörper', 'Alle 10 Muskelgruppen in einer Woche', '🫀', (s) => allMusclesInWeek(s)),
   // Kraft & Volumen
   B('erster_rekord', 'kraft', 'Neue Bestleistung', 'Erste persönliche Bestleistung', '🥇', (s) => s.workouts.length >= 2 && personalRecords(s.workouts).length >= 1),
-  B('pr_10', 'kraft', 'Rekordjäger', '10 Steigerungen der Bestleistung', '🏆', (s) => prCount(s) >= 10),
-  B('pr_50', 'kraft', 'Stärker als gestern', '50 Steigerungen der Bestleistung', '🚀', (s) => prCount(s) >= 50),
+  B('pr_10', 'kraft', 'Rekordjäger', '10 Steigerungen der Bestleistung', '🏆', (s, ctx) => prCount(s, ctx) >= 10),
+  B('pr_50', 'kraft', 'Stärker als gestern', '50 Steigerungen der Bestleistung', '🚀', (s, ctx) => prCount(s, ctx) >= 50),
+  B('pr_day_3', 'kraft', 'Rekordtag', '3 Steigerungen in einem Training', '🎆', (s, ctx) => ctx.board.bestDay >= 3),
+  B('pr_streak_4', 'kraft', 'Vier Wochen stärker', 'Rekord-Serie: 4 Wochen in Folge eine Steigerung', '🪜', (s, ctx) => ctx.board.streak.best >= 4),
+  B('pr_streak_8', 'kraft', 'Acht Wochen stärker', 'Rekord-Serie: 8 Wochen in Folge eine Steigerung', '🧗', (s, ctx) => ctx.board.streak.best >= 8),
+  B('rank_gold', 'kraft', 'Goldstandard', 'Gold-Rang in einer Übung', '🏵️', (s, ctx) => bestRankIdx(ctx) >= 2),
+  B('rank_platin', 'kraft', 'Platin', 'Platin-Rang in einer Übung', '🔷', (s, ctx) => bestRankIdx(ctx) >= 3),
+  B('rank_diamant', 'kraft', 'Diamant', 'Diamant-Rang in einer Übung', '💎', (s, ctx) => bestRankIdx(ctx) >= 4),
+  B('kraft_gold', 'kraft', 'Rundum stark', 'Kraft-Rang Gold über alle Bewegungsmuster', '🦁', (s, ctx) => (ctx.board.overall?.idx ?? -1) >= 2),
+  B('club_100', 'kraft', '100-kg-Club', 'Geschätztes 1RM von 100 kg in einer Übung', '💪', (s, ctx) => ctx.board.records.some((r) => r.mode === 'kg' && r.e1rm >= 100)),
+  B('bw_bench', 'kraft', 'Körpergewicht gedrückt', 'Bankdrücken (Langhantel): e1RM mindestens dein Körpergewicht', '🎽', (s, ctx) => bwRatio(s, ctx, 'bench') >= 1),
+  B('bw_squat', 'kraft', 'Anderthalbfach', 'Kniebeuge (Langhantel): e1RM 1,5× Körpergewicht', '🦵', (s, ctx) => bwRatio(s, ctx, 'squat') >= 1.5),
+  B('bw_hinge', 'kraft', 'Doppelt so schwer', 'Kreuzheben: e1RM 2× Körpergewicht', '🐂', (s, ctx) => bwRatio(s, ctx, 'hinge') >= 2),
   B('hundert_saetze', 'kraft', '100 Sätze', '100 Arbeitssätze insgesamt', '🧱', (s) => sets(s) >= 100),
   B('tausend_saetze', 'kraft', '1000 Sätze', '1000 Arbeitssätze insgesamt', '🏗️', (s) => sets(s) >= 1000),
   B('5000_saetze', 'kraft', '5000 Sätze', '5000 Arbeitssätze insgesamt', '🏛️', (s) => sets(s) >= 5000),
@@ -163,7 +166,7 @@ export const BADGES = [
 
 // Kontextwerte, die mehrere Abzeichen brauchen (einmal berechnet).
 export function badgeContext(s, today = toISODate(), extra = {}) {
-  const ctx = { streak: dailyStreak(s, today), perfectDays: 0, fullWeeks: 0, level: extra.level || 1, challengesDone: extra.challengesDone || 0 };
+  const ctx = { streak: dailyStreak(s, today), perfectDays: 0, fullWeeks: 0, level: extra.level || 1, challengesDone: extra.challengesDone || 0, board: recordBoard(s, today) };
   if (extra.isPerfectDay) {
     const days = new Set([...s.workouts.map((w) => w.date), ...(s.checkins || []).map((c) => c.date)]);
     ctx.perfectDays = [...days].filter((d) => extra.isPerfectDay(s, d)).length;

@@ -51,9 +51,16 @@ export function confetti({ duration = 1800, count = 140 } = {}) {
   requestAnimationFrame(frame);
 }
 
+// Medaille für einen Rang (null = ohne Rang).
+export function medal(rank, { size = 'm' } = {}) {
+  const cls = rank ? rank.id : 'none';
+  return `<span class="medal ${cls} ${size}" title="${rank ? esc(rank.name) : 'Ohne Rang'}" aria-label="${rank ? esc(rank.name) : 'Ohne Rang'}">${icon(rank ? 'trophy' : 'dumbbell', { size: size === 'l' ? 26 : size === 's' ? 12 : 16 })}</span>`;
+}
+
 /**
  * Feier-Dialog nach einer Einheit.
- * data: { title, subtitle, xp, level: {level,title,progress,toNext}, levelUp, stats: [{num, unit}], records: [], badges: [], note, href }
+ * data: { title, subtitle, xp, level: {level,title,progress,toNext}, levelUp, stats: [{num, unit}], highlights: [{icon, text}],
+ *         records: [string | {title, text, sub, rank, rankUp}], badges: [], note, href }
  */
 export function showCelebration(data) {
   confetti();
@@ -66,7 +73,8 @@ export function showCelebration(data) {
       </div>
       ${data.levelUp ? `<div class="levelup-banner">${icon('bolt', { size: 18 })} Level ${data.level.level} erreicht – ${esc(data.level.title)}!</div>` : `<div class="level-row"><span>Level ${data.level.level} · ${esc(data.level.title)}</span><span class="muted small">${data.level.toNext} XP bis Level ${data.level.level + 1}</span></div><div class="xp-bar"><div style="width:${(data.level.progress * 100).toFixed(0)}%"></div></div>`}
       ${data.stats?.length ? `<div class="summary center">${data.stats.map((s) => `<div class="stat"><span class="stat-num">${esc(s.num)}</span><span class="stat-unit">${esc(s.unit)}</span></div>`).join('')}</div>` : ''}
-      ${data.records?.length ? `<div class="reward-list"><div class="card-title">Neue Bestleistungen</div>${data.records.map((r) => `<div class="reward">${icon('trophy', { size: 18 })}<span>${esc(r)}</span></div>`).join('')}</div>` : ''}
+      ${data.highlights?.length ? `<div class="reward-list">${data.highlights.map((h) => `<div class="reward highlight ${esc(h.cls || '')}">${icon(h.icon || 'star', { size: 18 })}<span>${esc(h.text)}</span></div>`).join('')}</div>` : ''}
+      ${data.records?.length ? `<div class="reward-list"><div class="card-title">Neue Bestleistungen</div>${data.records.map((r) => (typeof r === 'string' ? `<div class="reward">${icon('trophy', { size: 18 })}<span>${esc(r)}</span></div>` : `<div class="reward ${r.rankUp ? 'rankup' : ''}">${medal(r.rank)}<span><strong>${esc(r.title)}</strong> ${esc(r.text)}${r.sub ? `<br><span class="small muted">${esc(r.sub)}</span>` : ''}</span></div>`)).join('')}</div>` : ''}
       ${data.badges?.length ? `<div class="reward-list"><div class="card-title">Neue Abzeichen</div>${data.badges.map((b) => `<div class="reward"><span class="badge-icon">${b.icon}</span><span><strong>${esc(b.name)}</strong> · ${esc(b.desc)}</span></div>`).join('')}</div>` : ''}
       ${data.note ? `<p class="small muted">${esc(data.note)}</p>` : ''}
       <a class="btn btn-primary btn-big" href="${data.href || '#/heute'}" data-close-modal>Weiter</a>

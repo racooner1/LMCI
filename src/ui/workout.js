@@ -3,7 +3,8 @@ import { html, raw, esc, toast, openModal, closeModal, confirmDialog, num, fmtMi
 import * as store from '../state.js';
 import { planWeek, effectiveSets, rirForWeek, alternativesFor, shortenDay, warmupSets, availableExercises } from '../engine/plan.js';
 import { suggestNext, muscleDeltasFromFeedback, plates, incrementFor } from '../engine/progression.js';
-import { historyFor, newRecords, totalSets, totalTonnage } from '../engine/analytics.js';
+import { historyFor, totalSets, totalTonnage } from '../engine/analytics.js';
+import { newRecordEvents, recordStreak, recordEvents } from '../engine/records.js';
 import { readinessScore } from '../engine/recovery.js';
 import { getExercise } from '../data/exercises.js';
 import { MUSCLE_BY_ID } from '../data/muscles.js';
@@ -11,7 +12,7 @@ import { toISODate, uid, clamp } from '../engine/util.js';
 import { openExerciseInfo } from './uebungen.js';
 import { icon } from './icons.js';
 import { showCelebration, pop } from './celebrate.js';
-import { totalXP, levelInfo, xpForWorkout, badgeExtra } from '../engine/gamification.js';
+import { totalXP, levelInfo, xpForWorkout, badgeExtra, XP } from '../engine/gamification.js';
 import { badgeStatus } from '../engine/achievements.js';
 
 let timer = { end: 0, total: 0, handle: null };
@@ -519,8 +520,10 @@ function finishWorkout(root) {
     };
     const deltas = aw.dayId === 'frei' || aw.dayId === 'schnell' ? {} : muscleDeltasFromFeedback(feedback, trained);
     const workout = { id: aw.id, planId: aw.planId, dayId: aw.dayId, week: aw.week, date: aw.date, startedAt: aw.startedAt, finishedAt: new Date().toISOString(), mode: aw.mode, entries, feedback };
-    const records = newRecords(workout, s.workouts);
-    workout.xp = xpForWorkout(workout, records.length);
+    const records = newRecordEvents(workout, s.workouts, s.profile);
+    const rankUps = records.filter((r) => r.rankUp).length;
+    workout.xp = xpForWorkout(workout, records.length, rankUps);
+    const streakBefore = recordStreak(recordEvents(s.workouts, s.profile), aw.date).weeks;
     const xpBefore = totalXP(s);
     const badgesBefore = new Set(badgeStatus(s, aw.date, badgeExtra(s, aw.date)).filter((b) => b.earned).map((b) => b.id));
     stopRestTimer();
@@ -554,13 +557,25 @@ function finishWorkout(root) {
       }, { silent: true });
     }
     const mins = Math.round((new Date(workout.finishedAt) - new Date(workout.startedAt)) / 60000);
+    const streakAfter = recordStreak(recordEvents(after.workouts, after.profile), aw.date);
+    const fmt1 = (v) => (Math.round(v * 10) / 10).toString().replace('.', ',');
+    const highlights = [];
+    if (streakAfter.weeks > streakBefore && streakAfter.weeks >= 2) highlights.push({ icon: 'flame', cls: 'flame', text: `Rekord-Serie: ${streakAfter.weeks} Wochen in Folge stärker geworden!` });
+    else if (streakAfter.weeks >= 2 && records.some((r) => r.kind === 'improve')) highlights.push({ icon: 'flame', cls: 'flame', text: `Rekord-Serie gesichert – ${streakAfter.weeks} Wochen in Folge.` });
     window.__lmci.afterRoute(() => showCelebration({
-      title: lvlAfter.level > lvlBefore.level ? 'Level up!' : records.length ? 'Neue Bestleistung!' : 'Training geschafft!',
+      title: lvlAfter.level > lvlBefore.level ? 'Level up!' : rankUps ? 'Rangaufstieg!' : records.length ? 'Neue Bestleistung!' : 'Training geschafft!',
       subtitle: `${totalSets(workout)} Sätze · ${totalTonnage(workout).toLocaleString('de-DE')} kg bewegt · ${mins} min`,
       xp: xpAfter - xpBefore,
       level: lvlAfter,
       levelUp: lvlAfter.level > lvlBefore.level,
-      records: records.map((r) => `${r.name}: ${r.e1rm ? `geschätztes 1RM ${r.e1rm} kg` : `${r.reps} Wiederholungen`}`),
+      highlights,
+      records: records.map((r) => ({
+        title: r.name,
+        text: r.mode === 'kg' ? `e1RM ${fmt1(r.e1rm)} kg${r.kind === 'improve' ? ` (+${fmt1(r.delta)} kg)` : ''}` : `${r.reps} ${getExercise(r.exId)?.load === 'time' ? 'Sekunden' : 'Wiederholungen'}${r.kind === 'improve' ? ` (+${r.delta})` : ''}`,
+        sub: r.rankUp ? `Aufstieg auf ${r.rank.name} · +${XP.rankUp} XP` : r.kind === 'first' ? `Erster Eintrag${r.rank ? ` · Rang ${r.rank.name}` : ''} · +${XP.pr} XP` : `${r.rank ? `Rang ${r.rank.name}${r.rank.next ? ` · ${r.rank.toNext} Punkte bis ${r.rank.next.name}` : ''} · ` : ''}+${XP.pr} XP`,
+        rank: r.rank,
+        rankUp: r.rankUp,
+      })),
       badges: newBadges,
       note: applied.length ? `Volumen angepasst (Sätze pro Übung): ${applied.join(', ')}.` : aw.dayId === 'frei' || aw.dayId === 'schnell' ? '' : 'Volumen bleibt – passt.',
     }));

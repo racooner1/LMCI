@@ -116,7 +116,41 @@ startReminderLoop(store);
 // In der Einzeldatei-Variante (dist/) gibt es keinen Service Worker.
 const SINGLE_FILE = typeof __LMCI_SINGLE__ !== 'undefined' && __LMCI_SINGLE__;
 if (!SINGLE_FILE && 'serviceWorker' in navigator && location.protocol.startsWith('http')) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(() => { /* offline-Modus dann nicht verfügbar */ });
+  window.addEventListener('load', async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('./sw.js');
+      // Beim Öffnen nach Updates suchen und einen Hinweis zeigen, sobald eine neue Version bereitsteht.
+      reg.update().catch(() => {});
+      const offer = (worker) => {
+        if (!worker) return;
+        worker.addEventListener('statechange', () => {
+          if (worker.state === 'installed' && navigator.serviceWorker.controller) showUpdateBanner(reg);
+        });
+      };
+      if (reg.waiting && navigator.serviceWorker.controller) showUpdateBanner(reg);
+      reg.addEventListener('updatefound', () => offer(reg.installing));
+      let reloading = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (reloading) return;
+        reloading = true;
+        location.reload();
+      });
+    } catch {
+      /* Offline-Modus dann nicht verfügbar */
+    }
+  });
+}
+
+function showUpdateBanner(reg) {
+  if (document.getElementById('update-banner')) return;
+  const el = document.createElement('div');
+  el.id = 'update-banner';
+  el.className = 'update-banner';
+  el.innerHTML = `<span>Neue Version von LMCI ist da.</span><button class="btn btn-small btn-primary" id="update-now">Jetzt aktualisieren</button>`;
+  document.body.appendChild(el);
+  el.querySelector('#update-now').addEventListener('click', () => {
+    el.remove();
+    if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+    else location.reload();
   });
 }

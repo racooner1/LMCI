@@ -571,3 +571,6 @@ details.group .chips { margin-top: 10px; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 @media (max-width: 400px) { h1 { font-size: 1.6rem; } .set-head, .set-row { grid-template-columns: 30px 1fr 1fr 66px 46px; gap: 5px; } }
+
+/* Update-Hinweis */
+.update-banner { position: fixed; left: 50%; transform: translateX(-50%); top: calc(10px + env(safe-area-inset-top, 0px)); z-index: 45; background: var(--ink); color: var(--bg); padding: 10px 12px 10px 16px; border-radius: 14px; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-pop); font-weight: 600; font-size: 0.92rem; max-width: calc(100% - 24px); animation: rise 0.3s ease both; }

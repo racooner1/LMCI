@@ -1,5 +1,5 @@
 // Service Worker: App-Shell offline verfügbar machen.
-const VERSION = 'lmci-v1.3.0';
+const VERSION = 'lmci-v1.3.1';
 const SHELL = [
   './', './index.html', './styles.css', './manifest.webmanifest',
   './src/app.js', './src/state.js',
@@ -13,7 +13,12 @@ const SHELL = [
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  // Neue Version vorbereiten; aktiv wird sie erst, wenn die App es anstößt (Hinweis „Jetzt aktualisieren“) oder beim nächsten Start.
+  event.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)));
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {

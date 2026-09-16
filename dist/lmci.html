@@ -582,6 +582,9 @@ details.group .chips { margin-top: 10px; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 @media (max-width: 400px) { h1 { font-size: 1.6rem; } .set-head, .set-row { grid-template-columns: 30px 1fr 1fr 66px 46px; gap: 5px; } }
 
+/* Update-Hinweis */
+.update-banner { position: fixed; left: 50%; transform: translateX(-50%); top: calc(10px + env(safe-area-inset-top, 0px)); z-index: 45; background: var(--ink); color: var(--bg); padding: 10px 12px 10px 16px; border-radius: 14px; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-pop); font-weight: 600; font-size: 0.92rem; max-width: calc(100% - 24px); animation: rise 0.3s ease both; }
+
 </style>
 </head>
 <body>
@@ -10544,7 +10547,7 @@ ${buildContext(get())}` }
   }
 
   // src/ui/mehr.js
-  var APP_VERSION = "1.3.0";
+  var APP_VERSION = "1.3.1";
   function renderMehr(root2) {
     const s = get();
     const p2 = s.profile;
@@ -11116,9 +11119,40 @@ ${buildContext(get())}` }
   startReminderLoop(state_exports);
   var SINGLE_FILE = true;
   if (!SINGLE_FILE && "serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./sw.js").catch(() => {
-      });
+    window.addEventListener("load", async () => {
+      try {
+        const reg = await navigator.serviceWorker.register("./sw.js");
+        reg.update().catch(() => {
+        });
+        const offer = (worker) => {
+          if (!worker) return;
+          worker.addEventListener("statechange", () => {
+            if (worker.state === "installed" && navigator.serviceWorker.controller) showUpdateBanner(reg);
+          });
+        };
+        if (reg.waiting && navigator.serviceWorker.controller) showUpdateBanner(reg);
+        reg.addEventListener("updatefound", () => offer(reg.installing));
+        let reloading = false;
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+          if (reloading) return;
+          reloading = true;
+          location.reload();
+        });
+      } catch {
+      }
+    });
+  }
+  function showUpdateBanner(reg) {
+    if (document.getElementById("update-banner")) return;
+    const el2 = document.createElement("div");
+    el2.id = "update-banner";
+    el2.className = "update-banner";
+    el2.innerHTML = `<span>Neue Version von LMCI ist da.</span><button class="btn btn-small btn-primary" id="update-now">Jetzt aktualisieren</button>`;
+    document.body.appendChild(el2);
+    el2.querySelector("#update-now").addEventListener("click", () => {
+      el2.remove();
+      if (reg.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" });
+      else location.reload();
     });
   }
 })();

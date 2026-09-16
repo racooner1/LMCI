@@ -66,6 +66,7 @@ export function renderHeute(root) {
   const eaten = dayTotals(s.foodLog[today] || []);
   const lastWeight = [...s.bodyLogs].sort((a, b) => (a.date < b.date ? 1 : -1))[0];
   const cardioThisWeek = s.cardioLogs.filter((c) => c.date >= ws);
+  const cardioToday = plan.cardio.sessions.find((c) => c.weekday === wd) || null;
   const checkin = s.checkins.find((c) => c.date === today);
   const readiness = readinessScore(checkin);
   const advice = readinessAdvice(readiness, checkin?.sore?.length || 0);
@@ -135,7 +136,7 @@ export function renderHeute(root) {
           <div>
             <div class="card-title">${sessionTitle}${next.kind === 'naechste' ? ` · ${WEEKDAYS_LONG[next.day.weekday]}` : ''}</div>
             <h2 class="session-name">${next.day.name}</h2>
-            <p class="muted">${next.day.exercises.length} Übungen · ca. ${dayDuration(plan, next.day, week, profile)} min · ${rirForWeek(plan, week)} Wdh. in Reserve${deload ? ' · Deload' : ''}</p>
+            <p class="muted">${next.day.exercises.length} Übungen · ca. ${dayDuration(plan, next.day, week, profile)} min · ${rirForWeek(plan, week)} Wdh. in Reserve${deload ? ' · Deload (halbe Sätze, Gewicht halten)' : ''}</p>
           </div>
           <div class="week-chip ${deload ? 'deload' : ''}"><span class="week-chip-label">${deload ? 'Deload' : 'Woche'}</span><span class="week-chip-week">${week}/${plan.weeks}</span></div>
         </div>
@@ -163,13 +164,15 @@ export function renderHeute(root) {
             ${WEEKDAYS.map((n, i) => {
               const d = plan.days.find((x) => x.weekday === i);
               const done = d && ad.dayIds.has(d.id);
-              return html`<div class="dot-day ${i === wd ? 'today' : ''} ${done ? 'done' : d ? 'planned' : ''}"><span>${n}</span><i></i></div>`;
+              const c = !d && plan.cardio.sessions.find((x) => x.weekday === i);
+              const cDone = c && cardioThisWeek.some((x) => weekdayIndex(x.date) === i);
+              return html`<div class="dot-day ${i === wd ? 'today' : ''} ${done ? 'done' : d ? 'planned' : cDone ? 'done cardio' : c ? 'planned cardio' : ''}" title="${d ? d.name : c ? `Cardio: ${c.name}` : ''}"><span>${n}</span><i></i></div>`;
             })}
           </div>
         </div>
         <div class="row between wrap gap">
-          <span class="small">${raw(icon('run', { size: 16 }))} Cardio ${cardioThisWeek.length}/${plan.cardio.sessionsPerWeek}${plan.cardio.sessions.length ? html` · nächste: ${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length]?.name} ${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length]?.minutesByWeek[week - 1]} min` : ''}</span>
-          ${plan.cardio.sessions.length ? html`<button class="btn btn-small" data-timer="${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length].id}">${raw(icon('timer', { size: 16 }))} Timer</button>` : ''}
+          <span class="small">${raw(icon('run', { size: 16 }))} Cardio ${cardioThisWeek.length}/${plan.cardio.sessionsPerWeek}${cardioToday ? html` · heute: ${cardioToday.name} (${cardioToday.minutesByWeek[Math.min(week, cardioToday.minutesByWeek.length) - 1]} min)` : plan.cardio.sessions.length ? html` · nächste: ${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length]?.name} ${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length]?.minutesByWeek[week - 1]} min` : ''}</span>
+          ${plan.cardio.sessions.length ? html`<button class="btn btn-small" data-timer="${(cardioToday || plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length]).id}">${raw(icon('timer', { size: 16 }))} Timer</button>` : ''}
         </div>
         <p class="muted small">${streakWeeks(plan, s.workouts, today)} Woche${streakWeeks(plan, s.workouts, today) === 1 ? '' : 'n'} in Folge dran · ${s.workouts.length} Trainings gesamt</p>
       </div>
@@ -213,6 +216,7 @@ export function renderHeute(root) {
     if (act === 'checkin') return openCheckin(checkin);
     if (act === 'mobility') return openMobility(plan, next.kind === 'heute' || next.kind === 'nachholen' ? next.day : null);
     if (act === 'weight') return root.querySelector('#weight-input')?.focus();
+    if (act === 'cardio') return openCardioLog(plan, week);
     location.hash = b.dataset.href;
   }));
   root.querySelector('#weight-form').addEventListener('submit', (e) => {
@@ -278,14 +282,15 @@ function dayName(plan, dayId) {
 
 export function startNewMeso() {
   const s = store.get();
+  // Der nächste Block übernimmt die Wochen-Anpassung gedämpft (halbiert).
   const carry = {};
   for (const [m, v] of Object.entries(s.plan.muscleAdjust || {})) {
-    if (v >= 2) carry[m] = 1;
-    else if (v <= -2) carry[m] = -1;
+    const half = Math.trunc(v / 2);
+    if (half) carry[m] = half;
   }
   store.update((st) => {
     st.planHistory.push(st.plan);
-    st.plan = generatePlan({ ...st.profile }, { mesoIndex: st.plan.mesoIndex + 1 });
+    st.plan = generatePlan({ ...st.profile }, { mesoIndex: st.plan.mesoIndex + 1, barWeight: st.settings?.barWeight });
     st.plan.muscleAdjust = carry;
   });
   confetti();
@@ -345,7 +350,7 @@ export function openCardioLog(plan, week) {
   const options = `${mine.length ? `<optgroup label="Meine Aktivitäten">${mine.map((a) => `<option value="${a.id}">${a.name}</option>`).join('')}</optgroup>` : ''}${CARDIO_GROUPS.map((g) => `<optgroup label="${g}">${CARDIO_ACTIVITIES.filter((a) => a.group === g).map((a) => `<option value="${a.id}">${a.name}</option>`).join('')}</optgroup>`).join('')}`;
   const m = openModal(
     `<form id="cardio-form" class="form">
-      <label class="field"><span>Einheit</span><select id="c-session" name="sessionId"><option value="">Freies Cardio</option>${plan.cardio.sessions.map((c) => `<option value="${c.id}">${c.name} (${c.minutesByWeek[week - 1]} min)</option>`).join('')}</select></label>
+      <label class="field"><span>Einheit</span><select id="c-session" name="sessionId"><option value="">Freies Cardio</option>${plan.cardio.sessions.map((c) => `<option value="${c.id}" ${c.weekday === weekdayIndex(toISODate()) ? 'selected' : ''}>${c.name} (${c.minutesByWeek[Math.min(week, c.minutesByWeek.length) - 1]} min)${c.weekday != null ? ` · ${WEEKDAYS[c.weekday]}` : ''}</option>`).join('')}</select></label>
       <div class="grid2">
         <label class="field"><span>Aktivität</span><select id="c-activity" name="activity">${options}</select></label>
         <label class="field"><span>Dauer (min)</span><input id="c-min" name="minutes" type="number" inputmode="numeric" min="1" max="600" required></label>
@@ -358,10 +363,17 @@ export function openCardioLog(plan, week) {
     { title: 'Cardio eintragen' },
   );
   const sel = m.querySelector('#c-session');
+  if (sel.value) {
+    const c = plan.cardio.sessions.find((x) => x.id === sel.value);
+    if (c) {
+      m.querySelector('#c-min').value = c.minutesByWeek[Math.min(week, c.minutesByWeek.length) - 1];
+      m.querySelector('#c-activity').value = c.activity;
+    }
+  }
   sel.addEventListener('change', () => {
     const c = plan.cardio.sessions.find((x) => x.id === sel.value);
     if (c) {
-      m.querySelector('#c-min').value = c.minutesByWeek[week - 1];
+      m.querySelector('#c-min').value = c.minutesByWeek[Math.min(week, c.minutesByWeek.length) - 1];
       m.querySelector('#c-activity').value = c.activity;
     }
   });

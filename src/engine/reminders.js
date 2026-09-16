@@ -10,9 +10,14 @@ export function reminderDue(s, now = new Date()) {
   if (now.getHours() < hh || (now.getHours() === hh && now.getMinutes() < mm)) return null;
   const wd = weekdayIndex(today);
   const day = s.plan.days.find((d) => d.weekday === wd);
-  if (!day) return null;
-  if (s.workouts.some((w) => w.date === today)) return null;
-  return { day, text: `Heute steht „${day.name}“ an – ${day.exercises.length} Übungen, ca. ${day.minutes} min.` };
+  if (day) {
+    if (s.workouts.some((w) => w.date === today)) return null;
+    return { day, text: `Heute steht „${day.name}“ an – ${day.exercises.length} Übungen, ca. ${day.minutes} min.` };
+  }
+  const cardio = s.plan.cardio?.sessions?.find((c) => c.weekday === wd);
+  if (!cardio) return null;
+  if ((s.cardioLogs || []).some((c) => c.date === today)) return null;
+  return { cardio, text: `Heute steht Cardio an: ${cardio.name}.` };
 }
 
 export function startReminderLoop(store) {
@@ -39,8 +44,8 @@ export function startReminderLoop(store) {
   });
 }
 
-// iCalendar-Export der Trainingstage für den laufenden Block.
-export function buildICS(plan, { time = '18:00', durationMin = 60, weeks = 5, startDate = plan.startDate } = {}) {
+// iCalendar-Export der Trainings- und Cardio-Tage für den laufenden Block.
+export function buildICS(plan, { time = '18:00', durationMin = 60, weeks = plan.weeks || 5, startDate = plan.startDate, cardio = true } = {}) {
   const [hh, mm] = time.split(':').map(Number);
   const pad = (n) => String(n).padStart(2, '0');
   const stamp = (iso, h, m) => `${iso.replace(/-/g, '')}T${pad(h)}${pad(m)}00`;
@@ -55,6 +60,17 @@ export function buildICS(plan, { time = '18:00', durationMin = 60, weeks = 5, st
       const endH = hh + Math.floor(endM / 60);
       const desc = d.exercises.map((pe) => pe.exId).join(', ');
       lines.push('BEGIN:VEVENT', `UID:lmci-${plan.id}-${d.id}-${iso}@lmci`, `DTSTAMP:${stamp(toISODate(), 0, 0)}Z`, `DTSTART:${stamp(iso, hh, mm)}`, `DTEND:${stamp(iso, endH, endM % 60)}`, `SUMMARY:LMCI: ${d.name}${w === weeks - 1 ? ' (Deload)' : ''}`, `DESCRIPTION:${desc}`, 'END:VEVENT');
+    }
+    if (cardio) {
+      for (const c of plan.cardio?.sessions || []) {
+        if (c.weekday == null) continue;
+        const iso = addDays(first, w * 7 + c.weekday);
+        if (iso < startDate) continue;
+        const min = c.minutesByWeek[Math.min(w, c.minutesByWeek.length - 1)];
+        const endM = mm + min;
+        const endH = hh + Math.floor(endM / 60);
+        lines.push('BEGIN:VEVENT', `UID:lmci-${plan.id}-${c.id}-${iso}@lmci`, `DTSTAMP:${stamp(toISODate(), 0, 0)}Z`, `DTSTART:${stamp(iso, hh, mm)}`, `DTEND:${stamp(iso, endH, endM % 60)}`, `SUMMARY:LMCI Cardio: ${c.name} (${min} min)`, `DESCRIPTION:${c.desc}`, 'END:VEVENT');
+      }
     }
   }
   lines.push('END:VCALENDAR');

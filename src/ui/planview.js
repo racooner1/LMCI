@@ -32,7 +32,7 @@ export function renderPlan(root) {
         </div>
         <div class="week-chip ${deload ? 'deload' : ''}"><span class="week-chip-label">${deload ? 'Deload' : 'Aufbau'}</span><span class="week-chip-week">Woche ${week}/${plan.weeks}</span></div>
       </header>
-      <p class="muted small">Block ${plan.mesoIndex + 1} · ${formatDate(plan.startDate)} bis ${formatDate(endDate)} · diese Woche ${rir} Wiederholung${rir === 1 ? '' : 'en'} in Reserve${deload ? ', halbe Satzzahl, ca. 10 % weniger Gewicht' : ''}</p>
+      <p class="muted small">Block ${plan.mesoIndex + 1} · ${formatDate(plan.startDate)} bis ${formatDate(endDate)} · diese Woche ${rir} Wiederholung${rir === 1 ? '' : 'en'} in Reserve${deload ? ', halbe Satzzahl, Gewicht halten' : ''}</p>
       ${plan.notes.map((n) => html`<div class="note">${n}</div>`)}
       ${isMesoFinished(plan, today) ? html`<div class="banner"><strong>Block abgeschlossen.</strong> <button class="btn btn-primary" data-act="new-meso">Neuen Mesozyklus starten</button></div>` : ''}
 
@@ -66,7 +66,7 @@ export function renderPlan(root) {
 function startNewMesoKeepIndex() {
   store.update((st) => {
     const { generatePlan } = window.__lmci;
-    st.plan = generatePlan(st.profile, { mesoIndex: st.plan.mesoIndex, startDate: st.plan.startDate });
+    st.plan = generatePlan(st.profile, { mesoIndex: st.plan.mesoIndex, startDate: st.plan.startDate, barWeight: st.settings?.barWeight });
   });
   toast('Plan neu berechnet.', 'ok');
 }
@@ -89,10 +89,11 @@ function renderTab(t, plan, profile, week) {
             <td class="num">${Math.round(pe.restSec / 60 * 10) / 10} min</td></tr>`;
         })}</tbody>
       </table>
-      ${Object.entries(plan.muscleAdjust || {}).filter(([m, v]) => v && d.exercises.some((pe) => pe.muscle === m)).length ? html`<div class="muted small">Autoregulation: ${Object.entries(plan.muscleAdjust).filter(([m, v]) => v && d.exercises.some((pe) => pe.muscle === m)).map(([m, v]) => `${MUSCLE_BY_ID[m]?.short} ${v > 0 ? '+' : ''}${v}`).join(', ')} Satz/Übung (aus deinem Feedback).</div>` : ''}
+      ${Object.entries(plan.muscleAdjust || {}).filter(([m, v]) => v && d.exercises.some((pe) => pe.muscle === m)).length ? html`<div class="muted small">Autoregulation (Sätze pro Woche): ${Object.entries(plan.muscleAdjust).filter(([m, v]) => v && d.exercises.some((pe) => pe.muscle === m)).map(([m, v]) => `${MUSCLE_BY_ID[m]?.short} ${v > 0 ? '+' : ''}${v}`).join(', ')} Satz/Übung (aus deinem Feedback).</div>` : ''}
     </div>`).map(String).join('') + `<div class="card"><div class="card-title">So liest du den Plan</div><ul class="bullets">
       <li><strong>Sätze × Wdh.</strong> – Arbeitssätze nach dem Aufwärmen. Erreichst du in allen Sätzen die obere Wiederholungszahl, wird beim nächsten Mal das Gewicht erhöht (doppelte Progression).</li>
-      <li><strong>Wiederholungen in Reserve (RIR)</strong> – wie viele saubere Wiederholungen du noch schaffen würdest. Woche 1 locker (3), bis Woche 4 nah ans Versagen, Woche 5 Deload.</li>
+      <li><strong>Wiederholungen in Reserve (RIR)</strong> – wie viele saubere Wiederholungen du noch schaffen würdest. Woche 1 locker (3), zum Ende des Blocks näher ans Versagen, letzte Woche Deload (halbe Sätze, Gewicht halten). Schwere Langhantel-Kniebeugen und Kreuzheben gehen nie bis zum Versagen (mindestens 1 in Reserve).</li>
+      <li><strong>Autoregulation</strong> – dein Feedback nach jeder Einheit verschiebt das Wochenvolumen eines Muskels um ±1 Satz, verteilt auf seine Übungen. Als „nicht erholt“ markierte Muskeln bekommen am selben Tag einen Satz weniger.</li>
       <li><strong>Aufwärmen</strong> – 5 min locker (Rad, Seil, Gehen), dann bei der ersten Übung 2–3 Sätze mit 40 / 60 / 80 % des Arbeitsgewichts.</li>
       <li><strong>Tausch</strong> – tippe auf eine Übung, um Technik-Hinweise und Alternativen zu sehen.</li>
     </ul></div>`;
@@ -107,13 +108,13 @@ function renderTab(t, plan, profile, week) {
   if (t === 'cardio') {
     const c = plan.cardio;
     return `<div class="card"><div class="card-title">Cardio-Einheiten</div>
-      ${c.sessions.length ? `<table class="ex-table"><thead><tr><th>Einheit</th>${[1, 2, 3, 4, 5].map((w) => `<th class="num ${w === week ? 'now' : ''}">W${w}</th>`).join('')}</tr></thead>
-      <tbody>${c.sessions.map((s) => `<tr><td><div class="ex-name">${s.name}</div><div class="muted small">${ACTIVITY_BY_ID[s.activity]?.name} · Zone ${s.zone}${s.intervals ? ` · ${s.intervals.work}s hart / ${s.intervals.rest}s locker` : ''}</div></td>${s.minutesByWeek.map((m, i) => `<td class="num ${i + 1 === week ? 'now' : ''}">${m}${s.intervals ? `<div class="muted small">${s.intervals.roundsByWeek[i]}×</div>` : ''}</td>`).join('')}</tr>`).join('')}</tbody></table>
+      ${c.sessions.length ? `<table class="ex-table"><thead><tr><th>Einheit</th>${Array.from({ length: plan.weeks || 5 }, (_, i) => i + 1).map((w) => `<th class="num ${w === week ? 'now' : ''}">W${w}</th>`).join('')}</tr></thead>
+      <tbody>${c.sessions.map((s) => `<tr><td><div class="ex-name">${s.name}</div><div class="muted small">${s.weekday != null ? `${WEEKDAYS_LONG[s.weekday]} · ` : ''}${ACTIVITY_BY_ID[s.activity]?.name} · Zone ${s.zone}${s.intervals ? ` · ${s.intervals.work}s hart / ${s.intervals.rest}s locker` : ''}</div></td>${s.minutesByWeek.map((m, i) => `<td class="num ${i + 1 === week ? 'now' : ''}">${m}${s.intervals ? `<div class="muted small">${s.intervals.roundsByWeek[i]}×</div>` : ''}</td>`).join('')}</tr>`).join('')}</tbody></table>
       <p class="muted small">Minuten pro Einheit und Woche. ${c.hint}</p>
       ${c.sessions.map((s) => `<p class="small"><strong>${s.name}:</strong> ${s.desc}</p>`).join('')}` : `<p class="muted">${c.hint}</p>`}
       </div>
       <div class="card"><div class="card-title">Deine Pulszonen</div>
-      <p class="muted small">Maximalpuls geschätzt ${c.zones.max} (208 − 0,7 × Alter). Methode: ${c.zones.method}.${profile.restingHr ? '' : ' Trage deinen Ruhepuls im Profil ein für genauere Zonen.'}</p>
+      <p class="muted small">Maximalpuls ${c.zones.measured ? `gemessen ${c.zones.max}` : `geschätzt ${c.zones.max} (208 − 0,7 × Alter, Streuung etwa ±10 Schläge – ein gemessener Wert im Profil geht vor)`}. Methode: ${c.zones.method}.${profile.restingHr ? '' : ' Trage deinen Ruhepuls im Profil ein für genauere Zonen.'}</p>
       <table class="ex-table"><tbody>${c.zones.zones.map((z) => `<tr><td><div class="ex-name">${z.name}</div><div class="muted small">${z.feel}</div></td><td class="num">${z.range[0]}–${z.range[1]}</td></tr>`).join('')}</tbody></table>
       </div>`;
   }

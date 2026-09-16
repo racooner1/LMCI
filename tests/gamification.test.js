@@ -42,9 +42,10 @@ test('Tagesziele je nach Plan-Tag', () => {
   const mon = dailyGoals(s, '2026-09-14'); // Trainingstag
   assert.ok(mon.some((g) => g.id === 'training' && !g.done));
   s.workouts.push({ id: 'w1', planId: plan.id, dayId: 'd1', date: '2026-09-14', entries: [] });
-  const tue = dailyGoals(s, '2026-09-15'); // Ruhetag bei Mo/Mi/Fr, Montag erledigt
-  assert.ok(tue.some((g) => g.id === 'bewegung'));
+  const tue = dailyGoals(s, '2026-09-15'); // Ruhetag bei Mo/Mi/Fr, Montag erledigt → Bewegung oder geplanter Cardio-Tag
+  const move = tue.find((g) => g.id === 'bewegung' || g.id === 'cardio');
+  assert.ok(move && !move.done);
   s.cardioLogs.push({ date: '2026-09-15', minutes: 20 });
-  assert.ok(dailyGoals(s, '2026-09-15').find((g) => g.id === 'bewegung').done);
+  assert.ok(dailyGoals(s, '2026-09-15').find((g) => g.id === move.id).done);
   assert.ok(!isPerfectDay(s, '2026-09-15'));
 });

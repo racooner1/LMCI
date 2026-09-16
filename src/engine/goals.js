@@ -1,6 +1,7 @@
 // Tagesziele und XP-Werte. Bewusst ohne Abhängigkeit zu Herausforderungen, damit keine Import-Zyklen entstehen.
 import { toISODate } from './util.js';
-import { nextSession } from './plan.js';
+import { nextSession, planWeek } from './plan.js';
+import { weekdayIndex } from './util.js';
 import { dayTotals } from './food.js';
 
 export const XP = { workoutBase: 50, perSet: 8, pr: 25, cardioPerMin: 2, checkin: 10, food: 15, water: 5, weight: 5, mobility: 15, perfectDay: 40 };
@@ -23,7 +24,15 @@ export function dailyGoals(s, today = toISODate()) {
   if (next && (next.kind === 'heute' || next.kind === 'nachholen')) {
     goals.push({ id: 'training', label: `Training: ${next.day.name}`, hint: `${next.day.exercises.length} Übungen`, xp: XP.workoutBase, done: workoutToday, href: `#/workout/${next.day.id}` });
   } else {
-    goals.push({ id: 'bewegung', label: 'Bewegung heute', hint: 'Cardio, Mobilität oder Schnelltraining', xp: XP.mobility, done: workoutToday || cardioToday || mobilityToday, href: '#/schnell' });
+    const wd = weekdayIndex(today);
+    const cardioSession = plan?.cardio?.sessions?.find((c) => c.weekday === wd);
+    if (cardioSession) {
+      const week = planWeek(plan, today);
+      const min = cardioSession.minutesByWeek[Math.min(week, cardioSession.minutesByWeek.length) - 1];
+      goals.push({ id: 'cardio', label: `Cardio: ${cardioSession.name}`, hint: `${min} min · geplanter Cardio-Tag`, xp: Math.round(Math.min(120, min) * XP.cardioPerMin), done: cardioToday, href: '#/heute', act: 'cardio' });
+    } else {
+      goals.push({ id: 'bewegung', label: 'Bewegung heute', hint: 'Cardio, Mobilität oder Schnelltraining', xp: XP.mobility, done: workoutToday || cardioToday || mobilityToday, href: '#/schnell' });
+    }
   }
   goals.push({ id: 'food', label: 'Ernährung erfassen', hint: 'mindestens 3 Einträge', xp: XP.food, done: entries >= 3 || food.kcal >= 800, href: '#/ernaehrung' });
   goals.push({ id: 'water', label: 'Genug trinken', hint: '6 Gläser (1,5 l)', xp: XP.water, done: water >= 1500, href: '#/ernaehrung' });

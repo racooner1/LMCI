@@ -85,6 +85,10 @@ function migrate(s) {
   if (!s.coach) s.coach = { apiKey: '', model: 'claude-opus-5', history: [] };
   if (!Array.isArray(s.coach.history)) s.coach.history = [];
   if (s.plan && !s.plan.muscleAdjust) s.plan.muscleAdjust = {};
+  if (s.profile && !Array.isArray(s.profile.health)) s.profile.health = [];
+  if (s.plan && !s.plan.weeks) s.plan.weeks = 5;
+  if (s.plan && !s.plan.deloadWeek) s.plan.deloadWeek = s.plan.weeks;
+  for (const c of s.plan?.cardio?.sessions || []) if (c.weekday === undefined) c.weekday = null;
   for (const d of s.plan?.days || []) for (const pe of d.exercises) if (pe.tier == null) pe.tier = 1;
   s.schema = SCHEMA;
   return s;

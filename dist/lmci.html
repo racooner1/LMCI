@@ -294,6 +294,8 @@ details.group .chips { margin-top: 10px; }
 .dot-day i { width: 100%; height: 10px; border-radius: 5px; background: var(--surface-3); }
 .dot-day.planned i { background: var(--accent-soft); border: 1.5px solid var(--accent); }
 .dot-day.done i { background: var(--ok); border-color: var(--ok); }
+.dot-day.planned.cardio i { background: var(--flame-soft); border-color: var(--flame); }
+.dot-day.done.cardio i { background: var(--flame); border-color: var(--flame); }
 .dot-day.today span { color: var(--accent); }
 .dot-sum { font-weight: 800; font-size: 1.15rem; padding-left: 6px; }
 
@@ -508,6 +510,10 @@ details.group .chips { margin-top: 10px; }
 .cal-cell.today { border-color: var(--accent); }
 .cal-cell.future { opacity: 0.5; }
 .cal-cell.missed { border-color: var(--warn); border-style: dashed; }
+.cal-cell.cardio-planned { box-shadow: inset 0 3px 0 var(--flame-soft); }
+.cal-cell.missed-cardio { box-shadow: inset 0 3px 0 var(--flame); }
+.health-list { display: flex; flex-direction: column; gap: 8px; }
+.chip.health { border-radius: 12px; align-items: flex-start; text-align: left; white-space: normal; line-height: 1.35; }
 .cal-cell[data-empty] { color: var(--muted); }
 .cal-num { font-size: 0.9rem; font-weight: 700; }
 .cal-dots { display: flex; gap: 2px; min-height: 8px; }
@@ -5836,6 +5842,10 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     if (!s.coach) s.coach = { apiKey: "", model: "claude-opus-5", history: [] };
     if (!Array.isArray(s.coach.history)) s.coach.history = [];
     if (s.plan && !s.plan.muscleAdjust) s.plan.muscleAdjust = {};
+    if (s.profile && !Array.isArray(s.profile.health)) s.profile.health = [];
+    if (s.plan && !s.plan.weeks) s.plan.weeks = 5;
+    if (s.plan && !s.plan.deloadWeek) s.plan.deloadWeek = s.plan.weeks;
+    for (const c of s.plan?.cardio?.sessions || []) if (c.weekday === void 0) c.weekday = null;
     for (const d of s.plan?.days || []) for (const pe of d.exercises) if (pe.tier == null) pe.tier = 1;
     s.schema = SCHEMA;
     return s;
@@ -6018,17 +6028,17 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     ex({ id: "ausfallschritte_lh", name: "Ausfallschritte (Langhantel)", en: "Barbell Lunges", pattern: "lunge", tier: 2, primary: ["quadrizeps"], secondary: ["gesaess"], ctx: HOME, gear: ["langhantel"], load: "barbell", inc: 2.5, ratio: 0.5, contra: ["knie", "ruecken_unten"], cue: "Stange wie bei der Kniebeuge, Rumpf fest, kontrollierte Schritte." }),
     ex({ id: "step_ups", name: "Step-ups", en: "Step-ups", pattern: "lunge", tier: 2, primary: ["quadrizeps"], secondary: ["gesaess"], ctx: HOME, gear: [], load: "dumbbell", inc: 2, ratio: 0.15, bwReps: [12, 18, 25], cue: "Kniehohe Stufe, ganz aus dem vorderen Bein hochdr\xFCcken." }),
     ex({ id: "beinpresse_einbeinig", name: "Beinpresse einbeinig", en: "Single-leg Leg Press", pattern: "squat", tier: 2, primary: ["quadrizeps"], secondary: ["gesaess"], load: "machine", inc: 5, ratio: 1.1, cue: "Fu\xDF mittig, H\xFCfte bleibt am Polster." }),
-    ex({ id: "pistol_squat", name: "Pistol Squat (einbeinig)", en: "Pistol Squat", pattern: "squat", tier: 2, primary: ["quadrizeps"], secondary: ["gesaess"], ctx: ["home"], gear: [], load: "bw", inc: 0, bwReps: [2, 5, 8], contra: ["knie"], cue: "Festhalten erlaubt (T\xFCrrahmen), langsam absenken, Ferse bleibt unten." }),
+    ex({ id: "pistol_squat", reps: [3, 8], name: "Pistol Squat (einbeinig)", en: "Pistol Squat", pattern: "squat", tier: 2, primary: ["quadrizeps"], secondary: ["gesaess"], ctx: ["home"], gear: [], load: "bw", inc: 0, bwReps: [2, 5, 8], contra: ["knie"], cue: "Festhalten erlaubt (T\xFCrrahmen), langsam absenken, Ferse bleibt unten." }),
     ex({ id: "kniebeuge_bw", name: "Kniebeuge (K\xF6rpergewicht)", en: "Bodyweight Squat", pattern: "squat", tier: 2, primary: ["quadrizeps"], secondary: ["gesaess"], ctx: ["home"], gear: [], load: "bw", inc: 0, bwReps: [15, 25, 35], cue: "Tempo langsam (3 s runter), Pause unten \u2013 so wird es auch ohne Gewicht schwer." }),
     ex({ id: "kniebeuge_band", name: "Kniebeuge mit Band", en: "Banded Squat", pattern: "squat", tier: 2, primary: ["quadrizeps"], secondary: ["gesaess"], ctx: ["home"], gear: ["band"], load: "band", inc: 0, bwReps: [12, 18, 25], cue: "Auf das Band stellen, Band \xFCber den Schultern, gegen den Zug aufstehen." }),
     ex({ id: "spanish_squat", name: "Spanish Squat (Band)", en: "Spanish Squat", pattern: "iso", tier: 3, primary: ["quadrizeps"], ctx: HOME, gear: ["band"], load: "band", inc: 0, bwReps: [10, 15, 20], cue: "Band hinter den Knien an einem Pfosten, Schienbeine bleiben senkrecht \u2013 kniefreundlich, brennt im Quadrizeps." }),
     ex({ id: "beinstrecker", name: "Beinstrecker (Maschine)", en: "Leg Extension", pattern: "iso", tier: 3, primary: ["quadrizeps"], load: "machine", inc: 5, ratio: 0.9, cue: "Oben kurz anspannen, langsam ablassen." }),
     ex({ id: "beinstrecker_einbeinig", name: "Beinstrecker einbeinig", en: "Single-leg Extension", pattern: "iso", tier: 3, primary: ["quadrizeps"], load: "machine", inc: 2.5, ratio: 0.45, cue: "Gleicht Seitenunterschiede aus, oben 1 s halten." }),
     ex({ id: "sissy_squat", name: "Wandsitz", en: "Wall Sit", pattern: "iso", tier: 3, primary: ["quadrizeps"], ctx: ["home"], gear: [], load: "time", inc: 0, bwReps: [30, 60, 90], contra: ["knie"], cue: "90\xB0 im Knie, R\xFCcken an der Wand \u2013 Zeit steigern." }),
-    ex({ id: "sissy_squat_echt", name: "Sissy Squat", en: "Sissy Squat", pattern: "iso", tier: 3, primary: ["quadrizeps"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [5, 10, 15], contra: ["knie"], cue: "Festhalten, Knie nach vorn schieben, H\xFCfte gestreckt lassen \u2013 extreme Quadrizepsdehnung." }),
+    ex({ id: "sissy_squat_echt", reps: [5, 12], name: "Sissy Squat", en: "Sissy Squat", pattern: "iso", tier: 3, primary: ["quadrizeps"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [5, 10, 15], contra: ["knie"], cue: "Festhalten, Knie nach vorn schieben, H\xFCfte gestreckt lassen \u2013 extreme Quadrizepsdehnung." }),
     // ======================================================= Beinbeuger / Hinge
-    ex({ id: "kreuzheben", name: "Kreuzheben (konventionell)", en: "Conventional Deadlift", pattern: "hinge", tier: 1, primary: ["beinbeuger"], secondary: ["gesaess", "ruecken", "quadrizeps"], ctx: HOME, gear: ["langhantel"], load: "barbell", inc: 5, ratio: 1.5, contra: ["ruecken_unten"], cue: "Stange nah am Schienbein, R\xFCcken neutral, H\xFCfte und Schultern gleichzeitig hoch." }),
-    ex({ id: "sumo_kreuzheben", name: "Kreuzheben (Sumo)", en: "Sumo Deadlift", pattern: "hinge", tier: 1, primary: ["beinbeuger"], secondary: ["gesaess", "quadrizeps", "ruecken"], ctx: HOME, gear: ["langhantel"], load: "barbell", inc: 5, ratio: 1.5, contra: ["ruecken_unten", "huefte"], cue: "Breiter Stand, Zehen nach au\xDFen, Knie nach au\xDFen dr\xFCcken, Oberk\xF6rper aufrecht." }),
+    ex({ id: "kreuzheben", name: "Kreuzheben (konventionell)", en: "Conventional Deadlift", pattern: "hinge", tier: 1, primary: ["beinbeuger"], secondary: ["gesaess", "ruecken", "quadrizeps"], ctx: HOME, gear: ["langhantel"], load: "barbell", inc: 5, ratio: 1.5, contra: ["ruecken_unten", "schwangerschaft"], cue: "Stange nah am Schienbein, R\xFCcken neutral, H\xFCfte und Schultern gleichzeitig hoch." }),
+    ex({ id: "sumo_kreuzheben", name: "Kreuzheben (Sumo)", en: "Sumo Deadlift", pattern: "hinge", tier: 1, primary: ["beinbeuger"], secondary: ["gesaess", "quadrizeps", "ruecken"], ctx: HOME, gear: ["langhantel"], load: "barbell", inc: 5, ratio: 1.5, contra: ["ruecken_unten", "huefte", "schwangerschaft"], cue: "Breiter Stand, Zehen nach au\xDFen, Knie nach au\xDFen dr\xFCcken, Oberk\xF6rper aufrecht." }),
     ex({ id: "rdl_lh", name: "Rum\xE4nisches Kreuzheben (Langhantel)", en: "Romanian Deadlift", pattern: "hinge", tier: 1, primary: ["beinbeuger"], secondary: ["gesaess"], ctx: HOME, gear: ["langhantel"], load: "barbell", inc: 5, ratio: 1.1, contra: ["ruecken_unten"], cue: "H\xFCfte nach hinten schieben, Knie leicht gebeugt, Stange am Bein entlang bis zur Dehnung." }),
     ex({ id: "rdl_kh", name: "Rum\xE4nisches Kreuzheben (Kurzhantel)", en: "Dumbbell RDL", pattern: "hinge", tier: 1, primary: ["beinbeuger"], secondary: ["gesaess"], ctx: HOME, gear: ["kurzhantel"], load: "dumbbell", inc: 2, ratio: 0.35, contra: ["ruecken_unten"], cue: "H\xFCfte zur\xFCck, R\xFCcken gerade, Hanteln nah am Bein." }),
     ex({ id: "rdl_kettlebell", name: "Rum\xE4nisches Kreuzheben (Kettlebell)", en: "Kettlebell RDL", pattern: "hinge", tier: 1, primary: ["beinbeuger"], secondary: ["gesaess"], ctx: HOME, gear: ["kettlebell"], load: "kettlebell", inc: 4, ratio: 0.5, contra: ["ruecken_unten"], cue: "Kettlebell zwischen den Beinen, H\xFCfte nach hinten, R\xFCcken lang." }),
@@ -6037,17 +6047,17 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     ex({ id: "good_morning", name: "Good Morning", en: "Good Morning", pattern: "hinge", tier: 2, primary: ["beinbeuger"], secondary: ["gesaess"], ctx: HOME, gear: ["langhantel"], load: "barbell", inc: 2.5, ratio: 0.5, contra: ["ruecken_unten"], cue: "Leichtes Gewicht, H\xFCfte weit nach hinten, R\xFCcken neutral \u2013 Dehnung im Beinbeuger." }),
     ex({ id: "kettlebell_swing", name: "Kettlebell Swing", en: "Kettlebell Swing", pattern: "hinge", tier: 2, primary: ["gesaess"], secondary: ["beinbeuger", "bauch"], ctx: HOME, gear: ["kettlebell"], load: "kettlebell", inc: 4, ratio: 0.35, contra: ["ruecken_unten"], cue: "Kraft kommt aus der H\xFCftstreckung, nicht aus den Armen. Oben Ges\xE4\xDF hart anspannen." }),
     ex({ id: "kabel_pull_through", name: "Pull-Through am Kabel", en: "Cable Pull-Through", pattern: "hinge", tier: 2, primary: ["gesaess"], secondary: ["beinbeuger"], load: "cable", inc: 2.5, ratio: 0.6, cue: "Seil zwischen den Beinen, H\xFCfte nach hinten, mit dem Ges\xE4\xDF nach vorn dr\xFCcken." }),
-    ex({ id: "hip_thrust", name: "Hip Thrust (Langhantel)", en: "Barbell Hip Thrust", pattern: "hinge", tier: 1, primary: ["gesaess"], secondary: ["beinbeuger"], ctx: HOME, gear: ["langhantel", "bank"], load: "barbell", inc: 5, ratio: 1.4, contra: ["huefte"], cue: "Schulterbl\xE4tter auf der Bank, Kinn zur Brust, oben Ges\xE4\xDF maximal anspannen." }),
+    ex({ id: "hip_thrust", name: "Hip Thrust (Langhantel)", en: "Barbell Hip Thrust", pattern: "hinge", tier: 1, primary: ["gesaess"], secondary: ["beinbeuger"], ctx: HOME, gear: ["langhantel", "bank"], load: "barbell", inc: 5, ratio: 1.4, contra: ["huefte", "schwangerschaft"], cue: "Schulterbl\xE4tter auf der Bank, Kinn zur Brust, oben Ges\xE4\xDF maximal anspannen." }),
     ex({ id: "hip_thrust_maschine", name: "Hip Thrust (Maschine)", en: "Machine Hip Thrust", pattern: "hinge", tier: 1, primary: ["gesaess"], secondary: ["beinbeuger"], load: "machine", inc: 5, ratio: 1.4, cue: "Oben 1 s halten, Becken leicht nach hinten kippen." }),
     ex({ id: "hip_thrust_kh", name: "Hip Thrust (Kurzhantel)", en: "Dumbbell Hip Thrust", pattern: "hinge", tier: 2, primary: ["gesaess"], secondary: ["beinbeuger"], ctx: HOME, gear: ["kurzhantel"], load: "dumbbell", inc: 2, ratio: 0.6, cue: "Hantel auf der H\xFCfte, R\xFCcken auf Sofa oder Bank, H\xFCfte voll strecken." }),
     ex({ id: "glute_bridge", name: "Glute Bridge (Boden)", en: "Glute Bridge", pattern: "hinge", tier: 2, primary: ["gesaess"], secondary: ["beinbeuger"], ctx: HOME, gear: [], load: "dumbbell", inc: 2, ratio: 0.3, bwReps: [15, 20, 25], cue: "Fersen nah am Ges\xE4\xDF, H\xFCfte strecken, oben 1 s halten. Einbeinig als Steigerung." }),
-    ex({ id: "glute_bridge_einbeinig", name: "Glute Bridge einbeinig", en: "Single-leg Glute Bridge", pattern: "hinge", tier: 2, primary: ["gesaess"], secondary: ["beinbeuger"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [8, 12, 18], cue: "Ein Bein gestreckt in der Luft, H\xFCfte gerade halten." }),
+    ex({ id: "glute_bridge_einbeinig", reps: [6, 12], name: "Glute Bridge einbeinig", en: "Single-leg Glute Bridge", pattern: "hinge", tier: 2, primary: ["gesaess"], secondary: ["beinbeuger"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [8, 12, 18], cue: "Ein Bein gestreckt in der Luft, H\xFCfte gerade halten." }),
     ex({ id: "single_leg_rdl", name: "Einbeiniges RDL (Kurzhantel)", en: "Single-leg RDL", pattern: "hinge", tier: 2, primary: ["beinbeuger"], secondary: ["gesaess"], ctx: HOME, gear: ["kurzhantel"], load: "dumbbell", inc: 2, ratio: 0.25, cue: "H\xFCfte gerade halten, langsam und kontrolliert." }),
     ex({ id: "beinbeuger_liegend", name: "Beinbeuger liegend (Maschine)", en: "Lying Leg Curl", pattern: "iso", tier: 3, primary: ["beinbeuger"], load: "machine", inc: 5, ratio: 0.6, cue: "H\xFCfte am Polster lassen, unten voll strecken." }),
     ex({ id: "beinbeuger_sitzend", name: "Beinbeuger sitzend (Maschine)", en: "Seated Leg Curl", pattern: "iso", tier: 3, primary: ["beinbeuger"], load: "machine", inc: 5, ratio: 0.7, cue: "Oberk\xF6rper leicht nach vorn \u2013 mehr Dehnung im Beinbeuger." }),
     ex({ id: "beinbeuger_stehend", name: "Beinbeuger stehend einbeinig (Maschine)", en: "Standing Leg Curl", pattern: "iso", tier: 3, primary: ["beinbeuger"], load: "machine", inc: 2.5, ratio: 0.35, cue: "H\xFCfte gestreckt lassen, Ferse zum Ges\xE4\xDF." }),
-    ex({ id: "nordic_curl", name: "Nordic Hamstring Curl", en: "Nordic Curl", pattern: "iso", tier: 3, primary: ["beinbeuger"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [3, 5, 8], contra: ["knie"], cue: "F\xFC\xDFe fixieren, so langsam wie m\xF6glich nach vorn ablassen, mit den H\xE4nden abfangen." }),
-    ex({ id: "sliding_leg_curl", name: "Sliding Leg Curl (Handtuch)", en: "Sliding Leg Curl", pattern: "iso", tier: 3, primary: ["beinbeuger"], secondary: ["gesaess"], ctx: ["home"], gear: [], load: "bw", inc: 0, bwReps: [8, 12, 18], cue: "R\xFCckenlage, Fersen auf Handtuch/Socken, H\xFCfte oben halten, Fersen heranziehen." }),
+    ex({ id: "nordic_curl", reps: [3, 8], name: "Nordic Hamstring Curl", en: "Nordic Curl", pattern: "iso", tier: 3, primary: ["beinbeuger"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [3, 5, 8], contra: ["knie"], cue: "F\xFC\xDFe fixieren, so langsam wie m\xF6glich nach vorn ablassen, mit den H\xE4nden abfangen." }),
+    ex({ id: "sliding_leg_curl", reps: [6, 12], name: "Sliding Leg Curl (Handtuch)", en: "Sliding Leg Curl", pattern: "iso", tier: 3, primary: ["beinbeuger"], secondary: ["gesaess"], ctx: ["home"], gear: [], load: "bw", inc: 0, bwReps: [8, 12, 18], cue: "R\xFCckenlage, Fersen auf Handtuch/Socken, H\xFCfte oben halten, Fersen heranziehen." }),
     ex({ id: "hyperextension", name: "R\xFCckenstrecker (Hyperextension)", en: "Back Extension", pattern: "iso", tier: 3, primary: ["gesaess"], secondary: ["beinbeuger"], load: "bw", inc: 0, bwReps: [10, 15, 20], contra: ["ruecken_unten"], cue: "Aus der H\xFCfte beugen, nicht \xFCberstrecken, Ges\xE4\xDF anspannen." }),
     ex({ id: "reverse_hyper", name: "Reverse Hyperextension", en: "Reverse Hyper", pattern: "iso", tier: 3, primary: ["gesaess"], secondary: ["beinbeuger"], load: "machine", inc: 5, ratio: 0.5, cue: "Beine aus der H\xFCfte anheben, oben kurz halten \u2013 entlastet die Lendenwirbels\xE4ule." }),
     ex({ id: "kickback_kabel", name: "Kickbacks am Kabel", en: "Cable Glute Kickback", pattern: "iso", tier: 3, primary: ["gesaess"], load: "cable", inc: 2.5, ratio: 0.3, cue: "Manschette am Fu\xDF, Bein nach hinten strecken, R\xFCcken neutral." }),
@@ -6083,15 +6093,15 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     ex({ id: "bankdruecken_kh_neutral", name: "Bankdr\xFCcken neutraler Griff (Kurzhantel)", en: "Neutral-grip DB Press", pattern: "hpush", tier: 1, primary: ["brust"], secondary: ["trizeps"], ctx: HOME, gear: ["kurzhantel", "bank"], load: "dumbbell", inc: 2, ratio: 0.33, cue: "Handfl\xE4chen zueinander \u2013 schont die Schulter." }),
     ex({ id: "squeeze_press", name: "Squeeze Press (Kurzhantel)", en: "Squeeze Press", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["trizeps"], ctx: HOME, gear: ["kurzhantel", "bank"], load: "dumbbell", inc: 2, ratio: 0.25, cue: "Hanteln fest zusammenpressen und so dr\xFCcken \u2013 konstante Spannung in der Brustmitte." }),
     ex({ id: "landmine_press", name: "Landmine Press", en: "Landmine Press", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["schultern", "trizeps"], load: "barbell", inc: 2.5, ratio: 0.5, cue: "Stangenende schr\xE4g nach oben dr\xFCcken \u2013 schulterfreundlicher Winkel f\xFCr die obere Brust." }),
-    ex({ id: "dips", name: "Dips", en: "Dips", pattern: "hpush", tier: 1, primary: ["brust", "trizeps"], ctx: ["gym"], load: "bw", inc: 0, bwReps: [3, 8, 12], contra: ["schulter"], cue: "Oberk\xF6rper leicht nach vorn, bis der Oberarm parallel ist. Zusatzgewicht als Steigerung." }),
+    ex({ id: "dips", reps: [4, 10], name: "Dips", en: "Dips", pattern: "hpush", tier: 1, primary: ["brust", "trizeps"], ctx: ["gym"], load: "bw", inc: 0, bwReps: [3, 8, 12], contra: ["schulter"], cue: "Oberk\xF6rper leicht nach vorn, bis der Oberarm parallel ist. Zusatzgewicht als Steigerung." }),
     ex({ id: "dips_maschine", name: "Dips (Maschine / unterst\xFCtzt)", en: "Assisted Dip Machine", pattern: "hpush", tier: 1, primary: ["brust", "trizeps"], load: "machine", inc: 5, ratio: 0.9, contra: ["schulter"], cue: "Unterst\xFCtzung so w\xE4hlen, dass 8\u201312 saubere Wiederholungen m\xF6glich sind." }),
     ex({ id: "brustpresse_kabel", name: "Brustpresse stehend am Kabel", en: "Standing Cable Press", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["trizeps", "bauch"], load: "cable", inc: 2.5, ratio: 0.5, cue: "Schrittstellung, Rumpf fest, Griffe nach vorn dr\xFCcken." }),
     ex({ id: "liegestuetze", name: "Liegest\xFCtze", en: "Push-ups", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["trizeps", "schultern"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [8, 15, 25], contra: ["handgelenk"], cue: "K\xF6rper als Linie, Ellbogen ca. 45\xB0, Brust bis kurz \xFCber den Boden. Zu leicht? F\xFC\xDFe erh\xF6hen oder Rucksack." }),
-    ex({ id: "liegestuetze_knie", name: "Liegest\xFCtze auf den Knien", en: "Knee Push-ups", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["trizeps", "schultern"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [10, 18, 25], contra: ["handgelenk"], cue: "Leichtere Variante \u2013 H\xFCfte gestreckt lassen, nicht durchh\xE4ngen." }),
+    ex({ id: "liegestuetze_knie", reps: [6, 12], name: "Liegest\xFCtze auf den Knien", en: "Knee Push-ups", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["trizeps", "schultern"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [10, 18, 25], contra: ["handgelenk"], cue: "Leichtere Variante \u2013 H\xFCfte gestreckt lassen, nicht durchh\xE4ngen." }),
     ex({ id: "liegestuetze_erhoeht", name: "Liegest\xFCtze mit erh\xF6hten F\xFC\xDFen", en: "Decline Push-ups", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["schultern", "trizeps"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [6, 12, 20], contra: ["handgelenk"], cue: "F\xFC\xDFe auf Stuhl/Bank \u2013 mehr Last und mehr obere Brust." }),
     ex({ id: "liegestuetze_kh", name: "Liegest\xFCtze auf Kurzhanteln (F\xFC\xDFe erh\xF6ht)", en: "Deficit Push-ups", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["trizeps", "schultern"], ctx: HOME, gear: ["kurzhantel"], load: "bw", inc: 0, bwReps: [6, 12, 20], cue: "Griffe erlauben mehr Tiefe, F\xFC\xDFe auf Stuhl/Bank erh\xF6hen f\xFCr mehr Last." }),
     ex({ id: "liegestuetze_band", name: "Liegest\xFCtze mit Band", en: "Banded Push-ups", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["trizeps"], ctx: ["home"], gear: ["band"], load: "band", inc: 0, bwReps: [6, 12, 18], contra: ["handgelenk"], cue: "Band \xFCber den oberen R\xFCcken, Enden unter den H\xE4nden \u2013 Widerstand steigt nach oben." }),
-    ex({ id: "liegestuetze_archer", name: "Archer Push-ups", en: "Archer Push-ups", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["trizeps"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [4, 8, 12], contra: ["handgelenk", "schulter"], cue: "Breiter Griff, zu einer Seite absenken, der andere Arm bleibt gestreckt \u2013 Vorstufe zum einarmigen Liegest\xFCtz." }),
+    ex({ id: "liegestuetze_archer", reps: [4, 10], name: "Archer Push-ups", en: "Archer Push-ups", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["trizeps"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [4, 8, 12], contra: ["handgelenk", "schulter"], cue: "Breiter Griff, zu einer Seite absenken, der andere Arm bleibt gestreckt \u2013 Vorstufe zum einarmigen Liegest\xFCtz." }),
     ex({ id: "liegestuetze_trx", name: "Liegest\xFCtze im Schlingentrainer", en: "TRX Push-ups", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["trizeps", "bauch"], ctx: HOME, gear: ["schlingentrainer"], load: "bw", inc: 0, bwReps: [8, 14, 20], cue: "Griffe knapp \xFCber dem Boden, je steiler, desto leichter." }),
     ex({ id: "fliegende_kabel", name: "Fliegende am Kabelzug", en: "Cable Fly", pattern: "iso", tier: 3, primary: ["brust"], load: "cable", inc: 2.5, ratio: 0.2, cue: "Leicht gebeugte Arme, in der Dehnung 1 s halten." }),
     ex({ id: "fliegende_kabel_tief", name: "Fliegende am Kabel von unten", en: "Low-to-High Cable Fly", pattern: "iso", tier: 3, primary: ["brust"], load: "cable", inc: 2.5, ratio: 0.18, cue: "Von unten nach oben \u2013 obere Brust." }),
@@ -6104,11 +6114,11 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     ex({ id: "fliegende_trx", name: "Fliegende im Schlingentrainer", en: "TRX Chest Fly", pattern: "iso", tier: 3, primary: ["brust"], ctx: HOME, gear: ["schlingentrainer"], load: "bw", inc: 0, bwReps: [8, 12, 18], cue: "Arme leicht gebeugt \xF6ffnen, K\xF6rperspannung halten." }),
     ex({ id: "ueberzuege_kh", name: "\xDCberz\xFCge (Kurzhantel)", en: "Dumbbell Pullover", pattern: "iso", tier: 3, primary: ["ruecken"], secondary: ["brust", "trizeps"], ctx: HOME, gear: ["kurzhantel", "bank"], load: "dumbbell", inc: 2, ratio: 0.3, contra: ["schulter"], cue: "Quer auf der Bank, Hantel hinter den Kopf absenken, Dehnung in Lat und Brust." }),
     // ======================================================= Rücken
-    ex({ id: "klimmzuege", name: "Klimmz\xFCge", en: "Pull-ups", pattern: "vpull", tier: 1, primary: ["ruecken"], secondary: ["bizeps"], ctx: HOME, gear: ["klimmzugstange"], load: "bw", inc: 0, bwReps: [2, 6, 10], cue: "Aus dem h\xE4ngenden Zustand starten, Brust zur Stange. Zu schwer? Band als Unterst\xFCtzung. Zu leicht? Zusatzgewicht." }),
-    ex({ id: "chin_ups", name: "Klimmz\xFCge im Untergriff (Chin-ups)", en: "Chin-ups", pattern: "vpull", tier: 1, primary: ["ruecken"], secondary: ["bizeps"], ctx: HOME, gear: ["klimmzugstange"], load: "bw", inc: 0, bwReps: [3, 7, 12], cue: "Handfl\xE4chen zu dir, Ellbogen nach unten ziehen." }),
-    ex({ id: "klimmzuege_neutral", name: "Klimmz\xFCge neutraler Griff", en: "Neutral-grip Pull-ups", pattern: "vpull", tier: 1, primary: ["ruecken"], secondary: ["bizeps"], ctx: HOME, gear: ["klimmzugstange"], load: "bw", inc: 0, bwReps: [3, 7, 12], cue: "Handfl\xE4chen zueinander \u2013 schulterfreundlichste Variante." }),
-    ex({ id: "klimmzuege_breit", name: "Klimmz\xFCge breiter Griff", en: "Wide-grip Pull-ups", pattern: "vpull", tier: 1, primary: ["ruecken"], secondary: ["bizeps"], ctx: HOME, gear: ["klimmzugstange"], load: "bw", inc: 0, bwReps: [1, 5, 9], contra: ["schulter"], cue: "Griff deutlich breiter als schulterbreit, Ellbogen zur H\xFCfte." }),
-    ex({ id: "klimmzuege_negativ", name: "Negative Klimmz\xFCge", en: "Negative Pull-ups", pattern: "vpull", tier: 2, primary: ["ruecken"], secondary: ["bizeps"], ctx: HOME, gear: ["klimmzugstange"], load: "bw", inc: 0, bwReps: [3, 5, 8], cue: "Hochspringen, dann 3\u20135 s langsam ablassen \u2013 der Weg zum ersten Klimmzug." }),
+    ex({ id: "klimmzuege", reps: [4, 10], name: "Klimmz\xFCge", en: "Pull-ups", pattern: "vpull", tier: 1, primary: ["ruecken"], secondary: ["bizeps"], ctx: HOME, gear: ["klimmzugstange"], load: "bw", inc: 0, bwReps: [2, 6, 10], cue: "Aus dem h\xE4ngenden Zustand starten, Brust zur Stange. Zu schwer? Band als Unterst\xFCtzung. Zu leicht? Zusatzgewicht." }),
+    ex({ id: "chin_ups", reps: [4, 10], name: "Klimmz\xFCge im Untergriff (Chin-ups)", en: "Chin-ups", pattern: "vpull", tier: 1, primary: ["ruecken"], secondary: ["bizeps"], ctx: HOME, gear: ["klimmzugstange"], load: "bw", inc: 0, bwReps: [3, 7, 12], cue: "Handfl\xE4chen zu dir, Ellbogen nach unten ziehen." }),
+    ex({ id: "klimmzuege_neutral", reps: [4, 10], name: "Klimmz\xFCge neutraler Griff", en: "Neutral-grip Pull-ups", pattern: "vpull", tier: 1, primary: ["ruecken"], secondary: ["bizeps"], ctx: HOME, gear: ["klimmzugstange"], load: "bw", inc: 0, bwReps: [3, 7, 12], cue: "Handfl\xE4chen zueinander \u2013 schulterfreundlichste Variante." }),
+    ex({ id: "klimmzuege_breit", reps: [4, 10], name: "Klimmz\xFCge breiter Griff", en: "Wide-grip Pull-ups", pattern: "vpull", tier: 1, primary: ["ruecken"], secondary: ["bizeps"], ctx: HOME, gear: ["klimmzugstange"], load: "bw", inc: 0, bwReps: [1, 5, 9], contra: ["schulter"], cue: "Griff deutlich breiter als schulterbreit, Ellbogen zur H\xFCfte." }),
+    ex({ id: "klimmzuege_negativ", reps: [3, 6], name: "Negative Klimmz\xFCge", en: "Negative Pull-ups", pattern: "vpull", tier: 2, primary: ["ruecken"], secondary: ["bizeps"], ctx: HOME, gear: ["klimmzugstange"], load: "bw", inc: 0, bwReps: [3, 5, 8], cue: "Hochspringen, dann 3\u20135 s langsam ablassen \u2013 der Weg zum ersten Klimmzug." }),
     ex({ id: "klimmzuege_band", name: "Klimmz\xFCge mit Band-Unterst\xFCtzung", en: "Band-assisted Pull-ups", pattern: "vpull", tier: 2, primary: ["ruecken"], secondary: ["bizeps"], ctx: HOME, gear: ["klimmzugstange", "band"], load: "bw", inc: 0, bwReps: [5, 8, 12], cue: "Band um die Stange und unter das Knie/den Fu\xDF \u2013 d\xFCnneres Band = schwerer." }),
     ex({ id: "klimmzuege_maschine", name: "Klimmz\xFCge unterst\xFCtzt (Maschine)", en: "Assisted Pull-up Machine", pattern: "vpull", tier: 1, primary: ["ruecken"], secondary: ["bizeps"], load: "machine", inc: 5, ratio: 0.8, cue: "Unterst\xFCtzung Schritt f\xFCr Schritt reduzieren." }),
     ex({ id: "latzug", name: "Latzug", en: "Lat Pulldown", pattern: "vpull", tier: 1, primary: ["ruecken"], secondary: ["bizeps"], load: "machine", inc: 5, ratio: 0.85, cue: "Leicht zur\xFCcklehnen, Ellbogen zur H\xFCfte ziehen, oben Schultern lang lassen." }),
@@ -6129,16 +6139,16 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     ex({ id: "rudern_maschine", name: "Rudern brustgest\xFCtzt (Maschine)", en: "Chest-supported Row", pattern: "hpull", tier: 1, primary: ["ruecken"], secondary: ["bizeps"], load: "machine", inc: 5, ratio: 0.9, cue: "Brust am Polster, Ellbogen weit nach hinten." }),
     ex({ id: "rudern_maschine_hoch", name: "High Row (Maschine)", en: "Machine High Row", pattern: "hpull", tier: 1, primary: ["ruecken"], secondary: ["bizeps"], load: "machine", inc: 5, ratio: 0.9, cue: "Von oben zur Brust ziehen \u2013 Mischung aus Latzug und Rudern." }),
     ex({ id: "meadows_row", name: "Meadows Row (Landmine)", en: "Meadows Row", pattern: "hpull", tier: 2, primary: ["ruecken"], secondary: ["bizeps"], load: "barbell", inc: 2.5, ratio: 0.5, cue: "Seitlich zur Landmine, Stangenende einarmig zur H\xFCfte ziehen." }),
-    ex({ id: "invertiertes_rudern", name: "Invertiertes Rudern (Tisch / tiefe Stange)", en: "Inverted Row", pattern: "hpull", tier: 2, primary: ["ruecken"], secondary: ["bizeps"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [6, 10, 15], cue: "K\xF6rper als Linie, Brust zur Stange/Tischkante. F\xFC\xDFe erh\xF6hen = schwerer." }),
+    ex({ id: "invertiertes_rudern", reps: [6, 12], name: "Invertiertes Rudern (Tisch / tiefe Stange)", en: "Inverted Row", pattern: "hpull", tier: 2, primary: ["ruecken"], secondary: ["bizeps"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [6, 10, 15], cue: "K\xF6rper als Linie, Brust zur Stange/Tischkante. F\xFC\xDFe erh\xF6hen = schwerer." }),
     ex({ id: "trx_rudern", name: "Rudern im Schlingentrainer", en: "TRX Row", pattern: "hpull", tier: 2, primary: ["ruecken"], secondary: ["bizeps"], ctx: HOME, gear: ["schlingentrainer"], load: "bw", inc: 0, bwReps: [8, 12, 18], cue: "Je flacher der K\xF6rper, desto schwerer. Schulterbl\xE4tter zusammen." }),
     ex({ id: "band_rudern", name: "Rudern mit Band", en: "Band Row", pattern: "hpull", tier: 2, primary: ["ruecken"], secondary: ["bizeps"], ctx: ["home"], gear: ["band"], load: "band", inc: 0, bwReps: [12, 18, 25], cue: "Band um die F\xFC\xDFe, Ellbogen nach hinten, Schulterbl\xE4tter zusammen." }),
     ex({ id: "band_rudern_einarmig", name: "Rudern einarmig mit Band", en: "Single-arm Band Row", pattern: "hpull", tier: 2, primary: ["ruecken"], secondary: ["bizeps"], ctx: ["home"], gear: ["band"], load: "band", inc: 0, bwReps: [12, 18, 25], cue: "Band an T\xFCr oder Pfosten auf Bauchh\xF6he, Ellbogen zur H\xFCfte." }),
     ex({ id: "kettlebell_rudern", name: "Kettlebell-Rudern (einarmig)", en: "Kettlebell Row", pattern: "hpull", tier: 1, primary: ["ruecken"], secondary: ["bizeps"], ctx: HOME, gear: ["kettlebell"], load: "kettlebell", inc: 4, ratio: 0.4, cue: "Wie Kurzhantelrudern, Griff neutral." }),
-    ex({ id: "rack_pull", name: "Rack Pull", en: "Rack Pull", pattern: "hinge", tier: 2, primary: ["ruecken"], secondary: ["beinbeuger", "gesaess"], load: "barbell", inc: 5, ratio: 1.6, contra: ["ruecken_unten"], cue: "Stange auf Knieh\xF6he im Rack, R\xFCcken neutral, oben Schulterbl\xE4tter zur\xFCck." }),
+    ex({ id: "rack_pull", name: "Rack Pull", en: "Rack Pull", pattern: "hinge", tier: 2, primary: ["beinbeuger"], secondary: ["ruecken", "gesaess"], load: "barbell", inc: 5, ratio: 1.6, contra: ["ruecken_unten", "schwangerschaft"], cue: "Stange auf Knieh\xF6he im Rack, R\xFCcken neutral, oben Schulterbl\xE4tter zur\xFCck." }),
     ex({ id: "shrugs_kh", name: "Shrugs (Kurzhantel)", en: "Dumbbell Shrugs", pattern: "iso", tier: 3, primary: ["ruecken"], ctx: HOME, gear: ["kurzhantel"], load: "dumbbell", inc: 2, ratio: 0.5, cue: "Schultern gerade nach oben ziehen, oben 1 s halten, nicht kreisen." }),
     ex({ id: "shrugs_lh", name: "Shrugs (Langhantel)", en: "Barbell Shrugs", pattern: "iso", tier: 3, primary: ["ruecken"], ctx: HOME, gear: ["langhantel"], load: "barbell", inc: 5, ratio: 1.2, cue: "Trapezius \u2013 Schultern zu den Ohren, langsam ablassen." }),
     ex({ id: "ueberzuege_kabel", name: "\xDCberz\xFCge am Kabel (gestreckte Arme)", en: "Straight-arm Pulldown", pattern: "iso", tier: 3, primary: ["ruecken"], load: "cable", inc: 2.5, ratio: 0.35, cue: "Arme fast gestreckt, Bogen bis zur H\xFCfte, Lat sp\xFCren." }),
-    ex({ id: "superman", name: "Superman (R\xFCckenstrecker am Boden)", en: "Superman", pattern: "iso", tier: 3, primary: ["ruecken"], secondary: ["gesaess"], ctx: ["home"], gear: [], load: "bw", inc: 0, bwReps: [10, 15, 20], cue: "Bauchlage, Arme und Beine gleichzeitig anheben, oben 2 s halten." }),
+    ex({ id: "superman", name: "Superman (R\xFCckenstrecker am Boden)", en: "Superman", pattern: "core", tier: 3, primary: ["bauch"], secondary: ["gesaess"], ctx: ["home"], gear: [], load: "bw", inc: 0, bwReps: [10, 15, 20], cue: "Bauchlage, Arme und Beine gleichzeitig anheben, oben 2 s halten." }),
     // ======================================================= Schultern
     ex({ id: "schulterdruecken_lh", name: "Schulterdr\xFCcken (Langhantel, stehend)", en: "Overhead Press", pattern: "vpush", tier: 1, primary: ["schultern"], secondary: ["trizeps"], ctx: HOME, gear: ["langhantel"], load: "barbell", inc: 2.5, ratio: 0.65, contra: ["schulter"], cue: "Ges\xE4\xDF und Bauch anspannen, Stange in einer Linie \xFCber Kopf, Kopf am Ende leicht nach vorn." }),
     ex({ id: "schulterdruecken_sitzend_lh", name: "Schulterdr\xFCcken sitzend (Langhantel)", en: "Seated Barbell Press", pattern: "vpush", tier: 1, primary: ["schultern"], secondary: ["trizeps"], load: "barbell", inc: 2.5, ratio: 0.7, contra: ["schulter"], cue: "R\xFCckenlehne leicht geneigt, Stange vor dem Gesicht absenken." }),
@@ -6150,8 +6160,8 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     ex({ id: "push_press", name: "Push Press", en: "Push Press", pattern: "vpush", tier: 1, primary: ["schultern"], secondary: ["trizeps", "quadrizeps"], ctx: HOME, gear: ["langhantel"], load: "barbell", inc: 2.5, ratio: 0.8, contra: ["schulter"], cue: "Kurzer Beinschwung, dann \xFCber Kopf ausdr\xFCcken \u2013 erlaubt mehr Gewicht." }),
     ex({ id: "schulterdruecken_band", name: "Schulterdr\xFCcken mit Band", en: "Band Overhead Press", pattern: "vpush", tier: 2, primary: ["schultern"], secondary: ["trizeps"], ctx: ["home"], gear: ["band"], load: "band", inc: 0, bwReps: [12, 18, 25], contra: ["schulter"], cue: "Auf das Band stellen, Griffe auf Schulterh\xF6he, \xFCber Kopf dr\xFCcken." }),
     ex({ id: "pike_liegestuetze", name: "Pike-Liegest\xFCtze", en: "Pike Push-ups", pattern: "vpush", tier: 2, primary: ["schultern"], secondary: ["trizeps"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [5, 10, 15], contra: ["schulter", "handgelenk"], cue: "H\xFCfte hoch (umgekehrtes V), Kopf Richtung Boden zwischen die H\xE4nde. F\xFC\xDFe erh\xF6hen = schwerer." }),
-    ex({ id: "pike_liegestuetze_erhoeht", name: "Pike-Liegest\xFCtze mit erh\xF6hten F\xFC\xDFen", en: "Elevated Pike Push-ups", pattern: "vpush", tier: 2, primary: ["schultern"], secondary: ["trizeps"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [4, 8, 12], contra: ["schulter", "handgelenk"], cue: "F\xFC\xDFe auf Stuhl/Bank, fast senkrechter Oberk\xF6rper \u2013 Vorstufe zum Handstand-Liegest\xFCtz." }),
-    ex({ id: "handstand_liegestuetze", name: "Handstand-Liegest\xFCtze (an der Wand)", en: "Wall Handstand Push-ups", pattern: "vpush", tier: 1, primary: ["schultern"], secondary: ["trizeps"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [1, 4, 8], contra: ["schulter", "handgelenk"], cue: "Nur mit Erfahrung: Kopf kontrolliert bis knapp \xFCber den Boden." }),
+    ex({ id: "pike_liegestuetze_erhoeht", reps: [4, 10], name: "Pike-Liegest\xFCtze mit erh\xF6hten F\xFC\xDFen", en: "Elevated Pike Push-ups", pattern: "vpush", tier: 2, primary: ["schultern"], secondary: ["trizeps"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [4, 8, 12], contra: ["schulter", "handgelenk"], cue: "F\xFC\xDFe auf Stuhl/Bank, fast senkrechter Oberk\xF6rper \u2013 Vorstufe zum Handstand-Liegest\xFCtz." }),
+    ex({ id: "handstand_liegestuetze", reps: [3, 8], name: "Handstand-Liegest\xFCtze (an der Wand)", en: "Wall Handstand Push-ups", pattern: "vpush", tier: 1, primary: ["schultern"], secondary: ["trizeps"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [1, 4, 8], contra: ["schulter", "handgelenk"], cue: "Nur mit Erfahrung: Kopf kontrolliert bis knapp \xFCber den Boden." }),
     ex({ id: "seitheben_kh", name: "Seitheben (Kurzhantel)", en: "Dumbbell Lateral Raise", pattern: "iso", tier: 3, primary: ["schultern"], ctx: HOME, gear: ["kurzhantel"], load: "dumbbell", inc: 1, ratio: 0.1, cue: "Leicht nach vorn gelehnt, Ellbogen f\xFChren, bis Schulterh\xF6he \u2013 kein Schwung." }),
     ex({ id: "seitheben_kabel", name: "Seitheben am Kabel", en: "Cable Lateral Raise", pattern: "iso", tier: 3, primary: ["schultern"], load: "cable", inc: 2.5, ratio: 0.1, cue: "Kabel auf H\xFCfth\xF6he, konstante Spannung \xFCber den ganzen Weg." }),
     ex({ id: "seitheben_maschine", name: "Seitheben (Maschine)", en: "Machine Lateral Raise", pattern: "iso", tier: 3, primary: ["schultern"], load: "machine", inc: 2.5, ratio: 0.4, cue: "Polster an den Oberarmen, langsam ablassen." }),
@@ -6209,41 +6219,44 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     ex({ id: "band_trizeps", name: "Trizepsdr\xFCcken mit Band", en: "Band Pushdown", pattern: "iso", tier: 3, primary: ["trizeps"], ctx: ["home"], gear: ["band"], load: "band", inc: 0, bwReps: [15, 20, 25], cue: "Band oben fixieren, Ellbogen am K\xF6rper." }),
     ex({ id: "band_trizeps_ueberkopf", name: "Trizepsdr\xFCcken \xFCber Kopf mit Band", en: "Band Overhead Extension", pattern: "iso", tier: 3, primary: ["trizeps"], ctx: ["home"], gear: ["band"], load: "band", inc: 0, bwReps: [12, 18, 25], contra: ["schulter"], cue: "Band unter dem Fu\xDF, hinter dem Kopf nach oben strecken." }),
     // ======================================================= Bauch / Rumpf
-    ex({ id: "kabel_crunch", name: "Kabel-Crunch", en: "Cable Crunch", pattern: "core", tier: 3, primary: ["bauch"], load: "cable", inc: 2.5, ratio: 0.5, cue: "Kniend, Wirbels\xE4ule einrollen, H\xFCfte bleibt still." }),
-    ex({ id: "crunch_maschine", name: "Crunch-Maschine", en: "Ab Crunch Machine", pattern: "core", tier: 3, primary: ["bauch"], load: "machine", inc: 5, ratio: 0.6, cue: "Einrollen, nicht ziehen \u2013 Bauch macht die Arbeit." }),
-    ex({ id: "haengendes_beinheben", name: "H\xE4ngendes Beinheben", en: "Hanging Leg Raise", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: ["klimmzugstange"], load: "bw", inc: 0, bwReps: [5, 10, 15], cue: "Kein Schwung, Becken nach oben kippen. Knie angewinkelt als leichtere Variante." }),
-    ex({ id: "knieheben_haengend", name: "H\xE4ngendes Knieheben", en: "Hanging Knee Raise", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: ["klimmzugstange"], load: "bw", inc: 0, bwReps: [8, 12, 20], cue: "Knie zur Brust, Becken einrollen, langsam ablassen." }),
-    ex({ id: "toes_to_bar", name: "Toes to Bar", en: "Toes to Bar", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: ["klimmzugstange"], load: "bw", inc: 0, bwReps: [2, 6, 12], cue: "Gestreckte Beine bis zur Stange \u2013 f\xFCr Erfahrene." }),
-    ex({ id: "beinheben_dipstation", name: "Beinheben an der Dip-Station", en: "Captain\u2019s Chair Leg Raise", pattern: "core", tier: 3, primary: ["bauch"], load: "bw", inc: 0, bwReps: [8, 12, 20], cue: "Unterarme auf den Polstern, Beine anheben ohne Schwung." }),
-    ex({ id: "ab_wheel", name: "Ab-Wheel Rollouts", en: "Ab Wheel Rollout", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [5, 8, 12], contra: ["ruecken_unten"], cue: "Aus dem Kniestand, Rumpf angespannt, nur so weit wie der untere R\xFCcken neutral bleibt." }),
-    ex({ id: "beinheben_liegend", name: "Beinheben liegend", en: "Lying Leg Raise", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [10, 15, 20], cue: "Unterer R\xFCcken bleibt am Boden, Beine nicht ganz ablegen." }),
-    ex({ id: "reverse_crunches", name: "Reverse Crunches", en: "Reverse Crunch", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [10, 15, 20], cue: "Knie zur Brust ziehen und das Becken vom Boden abheben." }),
-    ex({ id: "crunches", name: "Crunches", en: "Crunches", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [15, 20, 30], cue: "Langsam einrollen, oben 1 s halten, Kinn nicht zur Brust ziehen." }),
-    ex({ id: "bicycle_crunches", name: "Bicycle Crunches", en: "Bicycle Crunch", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [16, 24, 30], cue: "Ellbogen zum gegen\xFCberliegenden Knie, langsam und kontrolliert." }),
-    ex({ id: "sit_ups", name: "Sit-ups", en: "Sit-ups", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [12, 20, 30], contra: ["ruecken_unten"], cue: "F\xFC\xDFe fixiert, kontrolliert hoch und runter." }),
-    ex({ id: "v_ups", name: "V-Ups", en: "V-Up", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [6, 12, 18], contra: ["ruecken_unten"], cue: "Arme und Beine gleichzeitig zur Mitte, Beine gestreckt." }),
+    ex({ id: "kabel_crunch", name: "Kabel-Crunch", en: "Cable Crunch", pattern: "core", tier: 3, primary: ["bauch"], load: "cable", inc: 2.5, ratio: 0.5, contra: ["schwangerschaft"], cue: "Kniend, Wirbels\xE4ule einrollen, H\xFCfte bleibt still." }),
+    ex({ id: "crunch_maschine", name: "Crunch-Maschine", en: "Ab Crunch Machine", pattern: "core", tier: 3, primary: ["bauch"], load: "machine", inc: 5, ratio: 0.6, contra: ["schwangerschaft"], cue: "Einrollen, nicht ziehen \u2013 Bauch macht die Arbeit." }),
+    ex({ id: "haengendes_beinheben", reps: [5, 12], name: "H\xE4ngendes Beinheben", en: "Hanging Leg Raise", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: ["klimmzugstange"], load: "bw", inc: 0, bwReps: [5, 10, 15], contra: ["schwangerschaft"], cue: "Kein Schwung, Becken nach oben kippen. Knie angewinkelt als leichtere Variante." }),
+    ex({ id: "knieheben_haengend", name: "H\xE4ngendes Knieheben", en: "Hanging Knee Raise", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: ["klimmzugstange"], load: "bw", inc: 0, bwReps: [8, 12, 20], contra: ["schwangerschaft"], cue: "Knie zur Brust, Becken einrollen, langsam ablassen." }),
+    ex({ id: "toes_to_bar", reps: [4, 10], name: "Toes to Bar", en: "Toes to Bar", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: ["klimmzugstange"], load: "bw", inc: 0, bwReps: [2, 6, 12], contra: ["schwangerschaft"], cue: "Gestreckte Beine bis zur Stange \u2013 f\xFCr Erfahrene." }),
+    ex({ id: "beinheben_dipstation", name: "Beinheben an der Dip-Station", en: "Captain\u2019s Chair Leg Raise", pattern: "core", tier: 3, primary: ["bauch"], load: "bw", inc: 0, bwReps: [8, 12, 20], contra: ["schwangerschaft"], cue: "Unterarme auf den Polstern, Beine anheben ohne Schwung." }),
+    ex({ id: "ab_wheel", reps: [5, 12], name: "Ab-Wheel Rollouts", en: "Ab Wheel Rollout", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [5, 8, 12], contra: ["ruecken_unten", "schwangerschaft"], cue: "Aus dem Kniestand, Rumpf angespannt, nur so weit wie der untere R\xFCcken neutral bleibt." }),
+    ex({ id: "beinheben_liegend", name: "Beinheben liegend", en: "Lying Leg Raise", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [10, 15, 20], contra: ["schwangerschaft"], cue: "Unterer R\xFCcken bleibt am Boden, Beine nicht ganz ablegen." }),
+    ex({ id: "reverse_crunches", name: "Reverse Crunches", en: "Reverse Crunch", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [10, 15, 20], contra: ["schwangerschaft"], cue: "Knie zur Brust ziehen und das Becken vom Boden abheben." }),
+    ex({ id: "crunches", name: "Crunches", en: "Crunches", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [15, 20, 30], contra: ["schwangerschaft"], cue: "Langsam einrollen, oben 1 s halten, Kinn nicht zur Brust ziehen." }),
+    ex({ id: "bicycle_crunches", name: "Bicycle Crunches", en: "Bicycle Crunch", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [16, 24, 30], contra: ["schwangerschaft"], cue: "Ellbogen zum gegen\xFCberliegenden Knie, langsam und kontrolliert." }),
+    ex({ id: "sit_ups", name: "Sit-ups", en: "Sit-ups", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [12, 20, 30], contra: ["ruecken_unten", "schwangerschaft"], cue: "F\xFC\xDFe fixiert, kontrolliert hoch und runter." }),
+    ex({ id: "v_ups", reps: [6, 15], name: "V-Ups", en: "V-Up", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [6, 12, 18], contra: ["ruecken_unten", "schwangerschaft"], cue: "Arme und Beine gleichzeitig zur Mitte, Beine gestreckt." }),
     ex({ id: "plank", name: "Plank (Unterarmst\xFCtz)", en: "Plank", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "time", inc: 0, bwReps: [30, 60, 90], cue: "Ges\xE4\xDF anspannen, Becken leicht nach hinten kippen, K\xF6rper als Linie." }),
     ex({ id: "plank_shoulder_taps", name: "Plank mit Schulter-Tippen", en: "Plank Shoulder Taps", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [12, 20, 30], contra: ["handgelenk"], cue: "Hoher St\xFCtz, abwechselnd die Schulter antippen, H\xFCfte bleibt still." }),
-    ex({ id: "hollow_hold", name: "Hollow Body Hold", en: "Hollow Hold", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "time", inc: 0, bwReps: [20, 40, 60], cue: "R\xFCckenlage, unterer R\xFCcken in den Boden pressen, Arme und Beine knapp \xFCber dem Boden halten." }),
-    ex({ id: "dead_bug", name: "Dead Bug", en: "Dead Bug", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [10, 12, 16], cue: "R\xFCcken flach auf den Boden pressen, gegen\xFCberliegenden Arm und Bein langsam strecken." }),
+    ex({ id: "hollow_hold", reps: [20, 45], name: "Hollow Body Hold", en: "Hollow Hold", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "time", inc: 0, bwReps: [20, 40, 60], contra: ["schwangerschaft"], cue: "R\xFCckenlage, unterer R\xFCcken in den Boden pressen, Arme und Beine knapp \xFCber dem Boden halten." }),
+    ex({ id: "dead_bug", name: "Dead Bug", en: "Dead Bug", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [10, 12, 16], contra: ["schwangerschaft"], cue: "R\xFCcken flach auf den Boden pressen, gegen\xFCberliegenden Arm und Bein langsam strecken." }),
     ex({ id: "bird_dog", name: "Bird Dog", en: "Bird Dog", pattern: "core", tier: 3, primary: ["bauch"], secondary: ["gesaess"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [10, 12, 16], cue: "Vierf\xFC\xDFlerstand, Arm und gegen\xFCberliegendes Bein strecken, Rumpf still \u2013 gut f\xFCr den unteren R\xFCcken." }),
     ex({ id: "pallof_press", name: "Pallof Press (Kabel / Band)", en: "Pallof Press", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: ["band"], load: "cable", inc: 2.5, ratio: 0.2, bwReps: [10, 12, 15], cue: "Seitlich zum Kabel, Arme nach vorn strecken und gegen die Rotation halten." }),
     ex({ id: "woodchop_kabel", name: "Woodchop am Kabel", en: "Cable Woodchop", pattern: "core", tier: 3, primary: ["bauch"], load: "cable", inc: 2.5, ratio: 0.25, cue: "Von oben nach unten diagonal \xFCber den K\xF6rper, H\xFCfte dreht mit." }),
     ex({ id: "woodchop_band", name: "Woodchop mit Band", en: "Band Woodchop", pattern: "core", tier: 3, primary: ["bauch"], ctx: ["home"], gear: ["band"], load: "band", inc: 0, bwReps: [12, 16, 20], cue: "Band oben oder unten fixieren, diagonal \xFCber den K\xF6rper ziehen." }),
-    ex({ id: "russian_twist", name: "Russian Twist", en: "Russian Twist", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "dumbbell", inc: 2, ratio: 0.1, bwReps: [16, 24, 30], contra: ["ruecken_unten"], cue: "Sitzend, Oberk\xF6rper leicht zur\xFCck, kontrolliert von Seite zu Seite drehen." }),
-    ex({ id: "seitstuetz", name: "Seitst\xFCtz", en: "Side Plank", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "time", inc: 0, bwReps: [20, 40, 60], cue: "H\xFCfte hoch, K\xF6rper als Linie, beide Seiten." }),
-    ex({ id: "copenhagen_plank", name: "Copenhagen Plank", en: "Copenhagen Plank", pattern: "core", tier: 3, primary: ["bauch"], secondary: ["gesaess"], ctx: HOME, gear: [], load: "time", inc: 0, bwReps: [15, 30, 45], cue: "Seitst\xFCtz mit dem oberen Bein auf Stuhl/Bank \u2013 Adduktoren und Rumpf, Leistenpr\xE4vention." }),
+    ex({ id: "russian_twist", name: "Russian Twist", en: "Russian Twist", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "dumbbell", inc: 2, ratio: 0.1, bwReps: [16, 24, 30], contra: ["ruecken_unten", "schwangerschaft"], cue: "Sitzend, Oberk\xF6rper leicht zur\xFCck, kontrolliert von Seite zu Seite drehen." }),
+    ex({ id: "seitstuetz", reps: [20, 45], name: "Seitst\xFCtz", en: "Side Plank", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "time", inc: 0, bwReps: [20, 40, 60], cue: "H\xFCfte hoch, K\xF6rper als Linie, beide Seiten." }),
+    ex({ id: "copenhagen_plank", reps: [15, 40], name: "Copenhagen Plank", en: "Copenhagen Plank", pattern: "core", tier: 3, primary: ["bauch"], secondary: ["gesaess"], ctx: HOME, gear: [], load: "time", inc: 0, bwReps: [15, 30, 45], cue: "Seitst\xFCtz mit dem oberen Bein auf Stuhl/Bank \u2013 Adduktoren und Rumpf, Leistenpr\xE4vention." }),
     ex({ id: "seitbeugen_kh", name: "Seitbeugen (Kurzhantel)", en: "Dumbbell Side Bend", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: ["kurzhantel"], load: "dumbbell", inc: 2, ratio: 0.3, cue: "Eine Hantel, langsam zur Seite neigen und \xFCber die Gegenseite aufrichten." }),
     ex({ id: "suitcase_carry", name: "Suitcase Carry", en: "Suitcase Carry", pattern: "core", tier: 3, primary: ["bauch"], secondary: ["ruecken"], ctx: HOME, gear: ["kurzhantel"], load: "dumbbell", inc: 4, ratio: 0.4, cue: "Schwere Hantel einseitig tragen, 20\u201340 m, Oberk\xF6rper aufrecht gegen die Seitneigung." }),
     ex({ id: "farmers_walk", name: "Farmer\u2019s Walk", en: "Farmer\u2019s Walk", pattern: "core", tier: 3, primary: ["bauch"], secondary: ["ruecken"], ctx: HOME, gear: ["kurzhantel"], load: "dumbbell", inc: 4, ratio: 0.5, cue: "Schwere Hanteln beidseitig, 20\u201340 m aufrecht gehen \u2013 Griff, Trapez, Rumpf." }),
-    ex({ id: "mountain_climbers", name: "Mountain Climbers", en: "Mountain Climbers", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [20, 30, 40], contra: ["handgelenk"], cue: "Hoher St\xFCtz, Knie abwechselnd zur Brust, H\xFCfte tief halten." }),
-    ex({ id: "flutter_kicks", name: "Flutter Kicks", en: "Flutter Kicks", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "time", inc: 0, bwReps: [20, 40, 60], cue: "R\xFCckenlage, Beine knapp \xFCber dem Boden abwechselnd auf und ab, unterer R\xFCcken bleibt am Boden." }),
-    ex({ id: "l_sit", name: "L-Sit", en: "L-Sit", pattern: "core", tier: 3, primary: ["bauch"], secondary: ["trizeps"], ctx: HOME, gear: [], load: "time", inc: 0, bwReps: [5, 15, 30], contra: ["handgelenk"], cue: "Auf Kurzhanteln, St\xFChlen oder Barren st\xFCtzen, Beine gestreckt anheben. Angewinkelt als Vorstufe." }),
-    ex({ id: "dragon_flag", name: "Dragon Flag", en: "Dragon Flag", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: ["bank"], load: "bw", inc: 0, bwReps: [2, 5, 8], contra: ["ruecken_unten"], cue: "Bank hinter dem Kopf greifen, K\xF6rper als Brett ablassen \u2013 nur f\xFCr Erfahrene." })
+    ex({ id: "mountain_climbers", name: "Mountain Climbers", en: "Mountain Climbers", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [20, 30, 40], contra: ["handgelenk", "schwangerschaft"], cue: "Hoher St\xFCtz, Knie abwechselnd zur Brust, H\xFCfte tief halten." }),
+    ex({ id: "flutter_kicks", reps: [20, 45], name: "Flutter Kicks", en: "Flutter Kicks", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: [], load: "time", inc: 0, bwReps: [20, 40, 60], contra: ["schwangerschaft"], cue: "R\xFCckenlage, Beine knapp \xFCber dem Boden abwechselnd auf und ab, unterer R\xFCcken bleibt am Boden." }),
+    ex({ id: "l_sit", reps: [10, 30], name: "L-Sit", en: "L-Sit", pattern: "core", tier: 3, primary: ["bauch"], secondary: ["trizeps"], ctx: HOME, gear: [], load: "time", inc: 0, bwReps: [5, 15, 30], contra: ["handgelenk", "schwangerschaft"], cue: "Auf Kurzhanteln, St\xFChlen oder Barren st\xFCtzen, Beine gestreckt anheben. Angewinkelt als Vorstufe." }),
+    ex({ id: "dragon_flag", reps: [3, 8], name: "Dragon Flag", en: "Dragon Flag", pattern: "core", tier: 3, primary: ["bauch"], ctx: HOME, gear: ["bank"], load: "bw", inc: 0, bwReps: [2, 5, 8], contra: ["ruecken_unten", "schwangerschaft"], cue: "Bank hinter dem Kopf greifen, K\xF6rper als Brett ablassen \u2013 nur f\xFCr Erfahrene." })
   ];
   var EXERCISE_BY_ID = Object.fromEntries(EXERCISES.map((e) => [e.id, e]));
   function getExercise(id) {
     return EXERCISE_BY_ID[id];
+  }
+  function primaryVolumeWeight(ex2, muscle) {
+    return muscle === "schultern" && ex2.pattern === "vpush" ? 0.5 : 1;
   }
   function videoSearchUrl(ex2) {
     return `https://www.youtube.com/results?search_query=${encodeURIComponent(`${ex2.en} technique`)}`;
@@ -6301,6 +6314,33 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     { id: "glute_bridge_mob", name: "Glute Bridge (Aktivierung)", focus: ["hinge", "squat", "ruecken_unten"], seconds: 45, cue: "12\u201315 langsame Wiederholungen, oben 2 s halten." }
   ];
   var MOBILITY_BY_ID = Object.fromEntries(MOBILITY.map((m) => [m.id, m]));
+
+  // src/engine/health.js
+  var HEALTH_QUESTIONS = [
+    { id: "herz", text: "Hat ein Arzt bei dir eine Herzerkrankung oder Bluthochdruck festgestellt?" },
+    { id: "brustschmerz", text: "Hast du Brustschmerzen in Ruhe oder bei k\xF6rperlicher Belastung?" },
+    { id: "schwindel", text: "Hattest du in den letzten 12 Monaten Schwindel mit Gleichgewichtsverlust oder bist ohnm\xE4chtig geworden?" },
+    { id: "chronisch", text: "Hast du eine andere chronische Erkrankung (z. B. Diabetes, Asthma, Nieren- oder Krebserkrankung)?" },
+    { id: "medikamente", text: "Nimmst du regelm\xE4\xDFig Medikamente wegen einer chronischen Erkrankung?" },
+    { id: "gelenk", text: "Hast du ein Knochen-, Gelenk- oder Weichteilproblem, das sich durch mehr Bewegung verschlechtern k\xF6nnte?" },
+    { id: "aufsicht", text: "Hat dir ein Arzt gesagt, dass du nur unter medizinischer Aufsicht trainieren solltest?" },
+    { id: "schwangerschaft", text: "Bist du schwanger oder in den ersten Monaten nach einer Geburt?" }
+  ];
+  var HEALTH_BY_ID = Object.fromEntries(HEALTH_QUESTIONS.map((q2) => [q2.id, q2]));
+  function healthFlags(profile) {
+    const h2 = new Set(profile?.health || []);
+    const pregnant = h2.has("schwangerschaft");
+    const positive = HEALTH_QUESTIONS.some((q2) => q2.id !== "schwangerschaft" && h2.has(q2.id));
+    const cautious = positive || pregnant;
+    return { positive, pregnant, cautious, noIntervals: cautious, noDeficit: pregnant, list: [...h2] };
+  }
+  function healthNotes(profile) {
+    const f = healthFlags(profile);
+    const notes = [];
+    if (f.positive) notes.push("Du hast mindestens eine Gesundheitsfrage mit Ja beantwortet. Bitte lass dir das Training \xE4rztlich freigeben. Bis dahin plant LMCI ohne Intervalle, mit mindestens 2 Wiederholungen in Reserve und ohne sehr schwere 3\u20135er-S\xE4tze.");
+    if (f.pregnant) notes.push("Schwangerschaft / Wochenbett: keine \xDCbungen in R\xFCckenlage am Boden, kein H\xE4ngen, kein schweres Kreuzheben und keine Pressatmung. Kein Kaloriendefizit. Bitte mit \xC4rztin oder Hebamme abstimmen.");
+    return notes;
+  }
 
   // src/engine/cardio.js
   var A = (id, name, met, group) => ({ id, name, met, group });
@@ -6380,8 +6420,8 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     A("ruckmarsch", "Rucking (Gehen mit Gewicht)", 6.5, "Alltag & Outdoor")
   ];
   var ACTIVITY_BY_ID = Object.fromEntries(CARDIO_ACTIVITIES.map((a2) => [a2.id, a2]));
-  function heartRateZones(age, restingHr) {
-    const max = Math.round(208 - 0.7 * age);
+  function heartRateZones(age, restingHr, maxHr = 0) {
+    const max = maxHr ? Math.round(maxHr) : Math.round(208 - 0.7 * age);
     const z2 = (lo2, hi2) => {
       if (restingHr) {
         const r = max - restingHr;
@@ -6391,6 +6431,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     };
     return {
       max,
+      measured: !!maxHr,
       method: restingHr ? "Karvonen (Herzfrequenzreserve)" : "% der maximalen Herzfrequenz",
       zones: [
         { id: 1, name: "Zone 1 \u2013 Regeneration", range: z2(0.5, 0.6), feel: "Sehr locker, Unterhaltung m\xFChelos" },
@@ -6403,33 +6444,70 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
   }
   var TEMPLATES = {
     zone2: { type: "zone2", name: "Grundlagenausdauer (Zone 2)", zone: 2, desc: "Gleichm\xE4\xDFig locker \u2013 du k\xF6nntest dich dabei unterhalten. Baut die aerobe Basis und st\xF6rt den Muskelaufbau nicht." },
-    intervall: { type: "intervall", name: "Intervalle (HIIT)", zone: 4, desc: "5 min locker einlaufen, dann Intervalle hart / locker, 5 min auslaufen. Kurz und intensiv \u2013 m\xF6glichst nicht direkt vor dem Beintraining." },
+    schwelle: { type: "schwelle", name: "Schwellen-Intervalle (Zone 4)", zone: 4, desc: "10 min locker einlaufen, dann 3 min z\xFCgig-hart (nur einzelne Worte m\xF6glich) im Wechsel mit 2 min locker, 5 min auslaufen. Hebt die Schwelle, ohne dich f\xFCr den n\xE4chsten Tag leer zu machen.", intervals: { work: 180, rest: 120, start: 3, max: 5 } },
+    vo2max: { type: "vo2max", name: "VO\u2082max-Intervalle (Zone 5)", zone: 5, desc: "10 min locker, dann 4 min sehr hart (Helgerud et al. 2007: 4\xD74) im Wechsel mit 3 min locker, 5 min auslaufen. Die wirksamste Einheit f\xFCr die Sauerstoffaufnahme \u2013 nicht am Tag vor dem Beintraining.", intervals: { work: 240, rest: 180, start: 3, max: 4 } },
     lang: { type: "lang", name: "Lange lockere Einheit", zone: 2, desc: "L\xE4ngste Einheit der Woche, ruhig und gleichm\xE4\xDFig. Steigert sich von Woche zu Woche." },
     tempo: { type: "tempo", name: "Tempo-Einheit (Zone 3)", zone: 3, desc: "10 min locker, dann z\xFCgig aber kontrolliert, 5 min locker ausklingen." }
   };
-  function progression(base, step2, deload = 0.7) {
-    return [base, base + step2, base + 2 * step2, base + 3 * step2, Math.round((base + step2) * deload)];
+  function progression(base, step2, weeks = 5, deload = 0.7) {
+    const out = [];
+    for (let i = 0; i < weeks - 1; i++) out.push(Math.min(base + i * step2, Math.round(base * 1.8)));
+    out.push(Math.round((base + step2) * deload));
+    return out;
+  }
+  function roundsProgression(start, max, weeks = 5) {
+    const out = [];
+    const build = Math.max(1, weeks - 2);
+    for (let i = 0; i < weeks - 1; i++) out.push(Math.min(max, start + Math.floor(i * (max - start) / build + 1e-9)));
+    out.push(start);
+    return out;
   }
   var GOAL_PLANS = {
-    muskelaufbau: { sessions: 2, list: [["zone2", 20, 5], ["zone2", 20, 5], ["zone2", 25, 5], ["intervall", 16, 2]] },
-    fettabbau: { sessions: 3, list: [["zone2", 30, 5], ["zone2", 30, 5], ["intervall", 18, 2], ["zone2", 35, 5], ["lang", 45, 5]] },
+    muskelaufbau: { sessions: 2, list: [["zone2", 20, 5], ["zone2", 20, 5], ["schwelle", 25, 3], ["zone2", 25, 5]] },
+    fettabbau: { sessions: 3, list: [["zone2", 30, 5], ["schwelle", 25, 3], ["zone2", 30, 5], ["lang", 45, 5], ["vo2max", 30, 3]] },
     kraft: { sessions: 1, list: [["zone2", 20, 5], ["zone2", 20, 5], ["zone2", 25, 5]] },
-    ausdauer: { sessions: 3, list: [["lang", 40, 8], ["intervall", 22, 3], ["zone2", 30, 5], ["tempo", 30, 4], ["zone2", 30, 5]] },
-    fitness: { sessions: 2, list: [["zone2", 30, 5], ["zone2", 30, 5], ["intervall", 18, 2], ["lang", 40, 5]] }
+    ausdauer: { sessions: 4, list: [["lang", 40, 8], ["vo2max", 30, 3], ["zone2", 30, 5], ["schwelle", 30, 3], ["zone2", 30, 5]] },
+    fitness: { sessions: 2, list: [["zone2", 30, 5], ["zone2", 30, 5], ["schwelle", 25, 3], ["lang", 40, 5]] }
   };
   function defaultCardioSessions(goal) {
     return (GOAL_PLANS[goal] || GOAL_PLANS.fitness).sessions;
   }
-  function buildCardioPlan(profile) {
+  function assignCardioWeekdays(sessions, strengthDays = []) {
+    const taken = new Set(strengthDays.map((d) => d.weekday).filter((x) => x != null));
+    const lower = new Set(strengthDays.filter((d) => d.lower).map((d) => d.weekday));
+    const upper = strengthDays.filter((d) => !d.lower && d.weekday != null).map((d) => d.weekday);
+    const free2 = [0, 1, 2, 3, 4, 5, 6].filter((wd) => !taken.has(wd));
+    const order = [...free2.sort((a2, b2) => a2 - b2), ...upper];
+    const usedDays = /* @__PURE__ */ new Set();
+    const beforeLower = (wd) => lower.has((wd + 1) % 7);
+    const pickDay = (interval) => {
+      const ok = (wd2) => !usedDays.has(wd2) && (!interval || !beforeLower(wd2) && !lower.has(wd2));
+      let wd = order.find(ok);
+      if (wd == null && interval) wd = order.find((x) => !usedDays.has(x) && !lower.has(x));
+      if (wd == null) wd = order.find((x) => !usedDays.has(x));
+      if (wd != null) usedDays.add(wd);
+      return wd ?? null;
+    };
+    const intervalIdx = sessions.map((s, i) => s.intervals ? i : -1).filter((i) => i >= 0);
+    const restIdx = sessions.map((s, i) => s.intervals ? -1 : i).filter((i) => i >= 0);
+    const out = sessions.map(() => null);
+    for (const i of intervalIdx) out[i] = pickDay(true);
+    for (const i of restIdx) out[i] = pickDay(false);
+    return out;
+  }
+  function buildCardioPlan(profile, opts = {}) {
+    const weeks = opts.weeks ?? 5;
     const gp = GOAL_PLANS[profile.goal] || GOAL_PLANS.fitness;
     const n = clamp(profile.cardioSessions ?? gp.sessions, 0, 5);
     const activities = profile.cardio?.length ? profile.cardio : ["walken"];
-    const zones = heartRateZones(profile.age || 30, profile.restingHr || 0);
+    const zones = heartRateZones(profile.age || 30, profile.restingHr || 0, profile.maxHr || 0);
+    const flags = healthFlags(profile);
     const sessions = [];
     for (let i = 0; i < n; i++) {
-      const [type, base, step2] = gp.list[i % gp.list.length];
+      let [type, base, step2] = gp.list[i % gp.list.length];
+      if (flags.noIntervals && TEMPLATES[type].intervals) [type, base, step2] = ["zone2", Math.max(base, 25), 5];
       const t2 = TEMPLATES[type];
-      const activity = type === "intervall" ? activities.find((a2) => a2 !== "walken") || activities[0] : activities[i % activities.length];
+      const activity = t2.intervals ? activities.find((a2) => a2 !== "walken") || activities[0] : activities[i % activities.length];
       sessions.push({
         id: `c${i + 1}`,
         type,
@@ -6437,27 +6515,37 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         zone: t2.zone,
         desc: t2.desc,
         activity,
-        minutesByWeek: progression(base, step2),
-        intervals: type === "intervall" ? { work: 60, rest: 90, roundsByWeek: [6, 7, 8, 8, 5] } : null
+        weekday: null,
+        minutesByWeek: progression(base, step2, weeks),
+        intervals: t2.intervals ? { work: t2.intervals.work, rest: t2.intervals.rest, roundsByWeek: roundsProgression(t2.intervals.start, t2.intervals.max, weeks) } : null
       });
     }
+    const weekdays = assignCardioWeekdays(sessions, opts.strengthDays || []);
+    sessions.forEach((s, i) => s.weekday = weekdays[i]);
     const weeklyMinutes = sessions.map((s) => s.minutesByWeek);
+    let hint = n === 0 ? "Kein Cardio geplant. F\xFCr Herz-Kreislauf-Gesundheit empfiehlt die WHO 150\u2013300 min moderate Aktivit\xE4t pro Woche." : "Cardio liegt auf trainingsfreien Tagen oder nach Oberk\xF6rpertagen; Intervalle nicht am Tag vor dem Beintraining. Die Tage sind Vorschl\xE4ge \u2013 wichtig ist, dass sie stattfinden.";
+    if (n > 0 && flags.noIntervals) hint += " Wegen deiner Gesundheitsangaben sind alle Einheiten locker (Zone 2) geplant \u2013 Intervalle erst nach \xE4rztlicher Freigabe.";
     return {
       sessionsPerWeek: n,
       sessions,
       zones,
-      weeklyMinutesByWeek: [0, 1, 2, 3, 4].map((w) => weeklyMinutes.reduce((a2, m) => a2 + m[w], 0)),
-      hint: n === 0 ? "Kein Cardio geplant. F\xFCr Herz-Kreislauf-Gesundheit empfiehlt die WHO 150\u2013300 min moderate Aktivit\xE4t pro Woche." : "Cardio am besten an trainingsfreien Tagen oder nach dem Krafttraining \u2013 nicht davor."
+      weeks,
+      weeklyMinutesByWeek: Array.from({ length: weeks }, (_, w) => weeklyMinutes.reduce((a2, m) => a2 + (m[w] || 0), 0)),
+      hint
     };
   }
   function cardioKcal(activityId, minutes, weightKg) {
     const a2 = ACTIVITY_BY_ID[activityId] || ACTIVITY_BY_ID.walken;
-    return Math.round(a2.met * 3.5 * weightKg / 200 * minutes);
+    return Math.round((a2.met - 1) * 3.5 * weightKg / 200 * minutes);
   }
   var CARDIO_GROUPS = [...new Set(CARDIO_ACTIVITIES.map((a2) => a2.group))];
 
   // src/engine/plan.js
   var MESO_WEEKS = 5;
+  var MESO_WEEKS_BY_EXPERIENCE = { anfaenger: 7, fortgeschritten: 5, erfahren: 5 };
+  function mesoWeeks(profile) {
+    return MESO_WEEKS_BY_EXPERIENCE[profile?.experience] ?? MESO_WEEKS;
+  }
   var GOALS = {
     muskelaufbau: { name: "Muskelaufbau", desc: "Mehr Muskelmasse, leichter Kalorien\xFCberschuss." },
     fettabbau: { name: "Fettabbau", desc: "K\xF6rperfett reduzieren, Muskeln erhalten \u2013 Kaloriendefizit plus Cardio." },
@@ -6471,10 +6559,15 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     erfahren: { name: "Erfahren", desc: "Mehr als 3 Jahre, Technik sitzt" }
   };
   var RIR_SCHEDULE = {
-    anfaenger: [3, 3, 2, 2, 4],
+    anfaenger: [3, 3, 3, 2, 2, 2, 4],
     fortgeschritten: [3, 2, 1, 1, 4],
     erfahren: [3, 2, 1, 0, 4]
   };
+  function rirSchedule(profile) {
+    const base = RIR_SCHEDULE[profile?.experience] || RIR_SCHEDULE.fortgeschritten;
+    if (!healthFlags(profile).cautious) return base.slice();
+    return base.map((r, i) => i === base.length - 1 ? r : Math.max(r, 2));
+  }
   var BASE_TARGET = { anfaenger: 10, fortgeschritten: 14, erfahren: 16 };
   var MUSCLE_FACTOR = { quadrizeps: 1, beinbeuger: 0.8, gesaess: 0.7, waden: 0.6, brust: 1, ruecken: 1.1, schultern: 0.9, bizeps: 0.6, trizeps: 0.6, bauch: 0.5 };
   var GOAL_FACTOR = { muskelaufbau: 1, fettabbau: 0.9, kraft: 0.8, ausdauer: 0.7, fitness: 0.8 };
@@ -6484,6 +6577,10 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     kraft: { beinbeuger: ["kreuzheben", "rdl_lh"], quadrizeps: ["kniebeuge_lh"], brust: ["bankdruecken_lh"], schultern: ["schulterdruecken_lh"] },
     default: { beinbeuger: ["rdl_lh", "rdl_kh"] }
   };
+  var PATTERN_FALLBACK = { vpull: ["hpull"], hpull: ["vpull"], squat: ["lunge"], lunge: ["squat"], vpush: ["hpush"], hpush: ["vpush"] };
+  var HEAVY_PATTERNS = /* @__PURE__ */ new Set(["squat", "hpush", "hinge", "vpush"]);
+  var RIR_FLOOR_PATTERNS = /* @__PURE__ */ new Set(["hinge", "squat"]);
+  var MIN_DIRECT_MUSCLES = ["bizeps", "trizeps", "waden", "schultern"];
   var T = (muscle, patterns, tiers, extra = {}) => ({ muscle, patterns, tiers, ...extra });
   var REAR_DELT = ["face_pulls", "reverse_flys_kh", "band_pull_aparts"];
   var GK_A = [
@@ -6590,11 +6687,16 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     6: { id: "ppl", name: "Push / Pull / Beine 2\xD7", days: [["Push A", PUSH], ["Pull A", PULL], ["Beine A", LEGS], ["Push B", PUSH], ["Pull B", PULL], ["Beine B", LEGS]] }
   };
   var DEFAULT_WEEKDAYS = { 1: [0], 2: [0, 3], 3: [0, 2, 4], 4: [0, 1, 3, 4], 5: [0, 1, 3, 4, 5], 6: [0, 1, 2, 3, 4, 5] };
+  function isLowerBodyDay(name) {
+    return /Unterkörper|Beine|Ganzkörper/.test(name || "");
+  }
   function isAvailable(ex2, profile) {
     const ctx = profile.equipment === "gym" ? "gym" : "home";
     if (!ex2.ctx.includes(ctx)) return false;
     if (ctx === "home" && !ex2.gear.every((g2) => (profile.gear || []).includes(g2))) return false;
-    if (ex2.contra.some((c) => (profile.limitations || []).includes(c))) return false;
+    const lim = [...profile.limitations || []];
+    if (healthFlags(profile).pregnant) lim.push("schwangerschaft");
+    if (ex2.contra.some((c) => lim.includes(c))) return false;
     return true;
   }
   function availableExercises(profile) {
@@ -6608,7 +6710,25 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const other = pool.filter((e) => !same.includes(e) && e.primary.some((m) => ex2.primary.includes(m)));
     return [...same, ...other];
   }
-  var FREQUENCY_FACTOR = { 2: 0.9, 3: 1, 4: 1.05, 5: 1.15, 6: 1.25 };
+  function isFeasibleFor(ex2, repMin, profile, opts = {}) {
+    if (ex2.bwReps && ex2.load !== "time") {
+      const r = estimateStartReps(ex2, profile);
+      if (r != null && r < repMin) return false;
+    }
+    if (ex2.bwReps && ex2.load === "time") {
+      const r = estimateStartReps(ex2, profile);
+      if (r != null && r < repMin) return false;
+    }
+    if (ex2.load === "barbell" && ex2.ratio) {
+      const raw2 = rawStartWeight(ex2, profile, repMin, 2);
+      if (raw2 != null && raw2 < (opts.barWeight ?? 20)) return false;
+    }
+    return true;
+  }
+  function isFeasible(ex2, slot, profile, opts = {}) {
+    return isFeasibleFor(ex2, repRange(ex2, slot, profile)[0], profile, opts);
+  }
+  var FREQUENCY_FACTOR = { 2: 0.9, 3: 1, 4: 1.05, 5: 1.15, 6: 1.15 };
   function volumeTargets(profile) {
     const base = BASE_TARGET[profile.experience] ?? 12;
     const gf = (GOAL_FACTOR[profile.goal] ?? 1) * (FREQUENCY_FACTOR[clamp(profile.strengthDays || 3, 2, 6)] ?? 1);
@@ -6623,11 +6743,18 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     }
     return out;
   }
+  function minDirectSets(days) {
+    return days >= 5 ? 6 : days >= 4 ? 4 : days === 3 ? 3 : 2;
+  }
+  function isHeavyMain(ex2, slot, profile) {
+    return profile.goal === "kraft" && !!slot?.main && ex2.tier === 1 && ex2.load === "barbell" && HEAVY_PATTERNS.has(ex2.pattern) && !healthFlags(profile).cautious;
+  }
   function repRange(ex2, slot, profile) {
+    if (ex2.reps) return ex2.reps.slice();
     const goal = profile.goal;
     if (ex2.load === "time") return [30, 60];
     if (goal === "kraft") {
-      if (slot.main && ex2.tier === 1 && ex2.load !== "bw") return [3, 5];
+      if (isHeavyMain(ex2, slot, profile)) return [3, 5];
       if (ex2.tier === 1) return [5, 8];
       if (ex2.tier === 2) return [6, 10];
       return [8, 12];
@@ -6643,25 +6770,17 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     return [10, 15];
   }
   function restSeconds(ex2, slot, profile) {
-    if (profile.goal === "kraft" && slot.main && ex2.tier === 1) return 180;
+    if (isHeavyMain(ex2, slot, profile)) return 180;
     if (ex2.tier === 1) return profile.experience === "anfaenger" ? 120 : 150;
     if (ex2.tier === 2) return 105;
     return 75;
   }
   function setMinutes(ex2, slot, profile) {
-    if (profile.goal === "kraft" && slot.main && ex2.tier === 1) return SET_MINUTES.main;
+    if (isHeavyMain(ex2, slot, profile)) return SET_MINUTES.main;
     return SET_MINUTES[ex2.tier];
   }
-  function pickExercise(slot, pool, used, usedInDay, rotation, profile) {
+  function pickExercise(slot, pool, used, usedInDay, rotation, profile, opts) {
     const prefer = [...slot.prefer || [], ...(GOAL_PREFER[profile.goal] || GOAL_PREFER.default)[slot.muscle] || []];
-    let fallback = false;
-    let cands = pool.filter((e) => e.primary.includes(slot.muscle) && slot.patterns.includes(e.pattern));
-    if (!cands.length) cands = pool.filter((e) => e.primary.includes(slot.muscle));
-    if (!cands.length) {
-      cands = pool.filter((e) => e.secondary.includes(slot.muscle));
-      fallback = true;
-    }
-    if (!cands.length) return null;
     const tierRank = (e) => {
       const i = slot.tiers.indexOf(e.tier);
       return i < 0 ? 9 : i;
@@ -6670,24 +6789,62 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       const i = prefer.indexOf(e.id);
       return i < 0 ? 99 : i;
     };
-    cands.sort((a2, b2) => tierRank(a2) - tierRank(b2) || prefRank(a2) - prefRank(b2) || pool.indexOf(a2) - pool.indexOf(b2));
-    const topRank = tierRank(cands[0]);
-    const top = cands.filter((e) => tierRank(e) === topRank);
-    const rest = cands.filter((e) => tierRank(e) !== topRank);
-    const r = rotation % top.length;
-    const rotated = [...top.slice(r), ...top.slice(0, r), ...rest];
-    return rotated.find((e) => !used.has(e.id)) || (fallback ? null : rotated.find((e) => !usedInDay.has(e.id)) || null);
+    const choose = (cands, viaSecondary) => {
+      const sorted = [...cands].sort((a2, b2) => tierRank(a2) - tierRank(b2) || prefRank(a2) - prefRank(b2) || pool.indexOf(a2) - pool.indexOf(b2));
+      const topRank = tierRank(sorted[0]);
+      const top = sorted.filter((e) => tierRank(e) === topRank);
+      const rest = sorted.filter((e) => tierRank(e) !== topRank);
+      const r = profile.goal === "kraft" && slot.main ? 0 : rotation % top.length;
+      const rotated = [...top.slice(r), ...top.slice(0, r), ...rest];
+      return rotated.find((e) => !used.has(e.id)) || (viaSecondary ? null : rotated.find((e) => !usedInDay.has(e.id)) || null);
+    };
+    const feasible = (list) => list.filter((e) => isFeasible(e, slot, profile, opts));
+    const altPatterns = slot.patterns.flatMap((p2) => PATTERN_FALLBACK[p2] || []);
+    const primaryPattern = pool.filter((e) => e.primary.includes(slot.muscle) && slot.patterns.includes(e.pattern));
+    const primaryAlt = pool.filter((e) => e.primary.includes(slot.muscle) && altPatterns.includes(e.pattern));
+    const primaryAny = pool.filter((e) => e.primary.includes(slot.muscle));
+    const secondaryAny = pool.filter((e) => e.secondary.includes(slot.muscle));
+    const stages = [
+      [feasible(primaryPattern), false],
+      [feasible(primaryAlt), false],
+      [feasible(primaryAny), false],
+      [feasible(secondaryAny), true]
+    ];
+    for (const [cands, viaSecondary] of stages) {
+      if (!cands.length) continue;
+      const ex2 = choose(cands, viaSecondary);
+      if (ex2) return ex2;
+    }
+    const softness = (e) => {
+      const r = estimateStartReps(e, profile);
+      const [min] = repRange(e, slot, profile);
+      return r != null && min ? r / min : 1;
+    };
+    for (const [cands, viaSecondary] of [[primaryPattern, false], [primaryAlt, false], [primaryAny, false], [secondaryAny, true]]) {
+      const sorted = [...cands].sort((a2, b2) => softness(b2) - softness(a2) || pool.indexOf(a2) - pool.indexOf(b2));
+      const ex2 = sorted.find((e) => !usedInDay.has(e.id) && (!viaSecondary || !used.has(e.id))) || null;
+      if (ex2) return ex2;
+    }
+    return null;
   }
   function plannedVolume(days) {
     const vol = Object.fromEntries(MUSCLES.map((m) => [m.id, 0]));
     for (const d of days) {
       for (const pe of d.exercises) {
         const ex2 = pe.ex;
-        for (const m of ex2.primary) vol[m] += pe.sets;
+        for (const m of ex2.primary) vol[m] += pe.sets * primaryVolumeWeight(ex2, m);
         for (const m of ex2.secondary) vol[m] += pe.sets * 0.5;
       }
     }
     return vol;
+  }
+  function isDirect(pe, m) {
+    return pe.slot.muscle === m && pe.ex.primary.includes(m) && (m !== "schultern" || pe.ex.pattern === "iso");
+  }
+  function directVolume(days, m) {
+    let n = 0;
+    for (const d of days) for (const pe of d.exercises) if (isDirect(pe, m)) n += pe.sets;
+    return n;
   }
   function dayMinutes(day, profile) {
     return WARMUP_MINUTES + day.exercises.reduce((acc, pe) => acc + pe.sets * setMinutes(pe.ex, pe.slot, profile), 0);
@@ -6703,6 +6860,21 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         d.exercises.splice(idx, 1);
       }
       while (dayMinutes(d, profile) > budget && d.exercises.length > 3) d.exercises.pop();
+    }
+    const minDirect = minDirectSets(days.length);
+    for (const m of MIN_DIRECT_MUSCLES) {
+      for (let guard = 0; guard < 20 && directVolume(days, m) < minDirect; guard++) {
+        let cand = null;
+        for (const d of days) {
+          for (const pe of d.exercises) {
+            if (!isDirect(pe, m) || pe.sets >= maxSetsFor(pe.ex)) continue;
+            if (dayMinutes(d, profile) + setMinutes(pe.ex, pe.slot, profile) > budget + 0.5) continue;
+            if (!cand || pe.sets < cand.sets) cand = pe;
+          }
+        }
+        if (!cand) break;
+        cand.sets += 1;
+      }
     }
     for (let guard = 0; guard < 400; guard++) {
       const vol2 = plannedVolume(days);
@@ -6738,6 +6910,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         const m = pe.slot.muscle;
         const sameMuscleElsewhere = days.some((x) => x.exercises.some((y2) => y2 !== pe && y2.slot.muscle === m));
         if (!sameMuscleElsewhere) continue;
+        if (MIN_DIRECT_MUSCLES.includes(m) && isDirect(pe, m) && directVolume(days, m) - pe.sets <= 0) continue;
         if (vol[m] - pe.sets >= targets[m].target - 0.5) {
           d.exercises.splice(i, 1);
           return true;
@@ -6766,6 +6939,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
   function generatePlan(profile, opts = {}) {
     const mesoIndex = opts.mesoIndex ?? 0;
     const startDate = opts.startDate || toISODate();
+    const feasOpts = { barWeight: opts.barWeight ?? 20 };
     const days = clamp(profile.strengthDays || 3, 2, 6);
     const split = SPLITS[days];
     const pool = availableExercises(profile);
@@ -6773,12 +6947,14 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const rotation = profile.experience === "anfaenger" ? 0 : mesoIndex;
     const used = /* @__PURE__ */ new Set();
     const notes = [];
+    let vpullMissing = false;
     const planDays = split.days.map(([name, slots], i) => {
       const exercises = [];
       const usedInDay = /* @__PURE__ */ new Set();
       for (const slot of slots) {
-        const ex2 = pickExercise(slot, pool, used, usedInDay, rotation, profile);
+        const ex2 = pickExercise(slot, pool, used, usedInDay, rotation, profile, feasOpts);
         if (!ex2) continue;
+        if (slot.patterns.includes("vpull") && !slot.patterns.includes(ex2.pattern)) vpullMissing = true;
         used.add(ex2.id);
         usedInDay.add(ex2.id);
         exercises.push({ ex: ex2, slot });
@@ -6817,21 +6993,25 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const volume = {};
     for (const m of MUSCLES) volume[m.id] = { ...targets[m.id], planned: Math.round(vol[m.id] * 10) / 10 };
     if (pool.length < 20) notes.push("Mit sehr wenig Ausr\xFCstung ist die \xDCbungsauswahl klein \u2013 Progression l\xE4uft dann \xFCber Wiederholungen, Tempo und schwerere Varianten.");
+    if (vpullMissing) notes.push("F\xFCr einen vertikalen Zug (Klimmz\xFCge, Latzug) fehlt Klimmzugstange oder Band \u2013 der R\xFCcken wird \xFCber Ruderbewegungen abgedeckt.");
     if (profile.limitations?.length) notes.push("\xDCbungen, die deine angegebenen Beschwerden belasten k\xF6nnten, wurden ausgelassen. Bei Schmerzen bitte \xE4rztlich abkl\xE4ren.");
+    notes.push(...healthNotes(profile));
+    const weeks = mesoWeeks(profile);
+    const strengthDays = finalDays.map((d) => ({ weekday: d.weekday, lower: isLowerBodyDay(d.name) }));
     return {
       id: uid(),
       createdAt: toISODate(),
       startDate,
       mesoIndex,
-      weeks: MESO_WEEKS,
-      deloadWeek: MESO_WEEKS,
-      rir: RIR_SCHEDULE[profile.experience] || RIR_SCHEDULE.fortgeschritten,
+      weeks,
+      deloadWeek: weeks,
+      rir: rirSchedule(profile),
       goal: profile.goal,
       experience: profile.experience,
       split: { id: split.id, name: split.name },
       days: finalDays,
       volume,
-      cardio: buildCardioPlan(profile),
+      cardio: buildCardioPlan(profile, { weeks, strengthDays }),
       mobility: buildMobilityPlan(profile),
       muscleAdjust: {},
       notes
@@ -6845,9 +7025,27 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const diff = Math.floor((new Date(todayIso) - new Date(plan.startDate)) / (7 * 24 * 3600 * 1e3));
     return diff + 1 > plan.weeks;
   }
+  function muscleAdjustCap(plan, muscle) {
+    const t2 = plan?.volume?.[muscle]?.target ?? 10;
+    return Math.max(2, Math.round(t2 * 0.3));
+  }
+  function adjustmentFor(plan, day, pe) {
+    const adj = plan.muscleAdjust?.[pe.muscle] ?? 0;
+    if (!adj) return plan.volumeAdjust?.[day?.id] ?? 0;
+    const list = [];
+    for (const d of plan.days) for (const x of d.exercises) if (x.muscle === pe.muscle) list.push({ dayId: d.id, x });
+    if (!list.length) return 0;
+    const rank = (o) => (o.x.main ? 0 : 10) + (o.x.tier ?? 2) + (o.x.optional ? 5 : 0);
+    list.sort((a2, b2) => adj > 0 ? rank(a2) - rank(b2) : rank(b2) - rank(a2));
+    const idx = list.findIndex((o) => o.dayId === day?.id && o.x.exId === pe.exId);
+    if (idx < 0) return 0;
+    const n = Math.abs(adj);
+    const each = Math.floor(n / list.length);
+    const extra = n % list.length;
+    return Math.sign(adj) * (each + (idx < extra ? 1 : 0));
+  }
   function effectiveSets(plan, day, pe, week) {
-    const adj = plan.muscleAdjust?.[pe.muscle] ?? plan.volumeAdjust?.[day.id] ?? 0;
-    let sets2 = clamp(pe.sets + adj, 1, 6);
+    let sets2 = clamp(pe.sets + adjustmentFor(plan, day, pe), 1, 6);
     if (week === plan.deloadWeek) sets2 = Math.max(1, Math.ceil(sets2 / 2));
     return sets2;
   }
@@ -6856,7 +7054,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     for (const pe of day.exercises) {
       const ex2 = EXERCISES.find((e) => e.id === pe.exId);
       if (!ex2) continue;
-      const cost = profile?.goal === "kraft" && pe.main && ex2.tier === 1 ? SET_MINUTES.main : SET_MINUTES[ex2.tier];
+      const cost = profile && isHeavyMain(ex2, pe, profile) ? SET_MINUTES.main : SET_MINUTES[ex2.tier];
       min += effectiveSets(plan, day, pe, week) * cost;
     }
     return Math.round(min);
@@ -6864,7 +7062,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
   function shortenDay(plan, day, week, minutes, profile) {
     const cost = (pe) => {
       const ex2 = EXERCISES.find((e) => e.id === pe.exId);
-      return profile?.goal === "kraft" && pe.main && ex2?.tier === 1 ? SET_MINUTES.main : SET_MINUTES[ex2?.tier || 3];
+      return ex2 && profile && isHeavyMain(ex2, pe, profile) ? SET_MINUTES.main : SET_MINUTES[ex2?.tier || 3];
     };
     let list = day.exercises.map((pe) => ({ ...pe, sets: effectiveSets(plan, day, pe, week) }));
     const total = () => WARMUP_MINUTES + list.reduce((a2, pe) => a2 + pe.sets * cost(pe), 0);
@@ -6889,17 +7087,28 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     return { exercises: list, minutes: total() };
   }
   var EXP_FACTOR = { anfaenger: 0.6, fortgeschritten: 1, erfahren: 1.3 };
-  var SEX_FACTOR = { m: 1, w: 0.65, d: 0.8 };
-  function estimateStartWeight(ex2, profile, reps, rir = 2, settings = {}) {
-    if (!ex2.ratio || ["bw", "time", "band"].includes(ex2.load)) return null;
+  var SEX_FACTOR = { m: { upper: 1, lower: 1 }, w: { upper: 0.55, lower: 0.75 }, d: { upper: 0.75, lower: 0.85 } };
+  var LOWER_MUSCLES = /* @__PURE__ */ new Set(["quadrizeps", "beinbeuger", "gesaess", "waden"]);
+  function estimatedE1RM(ex2, profile) {
+    if (!ex2.ratio) return null;
     const bw = clamp(profile.weightKg || 75, 45, 110);
-    let e1rm = ex2.ratio * bw * (EXP_FACTOR[profile.experience] ?? 1) * (SEX_FACTOR[profile.sex] ?? 0.8);
+    const region = ex2.primary.some((m) => LOWER_MUSCLES.has(m)) ? "lower" : "upper";
+    const sf = (SEX_FACTOR[profile.sex] || SEX_FACTOR.d)[region];
+    let e1rm = ex2.ratio * bw * (EXP_FACTOR[profile.experience] ?? 1) * sf;
     if (profile.age > 60) e1rm *= 0.75;
     else if (profile.age > 50) e1rm *= 0.85;
     else if (profile.age < 18) e1rm *= 0.8;
-    let w = e1rm / (1 + (reps + rir) / 30);
+    return e1rm;
+  }
+  function rawStartWeight(ex2, profile, reps, rir = 2) {
+    if (!ex2.ratio || ["bw", "time", "band"].includes(ex2.load)) return null;
+    const w = estimatedE1RM(ex2, profile) / (1 + (reps + rir) / 30);
     const inc = ex2.inc || 2.5;
-    w = Math.floor(w / inc) * inc;
+    return Math.floor(w / inc) * inc;
+  }
+  function estimateStartWeight(ex2, profile, reps, rir = 2, settings = {}) {
+    let w = rawStartWeight(ex2, profile, reps, rir);
+    if (w == null) return null;
     if (ex2.load === "barbell") w = Math.max(settings.barWeight ?? 20, w);
     if (ex2.load === "dumbbell" || ex2.load === "kettlebell") w = Math.max(2, w);
     return Math.round(w * 10) / 10;
@@ -6911,13 +7120,17 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     if (profile.sex === "w" && ex2.load !== "time") r = Math.max(1, Math.round(r * 0.7));
     return r;
   }
+  var FLOOR_PULLS = /* @__PURE__ */ new Set(["kreuzheben", "sumo_kreuzheben", "kreuzheben_trap_bar", "rack_pull"]);
   function warmupSets(ex2, weight, barWeight = 20, level = "voll") {
     if (!weight || ["bw", "time", "band"].includes(ex2.load)) return level === "voll" && ex2.load === "bw" ? [{ weight: 0, reps: 5, note: "leichte Variante" }] : [];
     const inc = ex2.load === "dumbbell" || ex2.load === "kettlebell" ? 1 : 2.5;
-    const r = (x) => Math.max(ex2.load === "barbell" ? barWeight : inc, Math.round(x / inc) * inc);
+    const floorPull = FLOOR_PULLS.has(ex2.id);
+    const minW = floorPull ? Math.min(40, weight) : ex2.load === "barbell" ? barWeight : inc;
+    const r = (x) => Math.max(minW, Math.round(x / inc) * inc);
     if (level === "kurz") return [{ weight: r(weight * 0.6), reps: 5 }];
     const sets2 = [];
-    if (ex2.load === "barbell" && weight > barWeight * 1.5) sets2.push({ weight: barWeight, reps: 10, note: "leere Stange" });
+    if (ex2.load === "barbell" && !floorPull && weight > barWeight * 1.5) sets2.push({ weight: barWeight, reps: 10, note: "leere Stange" });
+    if (floorPull && weight > 60) sets2.push({ weight: r(weight * 0.4), reps: 8, note: "locker, Technik" });
     if (weight >= 30) sets2.push({ weight: r(weight * 0.5), reps: 6 });
     sets2.push({ weight: r(weight * 0.7), reps: 4 });
     if (weight >= 60) sets2.push({ weight: r(weight * 0.85), reps: 2 });
@@ -6946,6 +7159,10 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
   function rirForWeek(plan, week) {
     return plan.rir[clamp(week, 1, plan.rir.length) - 1];
   }
+  function rirForExercise(plan, week, ex2, base = rirForWeek(plan, week)) {
+    if (ex2 && ex2.tier === 1 && ex2.load === "barbell" && RIR_FLOOR_PATTERNS.has(ex2.pattern)) return Math.max(base, 1);
+    return base;
+  }
 
   // src/engine/nutrition.js
   var ACTIVITY_LEVELS = {
@@ -6954,6 +7171,13 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     moderat: { name: "Moderat aktiv", desc: "K\xF6rperlich aktiver Job oder viel Alltagsbewegung", factor: 1.5 },
     hoch: { name: "Sehr aktiv", desc: "Schwere k\xF6rperliche Arbeit", factor: 1.7 }
   };
+  function currentWeight(profile, bodyLogs = []) {
+    const logs = [...bodyLogs].filter((b2) => b2?.weightKg > 0).sort((a2, b2) => a2.date < b2.date ? -1 : 1);
+    if (!logs.length) return profile?.weightKg || 0;
+    const last = new Date(logs[logs.length - 1].date).getTime();
+    const win = logs.filter((b2) => last - new Date(b2.date).getTime() <= 7 * 864e5);
+    return Math.round(win.reduce((a2, b2) => a2 + b2.weightKg, 0) / win.length * 10) / 10;
+  }
   function bmrMifflin({ sex, weightKg, heightCm, age }) {
     const base = 10 * weightKg + 6.25 * heightCm - 5 * age;
     if (sex === "m") return base + 5;
@@ -6968,8 +7192,10 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     ausdauer: 0,
     fitness: 0
   };
-  function computeNutrition(profile, plan) {
-    const bmr = bmrMifflin(profile);
+  function computeNutrition(profile, plan, opts = {}) {
+    const w = opts.weightKg || profile.weightKg;
+    const flags = healthFlags(profile);
+    const bmr = bmrMifflin({ ...profile, weightKg: w });
     const act = ACTIVITY_LEVELS[profile.activityLevel] || ACTIVITY_LEVELS.leicht;
     const baseTdee = bmr * act.factor;
     const strengthMin = (profile.strengthDays || 0) * (profile.sessionMinutes || 60);
@@ -6980,7 +7206,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       for (const s of plan.cardio.sessions) {
         const m = s.minutesByWeek[1];
         cardioMinutes += m;
-        cardioKcalWeek += cardioKcal(s.activity, m, profile.weightKg);
+        cardioKcalWeek += cardioKcal(s.activity, m, w);
       }
     }
     const trainingPerDay = (strengthKcal + cardioKcalWeek) / 7;
@@ -6988,13 +7214,15 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     let adj = GOAL_ADJ[profile.goal] ?? 0;
     if (typeof adj === "object") adj = adj[profile.experience] ?? 250;
     if (adj < 0 && adj > -1) adj = Math.max(-600, Math.round(tdee * adj));
+    if (flags.noDeficit && adj < 0) adj = 0;
     let target = tdee + adj;
     const floor = profile.sex === "w" ? 1300 : 1500;
     if (target < floor) target = floor;
-    const w = profile.weightKg;
     const proteinPerKg = profile.goal === "fettabbau" ? 2.2 : profile.goal === "ausdauer" ? 1.6 : 1.8;
-    const protein = round(w * proteinPerKg, 5);
-    const fat = round(Math.max(0.7 * w, target * 0.25 / 9), 5);
+    const proteinRef = profile.goal === "fettabbau" && profile.targetWeightKg && profile.targetWeightKg < w ? Math.max(profile.targetWeightKg, w * 0.85) : w;
+    const protein = round(proteinRef * proteinPerKg, 5);
+    const fatFloor = profile.sex === "w" ? 1 : 0.8;
+    const fat = round(Math.max(fatFloor * w, target * 0.25 / 9), 5);
     const carbs = round(Math.max(0, (target - protein * 4 - fat * 9) / 4), 5);
     return {
       bmr: Math.round(bmr),
@@ -7006,29 +7234,39 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       tdee: Math.round(tdee),
       adjustment: Math.round(adj),
       target: round(target, 10),
+      weightKg: w,
       protein,
       proteinPerKg,
+      proteinRefKg: Math.round(proteinRef),
       fat,
+      fatPerKg: fatFloor,
+      noDeficit: flags.noDeficit,
       carbs,
       fiber: Math.round(target / 1e3 * 14),
       waterMl: Math.round(w * 35 + cardioMinutes * 5),
-      expectedRate: expectedWeeklyRate(profile)
+      expectedRate: expectedWeeklyRate(profile, w)
     };
   }
-  function expectedWeeklyRate(profile) {
+  function expectedWeeklyRate(profile, weightKg = 0) {
+    const w = weightKg || profile.weightKg || 0;
+    const bmi = w && profile.heightCm ? w / (profile.heightCm / 100) ** 2 : 25;
+    const nearTarget = profile.targetWeightKg && w ? (w - profile.targetWeightKg) / w < 0.05 : false;
     switch (profile.goal) {
       case "muskelaufbau":
         return profile.experience === "anfaenger" ? [0.25, 0.5] : profile.experience === "fortgeschritten" ? [0.15, 0.35] : [0.1, 0.25];
       case "fettabbau":
-        return [-1, -0.5];
+        return bmi < 22 || nearTarget ? [-0.7, -0.25] : [-1, -0.5];
       case "kraft":
         return [0, 0.3];
       default:
         return [-0.25, 0.25];
     }
   }
-  function weightTrend(bodyLogs) {
-    const logs = [...bodyLogs].sort((a2, b2) => a2.date < b2.date ? -1 : 1);
+  function weightTrend(bodyLogs, windowDays = 28) {
+    const all = [...bodyLogs].sort((a2, b2) => a2.date < b2.date ? -1 : 1);
+    if (!all.length) return null;
+    const lastTs = new Date(all[all.length - 1].date).getTime();
+    const logs = all.filter((b2) => lastTs - new Date(b2.date).getTime() <= windowDays * 864e5);
     if (logs.length < 2) return null;
     const avgOf = (arr) => arr.reduce((a2, b2) => a2 + b2.weightKg, 0) / arr.length;
     const last = logs.slice(-7);
@@ -7043,7 +7281,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
   }
   function trendAdvice(trend, profile) {
     if (!trend || trend.days < 10) return { level: "info", text: "Wiege dich m\xF6glichst t\xE4glich morgens. Nach ca. 2 Wochen gibt es hier eine Einsch\xE4tzung." };
-    const [lo2, hi2] = expectedWeeklyRate(profile);
+    const [lo2, hi2] = expectedWeeklyRate(profile, trend.current);
     const p2 = trend.perWeekPct;
     const fmt = (x) => `${x > 0 ? "+" : ""}${x.toFixed(2)} %/Woche`;
     if (p2 < lo2 - 0.05) {
@@ -7125,6 +7363,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     equipment: "home",
     gear: [],
     limitations: [],
+    health: [],
     cardio: ["walken"],
     cardioSessions: 1,
     priorities: []
@@ -7144,6 +7383,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     equipment: "gym",
     gear: [],
     limitations: [],
+    health: [],
     cardio: ["laufen", "rad"],
     cardioSessions: 2,
     priorities: ["brust"],
@@ -7156,7 +7396,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     if (edit && s.profile && !draft.__edit) {
       draft = { ...s.profile, __edit: true };
     } else if (!edit && !draft.__started) {
-      draft = { __started: true, sex: "m", activityLevel: "leicht", goal: "muskelaufbau", experience: "anfaenger", strengthDays: 3, sessionMinutes: 60, equipment: "gym", gear: [], limitations: [], cardio: ["walken"], priorities: [] };
+      draft = { __started: true, sex: "m", activityLevel: "leicht", goal: "muskelaufbau", experience: "anfaenger", strengthDays: 3, sessionMinutes: 60, equipment: "gym", gear: [], limitations: [], health: [], cardio: ["walken"], priorities: [] };
     }
     root2.innerHTML = String(html`
     <section class="onb">
@@ -7220,6 +7460,8 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       draft.weightKg = num(d.weightKg);
       draft.activityLevel = d.activityLevel;
       draft.restingHr = num(d.restingHr, 0) || void 0;
+      draft.maxHr = num(d.maxHr, 0) || void 0;
+      if (draft.maxHr && (draft.maxHr < 120 || draft.maxHr > 230)) return "Bitte einen plausiblen Maximalpuls angeben (120\u2013230) oder das Feld leer lassen.";
       if (!draft.age || draft.age < 14 || draft.age > 99) return "Bitte ein Alter zwischen 14 und 99 angeben.";
       if (!draft.heightCm || draft.heightCm < 120 || draft.heightCm > 230) return "Bitte eine K\xF6rpergr\xF6\xDFe in cm angeben (120\u2013230).";
       if (!draft.weightKg || draft.weightKg < 30 || draft.weightKg > 250) return "Bitte ein K\xF6rpergewicht in kg angeben (30\u2013250).";
@@ -7244,6 +7486,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       draft.equipment = d.equipment;
       draft.gear = d.equipment === "gym" ? [] : d.gear || [];
       draft.limitations = d.limitations || [];
+      draft.health = d.health || [];
     }
     if (step === 4) {
       draft.cardio = d.cardio || [];
@@ -7263,7 +7506,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       st2.profile = profile;
       if (!keepPlan) {
         if (st2.plan) st2.planHistory.push(st2.plan);
-        st2.plan = generatePlan(profile, { mesoIndex: st2.plan ? st2.plan.mesoIndex + 1 : 0 });
+        st2.plan = generatePlan(profile, { mesoIndex: st2.plan ? st2.plan.mesoIndex + 1 : 0, barWeight: st2.settings?.barWeight });
       }
       if (profile.weightKg && !st2.bodyLogs.some((b2) => b2.date === st2.meta.lastOpened)) {
         st2.bodyLogs.push({ date: st2.meta.lastOpened, weightKg: profile.weightKg });
@@ -7271,10 +7514,12 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     });
     draft = {};
     step = 0;
-    if (!target) toast(keepPlan ? "Profil gespeichert." : "Dein Plan ist fertig.", "ok");
+    const flags = healthFlags(profile);
+    if (flags.cautious) toast("Du hast eine Gesundheitsfrage mit Ja beantwortet: Der Plan ist vorsichtiger (keine Intervalle, mehr Reserve). Bitte \xE4rztlich abkl\xE4ren.", "warn");
+    else if (!target) toast(keepPlan ? "Profil gespeichert." : "Dein Plan ist fertig.", "ok");
     location.hash = target || (keepPlan ? "#/mehr" : "#/plan");
   }
-  var PLAN_KEYS = ["goal", "experience", "strengthDays", "sessionMinutes", "equipment", "gear", "limitations", "cardio", "cardioSessions", "priorities", "trainingWeekdays"];
+  var PLAN_KEYS = ["goal", "experience", "strengthDays", "sessionMinutes", "equipment", "gear", "limitations", "health", "cardio", "cardioSessions", "priorities", "trainingWeekdays", "maxHr"];
   function samePlanInputs(a2, b2) {
     if (!a2) return false;
     return PLAN_KEYS.every((k) => JSON.stringify(a2[k] ?? null) === JSON.stringify(b2[k] ?? null));
@@ -7304,6 +7549,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         <label class="field"><span>Größe (cm)</span><input id="f-height" name="heightCm" type="number" inputmode="numeric" min="120" max="230" value="${d.heightCm || ""}" required></label>
         <label class="field"><span>Gewicht (kg)</span><input id="f-weight" name="weightKg" type="number" inputmode="decimal" step="0.1" min="30" max="250" value="${d.weightKg || ""}" required></label>
         <label class="field"><span>Ruhepuls (optional)</span><input id="f-rhr" name="restingHr" type="number" inputmode="numeric" min="30" max="110" value="${d.restingHr || ""}" placeholder="z. B. 60"></label>
+        <label class="field"><span>Maximalpuls, falls gemessen (optional)</span><input id="f-maxhr" name="maxHr" type="number" inputmode="numeric" min="120" max="230" value="${d.maxHr || ""}" placeholder="sonst geschätzt"></label>
       </div>
       <h3>Alltag außerhalb des Trainings</h3>
       <div class="choices">${radioCards("activityLevel", Object.entries(ACTIVITY_LEVELS), d.activityLevel)}</div>`;
@@ -7347,7 +7593,10 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       </div>
       <h3>Beschwerden / Einschränkungen</h3>
       <div class="chips">${checkChips("limitations", LIMITATIONS.map((l2) => [l2.id, l2.name]), d.limitations || [])}</div>
-      <p class="hint">Betroffene Übungen werden ausgelassen. Das ersetzt keine ärztliche Abklärung.</p>`;
+      <p class="hint">Betroffene Übungen werden ausgelassen. Das ersetzt keine ärztliche Abklärung.</p>
+      <h3>Gesundheit <span class="muted">(kurzer Check, angelehnt an PAR-Q+)</span></h3>
+      <p class="muted small">Ehrlich beantworten – bei einem Ja plant LMCI vorsichtiger (keine harten Intervalle, mehr Reserve) und empfiehlt eine ärztliche Freigabe.</p>
+      <div class="health-list">${HEALTH_QUESTIONS.map((q2) => html`<label class="chip health"><input type="checkbox" name="health[]" value="${q2.id}" ${(d.health || []).includes(q2.id) ? "checked" : ""}><span>${q2.text}</span></label>`)}</div>`;
     }
     return html`
     <h2>Cardio & Schwerpunkte</h2>
@@ -7377,12 +7626,22 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
   function workingSets(entry) {
     return (entry?.sets || []).filter((s) => s && s.reps > 0);
   }
+  function mainWeight(sets2) {
+    const counts = /* @__PURE__ */ new Map();
+    for (const s of sets2) {
+      const w = s.weight || 0;
+      counts.set(w, (counts.get(w) || 0) + 1);
+    }
+    let best = null;
+    for (const [w, n] of counts) if (!best || n > best.n || n === best.n && w > best.w) best = { w, n };
+    return best ? best.w : 0;
+  }
   function summarizeEntry(entry, ex2) {
     const sets2 = workingSets(entry);
     if (!sets2.length) return "";
     const unit = ex2.load === "time" ? "s" : "";
-    const w = sets2[0].weight || 0;
-    const reps = sets2.map((s) => `${s.reps}${unit}`).join(", ");
+    const w = mainWeight(sets2);
+    const reps = sets2.map((s) => `${s.weight && s.weight !== w ? `${s.weight}\xD7` : ""}${s.reps}${unit}`).join(", ");
     if (ex2.load === "bw" || ex2.load === "time" || ex2.load === "band") {
       return w ? `+${w} kg \xD7 ${reps}` : reps;
     }
@@ -7399,12 +7658,16 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       const est = ctx.profile ? estimateStartWeight(ex2, ctx.profile, pe.repMin, rirTarget, ctx.settings || {}) : null;
       const estReps = ctx.profile ? estimateStartReps(ex2, ctx.profile) : null;
       if (isLoadable && est) {
+        const bar = ctx.settings?.barWeight ?? 20;
+        const raw2 = ex2.load === "barbell" ? rawStartWeight(ex2, ctx.profile, pe.repMin, rirTarget) : null;
+        const belowBar = raw2 != null && raw2 < bar;
         return {
           kind: "start",
           weight: est,
           reps: pe.repMin,
           estimated: true,
-          note: `Startgewicht gesch\xE4tzt: ${est} kg f\xFCr ${pe.repMin}\u2013${pe.repMax} ${unitLabel} mit ${rirTarget} in Reserve. Zu leicht oder zu schwer? Einfach anpassen \u2013 ab dem 2. Mal z\xE4hlt nur noch dein Log.`,
+          belowBar,
+          note: belowBar ? `Rechnerisch w\xE4ren es nur ca. ${raw2} kg \u2013 weniger als die Stange (${bar} kg). Starte mit der leeren Stange und weniger Wiederholungen, oder tausche auf die Kurzhantel- bzw. Maschinenvariante.` : `Startgewicht gesch\xE4tzt: ${est} kg f\xFCr ${pe.repMin}\u2013${pe.repMax} ${unitLabel} mit ${rirTarget} in Reserve. Zu leicht oder zu schwer? Einfach anpassen \u2013 ab dem 2. Mal z\xE4hlt nur noch dein Log.`,
           prev: ""
         };
       }
@@ -7427,21 +7690,23 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         prev: ""
       };
     }
-    const w = sets2[0].weight || 0;
-    const minReps = Math.min(...sets2.map((s) => s.reps));
-    const avgRir = sets2.every((s) => s.rir != null) ? sets2.reduce((a2, s) => a2 + s.rir, 0) / sets2.length : null;
+    const w = mainWeight(sets2);
+    const wsets = isLoadable ? sets2.filter((s) => (s.weight || 0) === w) : sets2;
+    const minReps = Math.min(...wsets.map((s) => s.reps));
+    const avgRir = wsets.every((s) => s.rir != null) ? wsets.reduce((a2, s) => a2 + s.rir, 0) / wsets.length : null;
     const prev = summarizeEntry(last, ex2);
+    const fmtRir = (x) => (Math.round(x * 10) / 10).toString().replace(".", ",");
     if (deload) {
       return {
         kind: "deload",
-        weight: isLoadable ? roundToInc(w * 0.9, inc) : w,
+        weight: w,
         reps: pe.repMin,
-        note: `Deload: ca. 10 % weniger Gewicht, halbe Satzzahl, locker bleiben (${rirTarget}+ in Reserve).`,
+        note: `Deload: halbe Satzzahl, Gewicht halten, am unteren Ende des Bereichs bleiben (${rirTarget}+ in Reserve). Erholung ist das Ziel.`,
         prev
       };
     }
-    const hitTop = minReps >= pe.repMax && (avgRir == null || avgRir >= rirTarget - 0.5);
-    if (hitTop) {
+    const hitTop = minReps >= pe.repMax;
+    if (hitTop && (avgRir == null || avgRir >= rirTarget - 0.5)) {
       if (isLoadable) {
         const nw = roundToInc(w + inc, inc);
         return { kind: "up", weight: nw, reps: pe.repMin, note: `Alle S\xE4tze am oberen Ende \u2013 Gewicht erh\xF6hen auf ${nw} kg, zur\xFCck auf ${pe.repMin} ${unitLabel}.`, prev };
@@ -7454,8 +7719,31 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         prev
       };
     }
+    if (hitTop) {
+      return {
+        kind: "hold",
+        weight: w,
+        reps: pe.repMax,
+        note: `Obergrenze erreicht, aber zu nah am Versagen (\xD8 ${fmtRir(avgRir)} statt ${rirTarget} in Reserve). Gewicht halten, bis ${pe.repMax} ${unitLabel} mit ${rirTarget} in Reserve sauber sind \u2013 dann steigern.`,
+        prev
+      };
+    }
+    if (avgRir != null && avgRir >= rirTarget + 2 && minReps >= pe.repMin) {
+      if (isLoadable) {
+        const nw = roundToInc(w + inc, inc);
+        return { kind: "up", weight: nw, reps: pe.repMin, note: `Deutlich mehr Reserve als geplant (\xD8 ${fmtRir(avgRir)} statt ${rirTarget}) \u2013 Gewicht erh\xF6hen auf ${nw} kg.`, prev };
+      }
+      return { kind: "up", weight: w, reps: pe.repMax, note: `Deutlich mehr Reserve als geplant (\xD8 ${fmtRir(avgRir)}) \u2013 schwerere Variante, Zusatzgewicht oder langsameres Tempo.`, prev };
+    }
+    const beginnerLinear = ctx.profile?.experience === "anfaenger" && ex2.tier === 1 && isLoadable && minReps >= pe.repMin && (avgRir != null ? avgRir >= rirTarget : minReps >= pe.repMin + 2);
+    if (beginnerLinear) {
+      const nw = roundToInc(w + inc, inc);
+      return { kind: "up", weight: nw, reps: pe.repMin, note: `Alle S\xE4tze im Zielbereich mit genug Reserve \u2013 als Anf\xE4nger jede Einheit steigern: ${nw} kg. Klemmt es zweimal, geht es automatisch zur\xFCck.`, prev };
+    }
     const before = history.length > 1 ? workingSets(history[history.length - 2]) : [];
-    const failedTwice = minReps < pe.repMin && before.length && Math.min(...before.map((s) => s.reps)) < pe.repMin && (before[0].weight || 0) === w;
+    const beforeW = before.length ? mainWeight(before) : null;
+    const beforeMin = before.length ? Math.min(...(isLoadable ? before.filter((s) => (s.weight || 0) === beforeW) : before).map((s) => s.reps)) : null;
+    const failedTwice = minReps < pe.repMin && before.length && beforeMin < pe.repMin && beforeW === w;
     if (failedTwice && isLoadable) {
       const nw = roundToInc(w * 0.92, inc);
       return { kind: "down", weight: nw, reps: pe.repMin, note: `Zweimal unter ${pe.repMin} ${unitLabel} \u2013 Gewicht auf ${nw} kg reduzieren und neu aufbauen.`, prev };
@@ -7465,16 +7753,16 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     }
     return { kind: "reps", weight: w, reps: Math.min(pe.repMax, minReps + 1), note: `Gewicht halten, pro Satz eine Wiederholung mehr anpeilen (Ziel ${pe.repMax}).`, prev };
   }
-  function muscleDeltasFromFeedback(fb, trained) {
+  function muscleDeltasFromFeedback(fb, trained, opts = {}) {
     const out = {};
     if (!fb) return out;
     const sore = new Set(fb.sore || []);
     const more = new Set(fb.more || []);
     const globalDown = (fb.rpe ?? 8) >= 9.5 && fb.performance === "schlechter";
-    const globalUp = (fb.rpe ?? 8) <= 7 && fb.performance === "besser";
+    const globalUp = (fb.rpe ?? 8) <= 7 && fb.performance === "besser" && !opts.lowReadiness;
     for (const m of trained) {
       if (sore.has(m) || globalDown) out[m] = -1;
-      else if (more.has(m) || globalUp) out[m] = 1;
+      else if (more.has(m) && !opts.lowReadiness || globalUp) out[m] = 1;
       else out[m] = 0;
     }
     return out;
@@ -7483,7 +7771,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     let best = 0;
     for (const s of workingSets(entry)) {
       if (!s.weight) continue;
-      best = Math.max(best, estimate1RM(s.weight, Math.min(s.reps, 12)));
+      best = Math.max(best, estimate1RM(s.weight, Math.min(s.reps + (s.rir ?? 0), 12)));
     }
     return Math.round(best * 10) / 10;
   }
@@ -7512,7 +7800,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         const ex2 = getExercise(e.exId);
         if (!ex2) continue;
         const n = e.sets.filter((s) => s.reps > 0).length;
-        for (const m of ex2.primary) vol[m] += n;
+        for (const m of ex2.primary) vol[m] += n * primaryVolumeWeight(ex2, m);
         for (const m of ex2.secondary) vol[m] += n * 0.5;
       }
     }
@@ -7646,11 +7934,11 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     }
   }
   function openIntervalTimer(session, week) {
-    const w = Math.max(0, Math.min(4, week - 1));
+    const w = Math.max(0, Math.min(session.minutesByWeek.length - 1, week - 1));
     const phases = [];
     if (session.intervals) {
       const rounds = session.intervals.roundsByWeek[w];
-      phases.push({ name: "Aufw\xE4rmen", sec: 300, kind: "easy" });
+      phases.push({ name: "Aufw\xE4rmen", sec: session.intervals.work >= 180 ? 600 : 300, kind: "easy" });
       for (let i = 1; i <= rounds; i++) {
         phases.push({ name: `Intervall ${i}/${rounds} \u2013 hart`, sec: session.intervals.work, kind: "hard" });
         if (i < rounds) phases.push({ name: `Locker`, sec: session.intervals.rest, kind: "easy" });
@@ -8149,7 +8437,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       return b2.date >= d.toISOString().slice(0, 10);
     });
     const trend = weightTrend(recent);
-    const [lo2, hi2] = expectedWeeklyRate(profile);
+    const [lo2, hi2] = expectedWeeklyRate(profile, trend?.current || 0);
     let suggestion = { deltaKcal: 0, level: "info", text: "" };
     if (logged.length < 4) {
       suggestion.text = `Erst ${logged.length} von 7 Tagen erfasst. Ab 4 Tagen gibt es eine Empfehlung \u2013 lieber grob jeden Tag als perfekt an zweien.`;
@@ -8646,10 +8934,13 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     for (let i = 1; i < dates.length; i++) if ((new Date(dates[i]) - new Date(dates[i - 1])) / 864e5 >= 14) return true;
     return false;
   };
-  var doubleDay = (s) => {
-    const counts = {};
-    for (const w of s.workouts) counts[w.date] = (counts[w.date] || 0) + 1;
-    return Object.values(counts).some((c) => c >= 2);
+  var wellSlept = (s) => (s.checkins || []).filter((c) => (c.sleep || 0) >= 7.5).length >= 7;
+  var deloadDone = (s) => {
+    const plans = [s.plan, ...s.planHistory || []].filter(Boolean);
+    return plans.some((p2) => {
+      const done = new Set(s.workouts.filter((w) => w.planId === p2.id && w.week === p2.deloadWeek && w.dayId !== "frei" && w.dayId !== "schnell").map((w) => w.dayId));
+      return p2.days?.length > 0 && done.size >= p2.days.length;
+    });
   };
   var perfectDays = (s, ctx) => ctx.perfectDays;
   var fullWeeks = (s, ctx) => ctx.fullWeeks;
@@ -8725,10 +9016,10 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     B("masse_5", "alltag", "Ma\xDFband", "5 Messungen der K\xF6rperma\xDFe", "\u{1F4CF}", (s) => (s.measurements || []).length >= 5),
     // Besondere Momente
     B("frueh", "special", "Fr\xFChaufsteher", "Training vor 8 Uhr beendet", "\u{1F305}", (s) => s.workouts.some((w) => w.finishedAt && new Date(w.finishedAt).getHours() < 8)),
-    B("nachteule", "special", "Nachteule", "Training nach 21 Uhr beendet", "\u{1F989}", (s) => s.workouts.some((w) => w.finishedAt && new Date(w.finishedAt).getHours() >= 21)),
+    B("ausgeschlafen", "special", "Ausgeschlafen", "7 Check-ins mit mindestens 7,5 h Schlaf", "\u{1F634}", (s) => wellSlept(s)),
     B("wochenende", "special", "Wochenendkrieger", "Samstag und Sonntag trainiert", "\u{1F6E1}\uFE0F", (s) => weekendWarrior(s)),
     B("comeback", "special", "Comeback", "Nach 2 Wochen Pause zur\xFCck", "\u{1F501}", (s) => comeback(s)),
-    B("doppelschicht", "special", "Doppelschicht", "Zwei Trainings an einem Tag", "\u26A1\u26A1", (s) => doubleDay(s)),
+    B("deload_ok", "special", "Deload durchgezogen", "Alle Einheiten einer Deload-Woche gemacht", "\u{1F6CC}", (s) => deloadDone(s)),
     B("leicht_ok", "special", "Klug gesteuert", "Eine leichte Version trainiert statt auszulassen", "\u{1F9E0}", (s) => s.workouts.some((w) => w.mode === "leicht")),
     B("challenge_1", "special", "Herausforderer", "Erste Herausforderung geschafft", "\u{1F396}\uFE0F", (s, ctx) => ctx.challengesDone >= 1),
     B("challenge_10", "special", "Serient\xE4ter", "10 Herausforderungen geschafft", "\u{1F3C5}", (s, ctx) => ctx.challengesDone >= 10),
@@ -8781,7 +9072,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
   // src/ui/ernaehrung.js
   var viewDate = toISODate();
   function dailyTargets(s) {
-    const n = computeNutrition(s.profile, s.plan);
+    const n = computeNutrition(s.profile, s.plan, { weightKg: currentWeight(s.profile, s.bodyLogs) || s.profile.weightKg });
     const o = s.settings.targetOverride;
     const adjust = s.settings.kcalAdjust || 0;
     if (o?.kcal) {
@@ -8816,7 +9107,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const goal = goalProjection(profile, s.bodyLogs, trend);
     root2.innerHTML = String(html`
     <section class="page">
-      <header class="page-head"><div><h1>Ernährung</h1><p class="muted">Ziel: ${GOALS[profile.goal]?.name} · ${profile.weightKg} kg</p></div></header>
+      <header class="page-head"><div><h1>Ernährung</h1><p class="muted">Ziel: ${GOALS[profile.goal]?.name} · ${n.weightKg} kg${n.noDeficit ? " \xB7 kein Defizit (Schwangerschaft/Wochenbett)" : ""}</p></div></header>
 
       <div class="date-nav">
         <button class="btn" data-act="prev" aria-label="Vorheriger Tag">◀</button>
@@ -9085,7 +9376,15 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     if (next && (next.kind === "heute" || next.kind === "nachholen")) {
       goals.push({ id: "training", label: `Training: ${next.day.name}`, hint: `${next.day.exercises.length} \xDCbungen`, xp: XP.workoutBase, done: workoutToday, href: `#/workout/${next.day.id}` });
     } else {
-      goals.push({ id: "bewegung", label: "Bewegung heute", hint: "Cardio, Mobilit\xE4t oder Schnelltraining", xp: XP.mobility, done: workoutToday || cardioToday || mobilityToday, href: "#/schnell" });
+      const wd = weekdayIndex(today);
+      const cardioSession = plan?.cardio?.sessions?.find((c) => c.weekday === wd);
+      if (cardioSession) {
+        const week = planWeek(plan, today);
+        const min = cardioSession.minutesByWeek[Math.min(week, cardioSession.minutesByWeek.length) - 1];
+        goals.push({ id: "cardio", label: `Cardio: ${cardioSession.name}`, hint: `${min} min \xB7 geplanter Cardio-Tag`, xp: Math.round(Math.min(120, min) * XP.cardioPerMin), done: cardioToday, href: "#/heute", act: "cardio" });
+      } else {
+        goals.push({ id: "bewegung", label: "Bewegung heute", hint: "Cardio, Mobilit\xE4t oder Schnelltraining", xp: XP.mobility, done: workoutToday || cardioToday || mobilityToday, href: "#/schnell" });
+      }
     }
     goals.push({ id: "food", label: "Ern\xE4hrung erfassen", hint: "mindestens 3 Eintr\xE4ge", xp: XP.food, done: entries >= 3 || food.kcal >= 800, href: "#/ernaehrung" });
     goals.push({ id: "water", label: "Genug trinken", hint: "6 Gl\xE4ser (1,5 l)", xp: XP.water, done: water >= 1500, href: "#/ernaehrung" });
@@ -9434,6 +9733,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const eaten = dayTotals(s.foodLog[today] || []);
     const lastWeight = [...s.bodyLogs].sort((a2, b2) => a2.date < b2.date ? 1 : -1)[0];
     const cardioThisWeek = s.cardioLogs.filter((c) => c.date >= ws2);
+    const cardioToday = plan.cardio.sessions.find((c) => c.weekday === wd) || null;
     const checkin = s.checkins.find((c) => c.date === today);
     const readiness = readinessScore(checkin);
     const advice = readinessAdvice(readiness, checkin?.sore?.length || 0);
@@ -9503,7 +9803,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
           <div>
             <div class="card-title">${sessionTitle}${next.kind === "naechste" ? ` \xB7 ${WEEKDAYS_LONG[next.day.weekday]}` : ""}</div>
             <h2 class="session-name">${next.day.name}</h2>
-            <p class="muted">${next.day.exercises.length} Übungen · ca. ${dayDuration(plan, next.day, week, profile)} min · ${rirForWeek(plan, week)} Wdh. in Reserve${deload ? " \xB7 Deload" : ""}</p>
+            <p class="muted">${next.day.exercises.length} Übungen · ca. ${dayDuration(plan, next.day, week, profile)} min · ${rirForWeek(plan, week)} Wdh. in Reserve${deload ? " \xB7 Deload (halbe S\xE4tze, Gewicht halten)" : ""}</p>
           </div>
           <div class="week-chip ${deload ? "deload" : ""}"><span class="week-chip-label">${deload ? "Deload" : "Woche"}</span><span class="week-chip-week">${week}/${plan.weeks}</span></div>
         </div>
@@ -9531,13 +9831,15 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
             ${WEEKDAYS.map((n, i) => {
       const d = plan.days.find((x) => x.weekday === i);
       const done = d && ad.dayIds.has(d.id);
-      return html`<div class="dot-day ${i === wd ? "today" : ""} ${done ? "done" : d ? "planned" : ""}"><span>${n}</span><i></i></div>`;
+      const c = !d && plan.cardio.sessions.find((x) => x.weekday === i);
+      const cDone = c && cardioThisWeek.some((x) => weekdayIndex(x.date) === i);
+      return html`<div class="dot-day ${i === wd ? "today" : ""} ${done ? "done" : d ? "planned" : cDone ? "done cardio" : c ? "planned cardio" : ""}" title="${d ? d.name : c ? `Cardio: ${c.name}` : ""}"><span>${n}</span><i></i></div>`;
     })}
           </div>
         </div>
         <div class="row between wrap gap">
-          <span class="small">${raw(icon("run", { size: 16 }))} Cardio ${cardioThisWeek.length}/${plan.cardio.sessionsPerWeek}${plan.cardio.sessions.length ? html` · nächste: ${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length]?.name} ${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length]?.minutesByWeek[week - 1]} min` : ""}</span>
-          ${plan.cardio.sessions.length ? html`<button class="btn btn-small" data-timer="${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length].id}">${raw(icon("timer", { size: 16 }))} Timer</button>` : ""}
+          <span class="small">${raw(icon("run", { size: 16 }))} Cardio ${cardioThisWeek.length}/${plan.cardio.sessionsPerWeek}${cardioToday ? html` · heute: ${cardioToday.name} (${cardioToday.minutesByWeek[Math.min(week, cardioToday.minutesByWeek.length) - 1]} min)` : plan.cardio.sessions.length ? html` · nächste: ${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length]?.name} ${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length]?.minutesByWeek[week - 1]} min` : ""}</span>
+          ${plan.cardio.sessions.length ? html`<button class="btn btn-small" data-timer="${(cardioToday || plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length]).id}">${raw(icon("timer", { size: 16 }))} Timer</button>` : ""}
         </div>
         <p class="muted small">${streakWeeks(plan, s.workouts, today)} Woche${streakWeeks(plan, s.workouts, today) === 1 ? "" : "n"} in Folge dran · ${s.workouts.length} Trainings gesamt</p>
       </div>
@@ -9580,6 +9882,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       if (act === "checkin") return openCheckin(checkin);
       if (act === "mobility") return openMobility(plan, next.kind === "heute" || next.kind === "nachholen" ? next.day : null);
       if (act === "weight") return root2.querySelector("#weight-input")?.focus();
+      if (act === "cardio") return openCardioLog(plan, week);
       location.hash = b2.dataset.href;
     }));
     root2.querySelector("#weight-form").addEventListener("submit", (e) => {
@@ -9640,12 +9943,12 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const s = get();
     const carry = {};
     for (const [m, v] of Object.entries(s.plan.muscleAdjust || {})) {
-      if (v >= 2) carry[m] = 1;
-      else if (v <= -2) carry[m] = -1;
+      const half = Math.trunc(v / 2);
+      if (half) carry[m] = half;
     }
     update((st2) => {
       st2.planHistory.push(st2.plan);
-      st2.plan = generatePlan({ ...st2.profile }, { mesoIndex: st2.plan.mesoIndex + 1 });
+      st2.plan = generatePlan({ ...st2.profile }, { mesoIndex: st2.plan.mesoIndex + 1, barWeight: st2.settings?.barWeight });
       st2.plan.muscleAdjust = carry;
     });
     confetti();
@@ -9701,7 +10004,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const options = `${mine.length ? `<optgroup label="Meine Aktivit\xE4ten">${mine.map((a2) => `<option value="${a2.id}">${a2.name}</option>`).join("")}</optgroup>` : ""}${CARDIO_GROUPS.map((g2) => `<optgroup label="${g2}">${CARDIO_ACTIVITIES.filter((a2) => a2.group === g2).map((a2) => `<option value="${a2.id}">${a2.name}</option>`).join("")}</optgroup>`).join("")}`;
     const m = openModal(
       `<form id="cardio-form" class="form">
-      <label class="field"><span>Einheit</span><select id="c-session" name="sessionId"><option value="">Freies Cardio</option>${plan.cardio.sessions.map((c) => `<option value="${c.id}">${c.name} (${c.minutesByWeek[week - 1]} min)</option>`).join("")}</select></label>
+      <label class="field"><span>Einheit</span><select id="c-session" name="sessionId"><option value="">Freies Cardio</option>${plan.cardio.sessions.map((c) => `<option value="${c.id}" ${c.weekday === weekdayIndex(toISODate()) ? "selected" : ""}>${c.name} (${c.minutesByWeek[Math.min(week, c.minutesByWeek.length) - 1]} min)${c.weekday != null ? ` \xB7 ${WEEKDAYS[c.weekday]}` : ""}</option>`).join("")}</select></label>
       <div class="grid2">
         <label class="field"><span>Aktivit\xE4t</span><select id="c-activity" name="activity">${options}</select></label>
         <label class="field"><span>Dauer (min)</span><input id="c-min" name="minutes" type="number" inputmode="numeric" min="1" max="600" required></label>
@@ -9714,10 +10017,17 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       { title: "Cardio eintragen" }
     );
     const sel = m.querySelector("#c-session");
+    if (sel.value) {
+      const c = plan.cardio.sessions.find((x) => x.id === sel.value);
+      if (c) {
+        m.querySelector("#c-min").value = c.minutesByWeek[Math.min(week, c.minutesByWeek.length) - 1];
+        m.querySelector("#c-activity").value = c.activity;
+      }
+    }
     sel.addEventListener("change", () => {
       const c = plan.cardio.sessions.find((x) => x.id === sel.value);
       if (c) {
-        m.querySelector("#c-min").value = c.minutesByWeek[week - 1];
+        m.querySelector("#c-min").value = c.minutesByWeek[Math.min(week, c.minutesByWeek.length) - 1];
         m.querySelector("#c-activity").value = c.activity;
       }
     });
@@ -9987,7 +10297,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         </div>
         <div class="week-chip ${deload ? "deload" : ""}"><span class="week-chip-label">${deload ? "Deload" : "Aufbau"}</span><span class="week-chip-week">Woche ${week}/${plan.weeks}</span></div>
       </header>
-      <p class="muted small">Block ${plan.mesoIndex + 1} · ${formatDate(plan.startDate)} bis ${formatDate(endDate)} · diese Woche ${rir} Wiederholung${rir === 1 ? "" : "en"} in Reserve${deload ? ", halbe Satzzahl, ca. 10 % weniger Gewicht" : ""}</p>
+      <p class="muted small">Block ${plan.mesoIndex + 1} · ${formatDate(plan.startDate)} bis ${formatDate(endDate)} · diese Woche ${rir} Wiederholung${rir === 1 ? "" : "en"} in Reserve${deload ? ", halbe Satzzahl, Gewicht halten" : ""}</p>
       ${plan.notes.map((n) => html`<div class="note">${n}</div>`)}
       ${isMesoFinished(plan, today) ? html`<div class="banner"><strong>Block abgeschlossen.</strong> <button class="btn btn-primary" data-act="new-meso">Neuen Mesozyklus starten</button></div>` : ""}
 
@@ -10019,7 +10329,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
   function startNewMesoKeepIndex() {
     update((st2) => {
       const { generatePlan: generatePlan2 } = window.__lmci;
-      st2.plan = generatePlan2(st2.profile, { mesoIndex: st2.plan.mesoIndex, startDate: st2.plan.startDate });
+      st2.plan = generatePlan2(st2.profile, { mesoIndex: st2.plan.mesoIndex, startDate: st2.plan.startDate, barWeight: st2.settings?.barWeight });
     });
     toast("Plan neu berechnet.", "ok");
   }
@@ -10041,10 +10351,11 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
             <td class="num">${Math.round(pe.restSec / 60 * 10) / 10} min</td></tr>`;
       })}</tbody>
       </table>
-      ${Object.entries(plan.muscleAdjust || {}).filter(([m, v]) => v && d.exercises.some((pe) => pe.muscle === m)).length ? html`<div class="muted small">Autoregulation: ${Object.entries(plan.muscleAdjust).filter(([m, v]) => v && d.exercises.some((pe) => pe.muscle === m)).map(([m, v]) => `${MUSCLE_BY_ID[m]?.short} ${v > 0 ? "+" : ""}${v}`).join(", ")} Satz/Übung (aus deinem Feedback).</div>` : ""}
+      ${Object.entries(plan.muscleAdjust || {}).filter(([m, v]) => v && d.exercises.some((pe) => pe.muscle === m)).length ? html`<div class="muted small">Autoregulation (Sätze pro Woche): ${Object.entries(plan.muscleAdjust).filter(([m, v]) => v && d.exercises.some((pe) => pe.muscle === m)).map(([m, v]) => `${MUSCLE_BY_ID[m]?.short} ${v > 0 ? "+" : ""}${v}`).join(", ")} Satz/Übung (aus deinem Feedback).</div>` : ""}
     </div>`).map(String).join("") + `<div class="card"><div class="card-title">So liest du den Plan</div><ul class="bullets">
       <li><strong>S\xE4tze \xD7 Wdh.</strong> \u2013 Arbeitss\xE4tze nach dem Aufw\xE4rmen. Erreichst du in allen S\xE4tzen die obere Wiederholungszahl, wird beim n\xE4chsten Mal das Gewicht erh\xF6ht (doppelte Progression).</li>
-      <li><strong>Wiederholungen in Reserve (RIR)</strong> \u2013 wie viele saubere Wiederholungen du noch schaffen w\xFCrdest. Woche 1 locker (3), bis Woche 4 nah ans Versagen, Woche 5 Deload.</li>
+      <li><strong>Wiederholungen in Reserve (RIR)</strong> \u2013 wie viele saubere Wiederholungen du noch schaffen w\xFCrdest. Woche 1 locker (3), zum Ende des Blocks n\xE4her ans Versagen, letzte Woche Deload (halbe S\xE4tze, Gewicht halten). Schwere Langhantel-Kniebeugen und Kreuzheben gehen nie bis zum Versagen (mindestens 1 in Reserve).</li>
+      <li><strong>Autoregulation</strong> \u2013 dein Feedback nach jeder Einheit verschiebt das Wochenvolumen eines Muskels um \xB11 Satz, verteilt auf seine \xDCbungen. Als \u201Enicht erholt\u201C markierte Muskeln bekommen am selben Tag einen Satz weniger.</li>
       <li><strong>Aufw\xE4rmen</strong> \u2013 5 min locker (Rad, Seil, Gehen), dann bei der ersten \xDCbung 2\u20133 S\xE4tze mit 40 / 60 / 80 % des Arbeitsgewichts.</li>
       <li><strong>Tausch</strong> \u2013 tippe auf eine \xDCbung, um Technik-Hinweise und Alternativen zu sehen.</li>
     </ul></div>`;
@@ -10059,13 +10370,13 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     if (t2 === "cardio") {
       const c = plan.cardio;
       return `<div class="card"><div class="card-title">Cardio-Einheiten</div>
-      ${c.sessions.length ? `<table class="ex-table"><thead><tr><th>Einheit</th>${[1, 2, 3, 4, 5].map((w) => `<th class="num ${w === week ? "now" : ""}">W${w}</th>`).join("")}</tr></thead>
-      <tbody>${c.sessions.map((s) => `<tr><td><div class="ex-name">${s.name}</div><div class="muted small">${ACTIVITY_BY_ID[s.activity]?.name} \xB7 Zone ${s.zone}${s.intervals ? ` \xB7 ${s.intervals.work}s hart / ${s.intervals.rest}s locker` : ""}</div></td>${s.minutesByWeek.map((m, i) => `<td class="num ${i + 1 === week ? "now" : ""}">${m}${s.intervals ? `<div class="muted small">${s.intervals.roundsByWeek[i]}\xD7</div>` : ""}</td>`).join("")}</tr>`).join("")}</tbody></table>
+      ${c.sessions.length ? `<table class="ex-table"><thead><tr><th>Einheit</th>${Array.from({ length: plan.weeks || 5 }, (_, i) => i + 1).map((w) => `<th class="num ${w === week ? "now" : ""}">W${w}</th>`).join("")}</tr></thead>
+      <tbody>${c.sessions.map((s) => `<tr><td><div class="ex-name">${s.name}</div><div class="muted small">${s.weekday != null ? `${WEEKDAYS_LONG[s.weekday]} \xB7 ` : ""}${ACTIVITY_BY_ID[s.activity]?.name} \xB7 Zone ${s.zone}${s.intervals ? ` \xB7 ${s.intervals.work}s hart / ${s.intervals.rest}s locker` : ""}</div></td>${s.minutesByWeek.map((m, i) => `<td class="num ${i + 1 === week ? "now" : ""}">${m}${s.intervals ? `<div class="muted small">${s.intervals.roundsByWeek[i]}\xD7</div>` : ""}</td>`).join("")}</tr>`).join("")}</tbody></table>
       <p class="muted small">Minuten pro Einheit und Woche. ${c.hint}</p>
       ${c.sessions.map((s) => `<p class="small"><strong>${s.name}:</strong> ${s.desc}</p>`).join("")}` : `<p class="muted">${c.hint}</p>`}
       </div>
       <div class="card"><div class="card-title">Deine Pulszonen</div>
-      <p class="muted small">Maximalpuls gesch\xE4tzt ${c.zones.max} (208 \u2212 0,7 \xD7 Alter). Methode: ${c.zones.method}.${profile.restingHr ? "" : " Trage deinen Ruhepuls im Profil ein f\xFCr genauere Zonen."}</p>
+      <p class="muted small">Maximalpuls ${c.zones.measured ? `gemessen ${c.zones.max}` : `gesch\xE4tzt ${c.zones.max} (208 \u2212 0,7 \xD7 Alter, Streuung etwa \xB110 Schl\xE4ge \u2013 ein gemessener Wert im Profil geht vor)`}. Methode: ${c.zones.method}.${profile.restingHr ? "" : " Trage deinen Ruhepuls im Profil ein f\xFCr genauere Zonen."}</p>
       <table class="ex-table"><tbody>${c.zones.zones.map((z2) => `<tr><td><div class="ex-name">${z2.name}</div><div class="muted small">${z2.feel}</div></td><td class="num">${z2.range[0]}\u2013${z2.range[1]}</td></tr>`).join("")}</tbody></table>
       </div>`;
     }
@@ -10140,6 +10451,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         <button class="btn btn-small ${aw.shortMinutes ? "active" : ""}" data-act="short">Wenig Zeit? Kurzversion</button>
         <button class="btn btn-small ${aw.mode === "leicht" ? "active" : ""}" data-act="light">${aw.mode === "leicht" ? "Normale Version" : "Leichte Version"}</button>
         ${readiness && readiness.level === "niedrig" && aw.mode !== "leicht" ? html`<span class="muted small">Check-in: niedrige Bereitschaft – leichte Version empfohlen.</span>` : ""}
+        ${aw.soreReduced?.length ? html`<span class="muted small">Check-in: ${aw.soreReduced.map((m) => MUSCLE_BY_ID[m]?.short || m).join(", ")} noch nicht erholt – je ein Satz weniger.</span>` : ""}
       </div>` : ""}
       <div class="note small">Aufwärmen: 5 min locker, dann die Aufwärmsätze der ersten Übung. Arbeitssätze abhaken – der Pausentimer startet automatisch.</div>
       ${aw.entries.map((e, ei2) => renderEntry(e, ei2, s, plan, rir, deload, aw.entries.length))}
@@ -10288,8 +10600,9 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       timer.total += 3e4;
     });
   }
-  function makeEntry(st2, pe, sets2, week, deload, rir, warmLevel) {
+  function makeEntry(st2, pe, sets2, week, deload, dayRir, warmLevel) {
     const ex2 = getExercise(pe.exId);
+    const rir = rirForExercise(st2.plan, week, ex2, dayRir);
     const sug = suggestNext(pe, historyFor(st2.workouts, pe.exId), rir, deload, { profile: st2.profile, settings: st2.settings });
     return {
       exId: pe.exId,
@@ -10298,6 +10611,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       repMax: pe.repMax,
       restSec: pe.restSec,
       main: !!pe.main,
+      rir,
       baseSets: sets2,
       suggestion: sug,
       warmup: warmLevel ? warmupSets(ex2, sug.weight, st2.settings.barWeight, warmLevel) : [],
@@ -10309,6 +10623,9 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const week = planWeek(st2.plan);
     const deload = week === st2.plan.deloadWeek;
     const rir = rirForWeek(st2.plan, week);
+    const today = toISODate();
+    const sore = new Set(deload ? [] : (st2.checkins || []).find((c) => c.date === today)?.sore || []);
+    const soreReduced = [];
     let firstHeavy = true;
     return {
       id: uid(),
@@ -10317,8 +10634,9 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       week,
       mode: "normal",
       shortMinutes: null,
-      date: toISODate(),
+      date: today,
       startedAt: (/* @__PURE__ */ new Date()).toISOString(),
+      soreReduced,
       entries: day.exercises.map((pe) => {
         const ex2 = getExercise(pe.exId);
         let level = null;
@@ -10326,7 +10644,12 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
           level = firstHeavy ? "voll" : "kurz";
           firstHeavy = false;
         } else if (ex2.tier === 1) level = "kurz";
-        return makeEntry(st2, pe, effectiveSets(st2.plan, day, pe, week), week, deload, rir, level);
+        let sets2 = effectiveSets(st2.plan, day, pe, week);
+        if (sore.has(pe.muscle) && sets2 > 1) {
+          sets2 -= 1;
+          if (!soreReduced.includes(pe.muscle)) soreReduced.push(pe.muscle);
+        }
+        return makeEntry(st2, pe, sets2, week, deload, rir, level);
       })
     };
   }
@@ -10339,7 +10662,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     <div class="row between top">
       <div>
         <div class="ex-title">${ex2.name}</div>
-        <div class="muted small">${ex2.primary.map((m) => MUSCLE_BY_ID[m].short).join(", ")} · Ziel ${e.sets.length} × ${e.repMin}–${e.repMax} ${unit} · ${rir} RIR · Pause ${Math.round(e.restSec / 60 * 10) / 10} min</div>
+        <div class="muted small">${ex2.primary.map((m) => MUSCLE_BY_ID[m].short).join(", ")} · Ziel ${e.sets.length} × ${e.repMin}–${e.repMax} ${unit} · ${e.rir ?? rir} RIR${(e.rir ?? rir) > rir ? " (schwere Grund\xFCbung: nie bis zum Versagen)" : ""} · Pause ${Math.round(e.restSec / 60 * 10) / 10} min</div>
       </div>
       <div class="ex-tools">
         <button class="btn-icon" data-act="move" data-ei="${ei2}" data-dir="-1" title="Nach oben" aria-label="Nach oben" ${ei2 === 0 ? "disabled" : ""}>${raw(icon("up", { size: 18 }))}</button>
@@ -10558,7 +10881,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         <div class="chips">${trained.map((mu) => `<label class="chip"><input type="checkbox" name="sore[]" value="${mu}" ${preSore.has(mu) ? "checked" : ""}><span>${MUSCLE_BY_ID[mu].short}</span></label>`).join("")}</div></fieldset>
       <fieldset class="field"><legend>Wo h\xE4ttest du heute mehr vertragen?</legend>
         <div class="chips">${trained.map((mu) => `<label class="chip"><input type="checkbox" name="more[]" value="${mu}"><span>${MUSCLE_BY_ID[mu].short}</span></label>`).join("")}</div></fieldset>
-      <p class="hint">Daraus passt LMCI das Volumen pro Muskel an: nicht erholt \u2192 ein Satz weniger, mehr vertragen \u2192 ein Satz mehr.</p>
+      <p class="hint">Daraus passt LMCI das Wochenvolumen pro Muskel an: nicht erholt \u2192 ein Satz weniger pro Woche, mehr vertragen \u2192 ein Satz mehr pro Woche (verteilt auf die \xDCbungen des Muskels).</p>
       <div class="row end"><button class="btn btn-primary" type="submit">Speichern</button></div>
     </form>`,
       { title: "Kurzes Feedback" }
@@ -10573,7 +10896,8 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         sore: [...m.querySelectorAll('input[name="sore[]"]:checked')].map((x) => x.value),
         more: [...m.querySelectorAll('input[name="more[]"]:checked')].map((x) => x.value)
       };
-      const deltas = aw.dayId === "frei" || aw.dayId === "schnell" ? {} : muscleDeltasFromFeedback(feedback, trained);
+      const lowReadiness = readinessScore(checkin)?.level === "niedrig";
+      const deltas = aw.dayId === "frei" || aw.dayId === "schnell" ? {} : muscleDeltasFromFeedback(feedback, trained, { lowReadiness });
       const workout = { id: aw.id, planId: aw.planId, dayId: aw.dayId, week: aw.week, date: aw.date, startedAt: aw.startedAt, finishedAt: (/* @__PURE__ */ new Date()).toISOString(), mode: aw.mode, entries, feedback };
       const records = newRecords(workout, s.workouts);
       workout.xp = xpForWorkout(workout, records.length);
@@ -10590,7 +10914,8 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
           for (const [mu, d] of Object.entries(deltas)) {
             if (!d) continue;
             const before = st2.plan.muscleAdjust[mu] || 0;
-            const after2 = clamp(before + d, -2, 2);
+            const cap = muscleAdjustCap(st2.plan, mu);
+            const after2 = clamp(before + d, -cap, cap);
             if (after2 !== before) applied.push(`${MUSCLE_BY_ID[mu].short} ${d > 0 ? "+1" : "\u22121"}`);
             st2.plan.muscleAdjust[mu] = after2;
           }
@@ -10620,7 +10945,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         levelUp: lvlAfter.level > lvlBefore.level,
         records: records.map((r) => `${r.name}: ${r.e1rm ? `gesch\xE4tztes 1RM ${r.e1rm} kg` : `${r.reps} Wiederholungen`}`),
         badges: newBadges,
-        note: applied.length ? `Volumen angepasst (S\xE4tze pro \xDCbung): ${applied.join(", ")}.` : aw.dayId === "frei" || aw.dayId === "schnell" ? "" : "Volumen bleibt \u2013 passt."
+        note: applied.length ? `Wochenvolumen angepasst (S\xE4tze pro Woche): ${applied.join(", ")}.` : aw.dayId === "frei" || aw.dayId === "schnell" ? "" : "Volumen bleibt \u2013 passt."
       }));
       location.hash = "#/heute";
     });
@@ -10817,9 +11142,14 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     if (now.getHours() < hh || now.getHours() === hh && now.getMinutes() < mm) return null;
     const wd = weekdayIndex(today);
     const day = s.plan.days.find((d) => d.weekday === wd);
-    if (!day) return null;
-    if (s.workouts.some((w) => w.date === today)) return null;
-    return { day, text: `Heute steht \u201E${day.name}\u201C an \u2013 ${day.exercises.length} \xDCbungen, ca. ${day.minutes} min.` };
+    if (day) {
+      if (s.workouts.some((w) => w.date === today)) return null;
+      return { day, text: `Heute steht \u201E${day.name}\u201C an \u2013 ${day.exercises.length} \xDCbungen, ca. ${day.minutes} min.` };
+    }
+    const cardio = s.plan.cardio?.sessions?.find((c) => c.weekday === wd);
+    if (!cardio) return null;
+    if ((s.cardioLogs || []).some((c) => c.date === today)) return null;
+    return { cardio, text: `Heute steht Cardio an: ${cardio.name}.` };
   }
   function startReminderLoop(store) {
     if (typeof window === "undefined") return;
@@ -10845,7 +11175,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       if (document.visibilityState === "visible") tick();
     });
   }
-  function buildICS(plan, { time = "18:00", durationMin = 60, weeks = 5, startDate = plan.startDate } = {}) {
+  function buildICS(plan, { time = "18:00", durationMin = 60, weeks = plan.weeks || 5, startDate = plan.startDate, cardio = true } = {}) {
     const [hh, mm] = time.split(":").map(Number);
     const pad = (n) => String(n).padStart(2, "0");
     const stamp = (iso, h2, m) => `${iso.replace(/-/g, "")}T${pad(h2)}${pad(m)}00`;
@@ -10860,6 +11190,17 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         const endH = hh + Math.floor(endM / 60);
         const desc = d.exercises.map((pe) => pe.exId).join(", ");
         lines.push("BEGIN:VEVENT", `UID:lmci-${plan.id}-${d.id}-${iso}@lmci`, `DTSTAMP:${stamp(toISODate(), 0, 0)}Z`, `DTSTART:${stamp(iso, hh, mm)}`, `DTEND:${stamp(iso, endH, endM % 60)}`, `SUMMARY:LMCI: ${d.name}${w === weeks - 1 ? " (Deload)" : ""}`, `DESCRIPTION:${desc}`, "END:VEVENT");
+      }
+      if (cardio) {
+        for (const c of plan.cardio?.sessions || []) {
+          if (c.weekday == null) continue;
+          const iso = addDays(first, w * 7 + c.weekday);
+          if (iso < startDate) continue;
+          const min = c.minutesByWeek[Math.min(w, c.minutesByWeek.length - 1)];
+          const endM = mm + min;
+          const endH = hh + Math.floor(endM / 60);
+          lines.push("BEGIN:VEVENT", `UID:lmci-${plan.id}-${c.id}-${iso}@lmci`, `DTSTAMP:${stamp(toISODate(), 0, 0)}Z`, `DTSTART:${stamp(iso, hh, mm)}`, `DTEND:${stamp(iso, endH, endM % 60)}`, `SUMMARY:LMCI Cardio: ${c.name} (${min} min)`, `DESCRIPTION:${c.desc}`, "END:VEVENT");
+        }
       }
     }
     lines.push("END:VCALENDAR");
@@ -10878,17 +11219,23 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     ["Ern\xE4hrung", "Wie sieht meine Ern\xE4hrung im Vergleich zum Ziel aus? Gib mir 3 konkrete, einfache Anpassungen."],
     ["Motivation", "Ich habe gerade wenig Motivation. Was ist die kleinste sinnvolle Einheit, die ich heute machen kann?"]
   ];
-  var SYSTEM = `Du bist der pers\xF6nliche Trainings- und Ern\xE4hrungscoach in der App LMCI. Du antwortest auf Deutsch, per Du, kurz und konkret (meist unter 200 W\xF6rtern), ohne Floskeln. Du st\xFCtzt dich auf die aktuelle Trainingswissenschaft (Volumen 10\u201320 S\xE4tze pro Muskel und Woche, 0\u20133 Wiederholungen in Reserve, doppelte Progression, Deloads, Protein 1,6\u20132,2 g/kg, Gewichtstrend statt Tageswerte). Du kennst den Plan, die Logs und die Ern\xE4hrung des Nutzers aus dem Kontext und beziehst dich darauf mit konkreten Zahlen. Du stellst keine medizinischen Diagnosen; bei Schmerzen oder Beschwerden empfiehlst du eine \xE4rztliche Abkl\xE4rung. Wenn Daten fehlen, sagst du das und fragst nach. Formatiere sparsam: kurze Abs\xE4tze oder wenige Stichpunkte, keine \xDCberschriften.`;
+  var SYSTEM = `Du bist der pers\xF6nliche Trainings- und Ern\xE4hrungscoach in der App LMCI. Du antwortest auf Deutsch, per Du, kurz und konkret (meist unter 200 W\xF6rtern), ohne Floskeln. Du st\xFCtzt dich auf die aktuelle Trainingswissenschaft (Volumen 10\u201320 S\xE4tze pro Muskel und Woche, 0\u20133 Wiederholungen in Reserve, doppelte Progression, Deloads, Protein 1,6\u20132,2 g/kg, Gewichtstrend statt Tageswerte). Du kennst den Plan, die Logs und die Ern\xE4hrung des Nutzers aus dem Kontext und beziehst dich darauf mit konkreten Zahlen. Du stellst keine medizinischen Diagnosen; bei Schmerzen oder Beschwerden empfiehlst du eine \xE4rztliche Abkl\xE4rung. Warnzeichen wie Brustschmerz, Atemnot, Schwindel, Herzstolpern oder pl\xF6tzliche starke Gelenkschmerzen bedeuten: Training sofort abbrechen und \xE4rztliche Hilfe holen \u2013 dazu gibst du keine Trainingstipps. Du empfiehlst keine \xDCbungen, die zu den angegebenen Einschr\xE4nkungen passen, und respektierst die Vorsichtsregeln aus dem Gesundheits-Screening (keine harten Intervalle, mindestens 2 Wiederholungen in Reserve). Wenn Daten fehlen, sagst du das und fragst nach. Formatiere sparsam: kurze Abs\xE4tze oder wenige Stichpunkte, keine \xDCberschriften.`;
   function buildContext(s) {
     const { profile, plan } = s;
     const today = toISODate();
     const week = planWeek(plan, today);
     const lines = [];
     lines.push(`Datum: ${today}. Nutzer: ${profile.name || "ohne Namen"}, ${profile.sex === "w" ? "weiblich" : profile.sex === "m" ? "m\xE4nnlich" : "divers"}, ${profile.age} Jahre, ${profile.heightCm} cm, ${profile.weightKg} kg. Ziel: ${GOALS[profile.goal]?.name}. Erfahrung: ${EXPERIENCE[profile.experience]?.name}. ${profile.strengthDays}\xD7 Kraft \xE0 ${profile.sessionMinutes} min, ${profile.cardioSessions ?? 0}\xD7 Cardio. Ausr\xFCstung: ${profile.equipment === "gym" ? "Studio" : `Zuhause (${(profile.gear || []).join(", ") || "nur K\xF6rpergewicht"})`}. Einschr\xE4nkungen: ${(profile.limitations || []).join(", ") || "keine"}. Priorit\xE4ten: ${(profile.priorities || []).join(", ") || "keine"}.${profile.targetWeightKg ? ` Zielgewicht ${profile.targetWeightKg} kg.` : ""}`);
+    const lim = (profile.limitations || []).map((l2) => LIMITATIONS.find((x) => x.id === l2)?.name || l2);
+    const health = (profile.health || []).map((h2) => HEALTH_BY_ID[h2]?.text || h2);
+    const flags = healthFlags(profile);
+    lines.push(`Einschr\xE4nkungen: ${lim.length ? lim.join(", ") : "keine"}. Gesundheits-Screening: ${health.length ? `Ja bei: ${health.join(" | ")}` : "alles Nein"}.${flags.cautious ? " \u2192 Vorsichtsregeln aktiv (keine Intervalle, RIR \u2265 2, keine 3\u20135er-S\xE4tze)." : ""}${flags.pregnant ? " Schwangerschaft/Wochenbett: kein Kaloriendefizit, keine R\xFCckenlage am Boden, kein H\xE4ngen, kein schweres Heben." : ""}`);
+    const cw = currentWeight(profile, s.bodyLogs);
+    if (cw && Math.abs(cw - profile.weightKg) >= 0.5) lines.push(`Aktuelles Gewicht (7-Tage-Mittel): ${cw} kg \u2013 Ern\xE4hrungsziele rechnen damit.`);
     lines.push(`Plan: ${plan.split.name}, Block ${plan.mesoIndex + 1}, Woche ${week}/${plan.weeks}${week === plan.deloadWeek ? " (Deload)" : ""}, RIR-Vorgabe ${plan.rir[week - 1]}. Start ${plan.startDate}.`);
     for (const d of plan.days) lines.push(`- ${d.name} (${["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"][d.weekday] || "?"}): ${d.exercises.map((pe) => `${getExercise(pe.exId)?.name || pe.exId} ${effectiveSets(plan, d, pe, week)}\xD7${pe.repMin}\u2013${pe.repMax}`).join("; ")}`);
     const adj = Object.entries(plan.muscleAdjust || {}).filter(([, v]) => v);
-    if (adj.length) lines.push(`Autoregulation (S\xE4tze/\xDCbung): ${adj.map(([m, v]) => `${MUSCLE_BY_ID[m]?.short} ${v > 0 ? "+" : ""}${v}`).join(", ")}`);
+    if (adj.length) lines.push(`Autoregulation (S\xE4tze pro Woche, auf die \xDCbungen verteilt): ${adj.map(([m, v]) => `${MUSCLE_BY_ID[m]?.short} ${v > 0 ? "+" : ""}${v}`).join(", ")}`);
     const vol = weeklyVolume(s.workouts, startOfWeek(today));
     lines.push(`S\xE4tze diese Woche pro Muskel: ${Object.entries(vol).filter(([, v]) => v).map(([m, v]) => `${MUSCLE_BY_ID[m]?.short} ${v}`).join(", ") || "noch keine"}. Ziele: ${Object.entries(plan.volume).map(([m, v]) => `${MUSCLE_BY_ID[m]?.short} ${v.target}`).join(", ")}.`);
     const recent = [...s.workouts].sort((a2, b2) => a2.date < b2.date ? 1 : -1).slice(0, 6);
@@ -10900,7 +11247,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const prs = personalRecords(s.workouts).slice(0, 6);
     if (prs.length) lines.push(`Bestleistungen (e1RM): ${prs.map((r) => `${getExercise(r.exId)?.name || r.exId} ${r.e1rm || `${r.reps} Wdh`}`).join(", ")}`);
     const cardio = s.cardioLogs.filter((c) => c.date >= startOfWeek(today));
-    lines.push(`Cardio diese Woche: ${cardio.length} Einheiten, ${cardio.reduce((a2, c) => a2 + c.minutes, 0)} min (Plan: ${plan.cardio.sessionsPerWeek}).`);
+    lines.push(`Cardio diese Woche: ${cardio.length} Einheiten, ${cardio.reduce((a2, c) => a2 + c.minutes, 0)} min (Plan: ${plan.cardio.sessionsPerWeek}${plan.cardio.sessions.some((c) => c.weekday != null) ? `, Tage: ${plan.cardio.sessions.map((c) => `${c.name.split(" (")[0]} ${["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"][c.weekday] || "flexibel"}`).join(", ")}` : ""}).`);
     const ci2 = (s.checkins || []).slice(-7);
     if (ci2.length) lines.push(`Check-ins (letzte ${ci2.length}): ${ci2.map((c) => `${c.date.slice(5)} Schlaf ${c.sleep}h/${c.sleepQuality} Stress ${c.stress} Energie ${c.energy}${c.sore?.length ? ` Kater ${c.sore.join(",")}` : ""}`).join("; ")}`);
     const t2 = dailyTargets(s);
@@ -11045,7 +11392,7 @@ ${buildContext(get())}` }
   }
 
   // src/ui/mehr.js
-  var APP_VERSION = "1.4.1";
+  var APP_VERSION = "1.5.0";
   function renderMehr(root2) {
     const s = get();
     const p2 = s.profile;
@@ -11062,7 +11409,7 @@ ${buildContext(get())}` }
       <div class="card">
         <div class="card-title">Einstellungen</div>
         <div class="grid2">
-          <label class="field"><span>Stangengewicht (kg)</span><input id="set-bar" type="number" step="0.5" value="${s.settings.barWeight}"></label>
+          <label class="field"><span>Stangengewicht (kg)</span><select id="set-bar">${raw([[10, "10 kg \u2013 Technikstange"], [15, "15 kg \u2013 Frauenstange"], [20, "20 kg \u2013 Standard"]].concat([10, 15, 20].includes(s.settings.barWeight) ? [] : [[s.settings.barWeight, `${s.settings.barWeight} kg`]]).map(([v, l2]) => `<option value="${v}" ${s.settings.barWeight === v ? "selected" : ""}>${l2}</option>`).join(""))}</select></label>
           <label class="field"><span>Verfügbare Scheiben (kg, Komma-getrennt)</span><input id="set-plates" value="${s.settings.plates.join(", ")}"></label>
         </div>
         <label class="chip"><input type="checkbox" id="set-rest" ${s.settings.restTimer ? "checked" : ""}><span>Pausentimer nach jedem Satz starten</span></label>
@@ -11225,6 +11572,7 @@ ${buildContext(get())}` }
     const monthWorkouts = s.workouts.filter((w) => w.date.startsWith(`${view2.y}-${String(view2.m + 1).padStart(2, "0")}`));
     const monthCardio = s.cardioLogs.filter((c) => c.date.startsWith(`${view2.y}-${String(view2.m + 1).padStart(2, "0")}`));
     const plannedWeekdays = new Set(s.plan.days.map((d) => d.weekday));
+    const cardioWeekdays = new Set((s.plan.cardio?.sessions || []).map((c) => c.weekday).filter((x) => x != null));
     root2.innerHTML = String(html`
     <section class="page">
       <header class="page-head"><div><h1>Kalender</h1><p class="muted">Streak: ${dailyStreak(s, today)} Tag${dailyStreak(s, today) === 1 ? "" : "e"} in Folge aktiv</p></div></header>
@@ -11239,15 +11587,17 @@ ${buildContext(get())}` }
           ${cells.map((iso) => {
       if (!iso) return html`<div class="cal-cell empty"></div>`;
       const d = byDay(iso);
-      const planned = plannedWeekdays.has((fromISODate(iso).getDay() + 6) % 7) && iso >= s.plan.startDate;
+      const wdi = (fromISODate(iso).getDay() + 6) % 7;
+      const planned = plannedWeekdays.has(wdi) && iso >= s.plan.startDate;
+      const cardioPlanned = !planned && cardioWeekdays.has(wdi) && iso >= s.plan.startDate;
       const any = d.workouts.length || d.cardio.length || d.checkin || d.food || d.weight;
-      return html`<button class="cal-cell ${iso === today ? "today" : ""} ${iso > today ? "future" : ""} ${planned && !d.workouts.length && iso < today ? "missed" : ""}" data-day="${iso}" ${any ? "" : 'data-empty="1"'}>
+      return html`<button class="cal-cell ${iso === today ? "today" : ""} ${iso > today ? "future" : ""} ${planned && !d.workouts.length && iso < today ? "missed" : ""} ${cardioPlanned ? "cardio-planned" : ""} ${cardioPlanned && !d.cardio.length && iso < today ? "missed-cardio" : ""}" data-day="${iso}" ${any ? "" : 'data-empty="1"'}>
               <span class="cal-num">${Number(iso.slice(8))}</span>
               <span class="cal-dots">${d.workouts.length ? html`<i class="d-strength" title="Krafttraining"></i>` : ""}${d.cardio.length ? html`<i class="d-cardio" title="Cardio"></i>` : ""}${d.food ? html`<i class="d-food" title="Ernährung"></i>` : ""}${d.checkin ? html`<i class="d-checkin" title="Check-in"></i>` : ""}</span>
             </button>`;
     })}
         </div>
-        <div class="cal-legend"><span><i class="d-strength"></i> Kraft</span><span><i class="d-cardio"></i> Cardio</span><span><i class="d-food"></i> Ernährung</span><span><i class="d-checkin"></i> Check-in</span><span class="missed-legend">Rahmen = geplant, nicht trainiert</span></div>
+        <div class="cal-legend"><span><i class="d-strength"></i> Kraft</span><span><i class="d-cardio"></i> Cardio</span><span><i class="d-food"></i> Ernährung</span><span><i class="d-checkin"></i> Check-in</span><span class="cardio-legend">Punkt oben = Cardio-Tag</span><span class="missed-legend">Rahmen = geplant, nicht trainiert</span></div>
       </div>
       <div class="card">
         <div class="card-title">${MONTHS[view2.m]} in Zahlen</div>
@@ -11305,6 +11655,15 @@ ${buildContext(get())}` }
   ];
   var EX_PER_MINUTES = [[15, 3], [20, 4], [30, 5], [45, 7], [60, 8], [90, 10]];
   var EASY = /* @__PURE__ */ new Set(["liegestuetze_knie", "klimmzuege_negativ", "klimmzuege_band", "klimmzuege_maschine", "knieheben_haengend", "sissy_squat", "glute_bridge", "crunches", "wadenheben_einbeinig"]);
+  function quickReps(ex2, style, profile = {}) {
+    if (ex2.load === "time") return ex2.reps ? [ex2.reps[0], ex2.reps[1], style === "zirkel" ? 30 : 60] : [30, 60, style === "zirkel" ? 30 : 60];
+    if (ex2.reps) return [ex2.reps[0], ex2.reps[1], style === "zirkel" ? 45 : ex2.tier === 1 ? 120 : 90];
+    if (style === "zirkel") return ex2.tier === 3 ? [15, 20, 30] : [12, 15, 45];
+    let [repMin, repMax, rest] = ex2.tier === 1 ? [6, 10, 120] : ex2.tier === 2 ? [8, 12, 90] : [10, 15, 60];
+    if (profile.experience === "anfaenger" && ex2.tier === 1) [repMin, repMax] = [8, 12];
+    if (["bw", "band"].includes(ex2.load)) rest = ex2.tier === 3 ? 45 : 60;
+    return [repMin, repMax, rest];
+  }
   var setCost = (t2) => (t2.restSec + 40) / 60;
   function quickPool({ gear = [], limitations = [] }) {
     const studio = gear.includes("studio");
@@ -11333,6 +11692,9 @@ ${buildContext(get())}` }
       const base = pool.filter((e) => e.primary.includes(muscle) && !used.has(e.id));
       let cands = base.filter((e) => tiers.includes(e.tier));
       if (!cands.length) cands = base;
+      const feasible = cands.filter((e) => isFeasibleFor(e, quickReps(e, style, profile)[0], profile, { barWeight: opts.barWeight ?? 20 }));
+      if (!feasible.length && picks.some((pk) => pk.muscle === muscle)) return null;
+      if (feasible.length) cands = feasible;
       if (!beginner && cands.some((e) => !EASY.has(e.id))) cands = cands.filter((e) => !EASY.has(e.id));
       if (cands.some((e) => !usedPatterns.has(`${muscle}:${e.pattern}`))) cands = cands.filter((e) => !usedPatterns.has(`${muscle}:${e.pattern}`));
       if (!cands.length) return null;
@@ -11356,19 +11718,8 @@ ${buildContext(get())}` }
     if (!picks.length) return { tasks: [], minutes: 0, note: "Mit dieser Ausr\xFCstung und Auswahl finde ich keine \xDCbungen \u2013 w\xE4hle mehr Ausr\xFCstung oder einen anderen Fokus." };
     picks.sort((a2, b2) => a2.ex.tier - b2.ex.tier);
     const tasks = picks.map(({ ex: ex2, muscle }) => {
-      let repMin;
-      let repMax;
-      let rest;
-      if (ex2.load === "time") {
-        [repMin, repMax, rest] = [30, 60, style === "zirkel" ? 30 : 60];
-      } else if (style === "zirkel") {
-        [repMin, repMax, rest] = ex2.tier === 3 ? [15, 20, 30] : [12, 15, 45];
-      } else {
-        [repMin, repMax, rest] = ex2.tier === 1 ? [6, 10, 120] : ex2.tier === 2 ? [8, 12, 90] : [10, 15, 60];
-        if (profile.experience === "anfaenger" && ex2.tier === 1) [repMin, repMax] = [8, 12];
-        if (["bw", "band"].includes(ex2.load)) rest = ex2.tier === 3 ? 45 : 60;
-      }
-      const weight = estimateStartWeight(ex2, profile, repMin, rir, {});
+      const [repMin, repMax, rest] = quickReps(ex2, style, profile);
+      const weight = estimateStartWeight(ex2, profile, repMin, rir, { barWeight: opts.barWeight ?? 20 });
       const reps = ex2.bwReps ? estimateStartReps(ex2, profile) : null;
       return { exId: ex2.id, muscle, tier: ex2.tier, sets: sets2, repMin, repMax, restSec: rest, rir, weight, estReps: reps, load: ex2.load };
     });
@@ -11436,7 +11787,7 @@ ${buildContext(get())}` }
       e.preventDefault();
       read();
       seed = Date.now();
-      result = buildQuickWorkout({ ...form, profile: s.profile, seed });
+      result = buildQuickWorkout({ ...form, profile: s.profile, seed, barWeight: s.settings?.barWeight });
       if (result.note) toast(result.note, "warn");
       renderSchnell(root2);
       root2.querySelector("#q-result")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -11444,7 +11795,7 @@ ${buildContext(get())}` }
     root2.querySelector('[data-act="reroll"]')?.addEventListener("click", () => {
       read();
       seed += 1;
-      result = buildQuickWorkout({ ...form, profile: s.profile, seed });
+      result = buildQuickWorkout({ ...form, profile: s.profile, seed, barWeight: s.settings?.barWeight });
       renderSchnell(root2);
     });
     root2.querySelector('[data-act="start"]')?.addEventListener("click", () => startQuick(result));

@@ -72,10 +72,15 @@ const comeback = (s) => {
   for (let i = 1; i < dates.length; i++) if ((new Date(dates[i]) - new Date(dates[i - 1])) / 86400000 >= 14) return true;
   return false;
 };
-const doubleDay = (s) => {
-  const counts = {};
-  for (const w of s.workouts) counts[w.date] = (counts[w.date] || 0) + 1;
-  return Object.values(counts).some((c) => c >= 2);
+// 7 Check-ins mit mindestens 7,5 h Schlaf – Erholung ist Training.
+const wellSlept = (s) => (s.checkins || []).filter((c) => (c.sleep || 0) >= 7.5).length >= 7;
+// Alle Einheiten einer Deload-Woche gemacht (leichter statt gar nicht).
+const deloadDone = (s) => {
+  const plans = [s.plan, ...(s.planHistory || [])].filter(Boolean);
+  return plans.some((p) => {
+    const done = new Set(s.workouts.filter((w) => w.planId === p.id && w.week === p.deloadWeek && w.dayId !== 'frei' && w.dayId !== 'schnell').map((w) => w.dayId));
+    return p.days?.length > 0 && done.size >= p.days.length;
+  });
 };
 const perfectDays = (s, ctx) => ctx.perfectDays;
 const fullWeeks = (s, ctx) => ctx.fullWeeks;
@@ -148,10 +153,10 @@ export const BADGES = [
   B('masse_5', 'alltag', 'Maßband', '5 Messungen der Körpermaße', '📏', (s) => (s.measurements || []).length >= 5),
   // Besondere Momente
   B('frueh', 'special', 'Frühaufsteher', 'Training vor 8 Uhr beendet', '🌅', (s) => s.workouts.some((w) => w.finishedAt && new Date(w.finishedAt).getHours() < 8)),
-  B('nachteule', 'special', 'Nachteule', 'Training nach 21 Uhr beendet', '🦉', (s) => s.workouts.some((w) => w.finishedAt && new Date(w.finishedAt).getHours() >= 21)),
+  B('ausgeschlafen', 'special', 'Ausgeschlafen', '7 Check-ins mit mindestens 7,5 h Schlaf', '😴', (s) => wellSlept(s)),
   B('wochenende', 'special', 'Wochenendkrieger', 'Samstag und Sonntag trainiert', '🛡️', (s) => weekendWarrior(s)),
   B('comeback', 'special', 'Comeback', 'Nach 2 Wochen Pause zurück', '🔁', (s) => comeback(s)),
-  B('doppelschicht', 'special', 'Doppelschicht', 'Zwei Trainings an einem Tag', '⚡⚡', (s) => doubleDay(s)),
+  B('deload_ok', 'special', 'Deload durchgezogen', 'Alle Einheiten einer Deload-Woche gemacht', '🛌', (s) => deloadDone(s)),
   B('leicht_ok', 'special', 'Klug gesteuert', 'Eine leichte Version trainiert statt auszulassen', '🧠', (s) => s.workouts.some((w) => w.mode === 'leicht')),
   B('challenge_1', 'special', 'Herausforderer', 'Erste Herausforderung geschafft', '🎖️', (s, ctx) => ctx.challengesDone >= 1),
   B('challenge_10', 'special', 'Serientäter', '10 Herausforderungen geschafft', '🏅', (s, ctx) => ctx.challengesDone >= 10),

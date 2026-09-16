@@ -2,7 +2,7 @@
 import { EXERCISES } from '../data/exercises.js';
 import { MUSCLES } from '../data/muscles.js';
 import { seededRandom, clamp } from './util.js';
-import { estimateStartWeight, estimateStartReps } from './plan.js';
+import { estimateStartWeight, estimateStartReps, isFeasibleFor } from './plan.js';
 
 export const QUICK_GEAR = [
   { id: 'studio', name: 'Fitnessstudio (alles da)' },
@@ -34,6 +34,18 @@ export const QUICK_STYLES = [
 const EX_PER_MINUTES = [[15, 3], [20, 4], [30, 5], [45, 7], [60, 8], [90, 10]];
 // Erleichterte Varianten – nur für Anfänger, wenn es Alternativen gibt
 const EASY = new Set(['liegestuetze_knie', 'klimmzuege_negativ', 'klimmzuege_band', 'klimmzuege_maschine', 'knieheben_haengend', 'sissy_squat', 'glute_bridge', 'crunches', 'wadenheben_einbeinig']);
+
+// Wiederholungsbereich und Pause je Übung und Stil. Eigene Bereiche (ex.reps) gelten immer.
+export function quickReps(ex, style, profile = {}) {
+  if (ex.load === 'time') return ex.reps ? [ex.reps[0], ex.reps[1], style === 'zirkel' ? 30 : 60] : [30, 60, style === 'zirkel' ? 30 : 60];
+  if (ex.reps) return [ex.reps[0], ex.reps[1], style === 'zirkel' ? 45 : ex.tier === 1 ? 120 : 90];
+  if (style === 'zirkel') return ex.tier === 3 ? [15, 20, 30] : [12, 15, 45];
+  let [repMin, repMax, rest] = ex.tier === 1 ? [6, 10, 120] : ex.tier === 2 ? [8, 12, 90] : [10, 15, 60];
+  if (profile.experience === 'anfaenger' && ex.tier === 1) [repMin, repMax] = [8, 12];
+  // Körpergewichts- und Bandübungen brauchen kürzere Pausen
+  if (['bw', 'band'].includes(ex.load)) rest = ex.tier === 3 ? 45 : 60;
+  return [repMin, repMax, rest];
+}
 // Zeit pro Satz: Ausführung (~40 s) + Pause
 const setCost = (t) => (t.restSec + 40) / 60;
 
@@ -70,6 +82,11 @@ export function buildQuickWorkout(opts) {
     const base = pool.filter((e) => e.primary.includes(muscle) && !used.has(e.id));
     let cands = base.filter((e) => tiers.includes(e.tier));
     if (!cands.length) cands = base;
+    // Machbarkeit: geschätzte Wiederholungen bzw. Startgewicht müssen zum Bereich passen (sonst Notnagel ohne Prüfung)
+    const feasible = cands.filter((e) => isFeasibleFor(e, quickReps(e, style, profile)[0], profile, { barWeight: opts.barWeight ?? 20 }));
+    // Nichts Machbares mehr: lieber keine zweite Übung für den Muskel als eine unmögliche.
+    if (!feasible.length && picks.some((pk) => pk.muscle === muscle)) return null;
+    if (feasible.length) cands = feasible;
     if (!beginner && cands.some((e) => !EASY.has(e.id))) cands = cands.filter((e) => !EASY.has(e.id));
     if (cands.some((e) => !usedPatterns.has(`${muscle}:${e.pattern}`))) cands = cands.filter((e) => !usedPatterns.has(`${muscle}:${e.pattern}`));
     if (!cands.length) return null;
@@ -98,20 +115,8 @@ export function buildQuickWorkout(opts) {
   picks.sort((a, b) => a.ex.tier - b.ex.tier);
 
   const tasks = picks.map(({ ex, muscle }) => {
-    let repMin;
-    let repMax;
-    let rest;
-    if (ex.load === 'time') {
-      [repMin, repMax, rest] = [30, 60, style === 'zirkel' ? 30 : 60];
-    } else if (style === 'zirkel') {
-      [repMin, repMax, rest] = ex.tier === 3 ? [15, 20, 30] : [12, 15, 45];
-    } else {
-      [repMin, repMax, rest] = ex.tier === 1 ? [6, 10, 120] : ex.tier === 2 ? [8, 12, 90] : [10, 15, 60];
-      if (profile.experience === 'anfaenger' && ex.tier === 1) [repMin, repMax] = [8, 12];
-      // Körpergewichts- und Bandübungen brauchen kürzere Pausen
-      if (['bw', 'band'].includes(ex.load)) rest = ex.tier === 3 ? 45 : 60;
-    }
-    const weight = estimateStartWeight(ex, profile, repMin, rir, {});
+    const [repMin, repMax, rest] = quickReps(ex, style, profile);
+    const weight = estimateStartWeight(ex, profile, repMin, rir, { barWeight: opts.barWeight ?? 20 });
     const reps = ex.bwReps ? estimateStartReps(ex, profile) : null;
     return { exId: ex.id, muscle, tier: ex.tier, sets, repMin, repMax, restSec: rest, rir, weight, estReps: reps, load: ex.load };
   });

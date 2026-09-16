@@ -10,6 +10,9 @@ import { weeklyReview } from '../engine/food.js';
 import { dailyTargets } from './ernaehrung.js';
 import { toISODate, startOfWeek, formatDate } from '../engine/util.js';
 import { dailyStreak } from '../engine/achievements.js';
+import { LIMITATIONS } from '../data/muscles.js';
+import { HEALTH_BY_ID, healthFlags } from '../engine/health.js';
+import { currentWeight } from '../engine/nutrition.js';
 
 export const COACH_MODELS = [
   { id: 'claude-opus-5', name: 'Claude Opus 5 (Standard, am besten)' },
@@ -24,7 +27,7 @@ const QUICK = [
   ['Motivation', 'Ich habe gerade wenig Motivation. Was ist die kleinste sinnvolle Einheit, die ich heute machen kann?'],
 ];
 
-const SYSTEM = `Du bist der persönliche Trainings- und Ernährungscoach in der App LMCI. Du antwortest auf Deutsch, per Du, kurz und konkret (meist unter 200 Wörtern), ohne Floskeln. Du stützt dich auf die aktuelle Trainingswissenschaft (Volumen 10–20 Sätze pro Muskel und Woche, 0–3 Wiederholungen in Reserve, doppelte Progression, Deloads, Protein 1,6–2,2 g/kg, Gewichtstrend statt Tageswerte). Du kennst den Plan, die Logs und die Ernährung des Nutzers aus dem Kontext und beziehst dich darauf mit konkreten Zahlen. Du stellst keine medizinischen Diagnosen; bei Schmerzen oder Beschwerden empfiehlst du eine ärztliche Abklärung. Wenn Daten fehlen, sagst du das und fragst nach. Formatiere sparsam: kurze Absätze oder wenige Stichpunkte, keine Überschriften.`;
+const SYSTEM = `Du bist der persönliche Trainings- und Ernährungscoach in der App LMCI. Du antwortest auf Deutsch, per Du, kurz und konkret (meist unter 200 Wörtern), ohne Floskeln. Du stützt dich auf die aktuelle Trainingswissenschaft (Volumen 10–20 Sätze pro Muskel und Woche, 0–3 Wiederholungen in Reserve, doppelte Progression, Deloads, Protein 1,6–2,2 g/kg, Gewichtstrend statt Tageswerte). Du kennst den Plan, die Logs und die Ernährung des Nutzers aus dem Kontext und beziehst dich darauf mit konkreten Zahlen. Du stellst keine medizinischen Diagnosen; bei Schmerzen oder Beschwerden empfiehlst du eine ärztliche Abklärung. Warnzeichen wie Brustschmerz, Atemnot, Schwindel, Herzstolpern oder plötzliche starke Gelenkschmerzen bedeuten: Training sofort abbrechen und ärztliche Hilfe holen – dazu gibst du keine Trainingstipps. Du empfiehlst keine Übungen, die zu den angegebenen Einschränkungen passen, und respektierst die Vorsichtsregeln aus dem Gesundheits-Screening (keine harten Intervalle, mindestens 2 Wiederholungen in Reserve). Wenn Daten fehlen, sagst du das und fragst nach. Formatiere sparsam: kurze Absätze oder wenige Stichpunkte, keine Überschriften.`;
 
 function buildContext(s) {
   const { profile, plan } = s;
@@ -32,10 +35,16 @@ function buildContext(s) {
   const week = planWeek(plan, today);
   const lines = [];
   lines.push(`Datum: ${today}. Nutzer: ${profile.name || 'ohne Namen'}, ${profile.sex === 'w' ? 'weiblich' : profile.sex === 'm' ? 'männlich' : 'divers'}, ${profile.age} Jahre, ${profile.heightCm} cm, ${profile.weightKg} kg. Ziel: ${GOALS[profile.goal]?.name}. Erfahrung: ${EXPERIENCE[profile.experience]?.name}. ${profile.strengthDays}× Kraft à ${profile.sessionMinutes} min, ${profile.cardioSessions ?? 0}× Cardio. Ausrüstung: ${profile.equipment === 'gym' ? 'Studio' : `Zuhause (${(profile.gear || []).join(', ') || 'nur Körpergewicht'})`}. Einschränkungen: ${(profile.limitations || []).join(', ') || 'keine'}. Prioritäten: ${(profile.priorities || []).join(', ') || 'keine'}.${profile.targetWeightKg ? ` Zielgewicht ${profile.targetWeightKg} kg.` : ''}`);
+  const lim = (profile.limitations || []).map((l) => LIMITATIONS.find((x) => x.id === l)?.name || l);
+  const health = (profile.health || []).map((h) => HEALTH_BY_ID[h]?.text || h);
+  const flags = healthFlags(profile);
+  lines.push(`Einschränkungen: ${lim.length ? lim.join(', ') : 'keine'}. Gesundheits-Screening: ${health.length ? `Ja bei: ${health.join(' | ')}` : 'alles Nein'}.${flags.cautious ? ' → Vorsichtsregeln aktiv (keine Intervalle, RIR ≥ 2, keine 3–5er-Sätze).' : ''}${flags.pregnant ? ' Schwangerschaft/Wochenbett: kein Kaloriendefizit, keine Rückenlage am Boden, kein Hängen, kein schweres Heben.' : ''}`);
+  const cw = currentWeight(profile, s.bodyLogs);
+  if (cw && Math.abs(cw - profile.weightKg) >= 0.5) lines.push(`Aktuelles Gewicht (7-Tage-Mittel): ${cw} kg – Ernährungsziele rechnen damit.`);
   lines.push(`Plan: ${plan.split.name}, Block ${plan.mesoIndex + 1}, Woche ${week}/${plan.weeks}${week === plan.deloadWeek ? ' (Deload)' : ''}, RIR-Vorgabe ${plan.rir[week - 1]}. Start ${plan.startDate}.`);
   for (const d of plan.days) lines.push(`- ${d.name} (${['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'][d.weekday] || '?'}): ${d.exercises.map((pe) => `${getExercise(pe.exId)?.name || pe.exId} ${effectiveSets(plan, d, pe, week)}×${pe.repMin}–${pe.repMax}`).join('; ')}`);
   const adj = Object.entries(plan.muscleAdjust || {}).filter(([, v]) => v);
-  if (adj.length) lines.push(`Autoregulation (Sätze/Übung): ${adj.map(([m, v]) => `${MUSCLE_BY_ID[m]?.short} ${v > 0 ? '+' : ''}${v}`).join(', ')}`);
+  if (adj.length) lines.push(`Autoregulation (Sätze pro Woche, auf die Übungen verteilt): ${adj.map(([m, v]) => `${MUSCLE_BY_ID[m]?.short} ${v > 0 ? '+' : ''}${v}`).join(', ')}`);
   const vol = weeklyVolume(s.workouts, startOfWeek(today));
   lines.push(`Sätze diese Woche pro Muskel: ${Object.entries(vol).filter(([, v]) => v).map(([m, v]) => `${MUSCLE_BY_ID[m]?.short} ${v}`).join(', ') || 'noch keine'}. Ziele: ${Object.entries(plan.volume).map(([m, v]) => `${MUSCLE_BY_ID[m]?.short} ${v.target}`).join(', ')}.`);
   const recent = [...s.workouts].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 6);
@@ -47,7 +56,7 @@ function buildContext(s) {
   const prs = personalRecords(s.workouts).slice(0, 6);
   if (prs.length) lines.push(`Bestleistungen (e1RM): ${prs.map((r) => `${getExercise(r.exId)?.name || r.exId} ${r.e1rm || `${r.reps} Wdh`}`).join(', ')}`);
   const cardio = s.cardioLogs.filter((c) => c.date >= startOfWeek(today));
-  lines.push(`Cardio diese Woche: ${cardio.length} Einheiten, ${cardio.reduce((a, c) => a + c.minutes, 0)} min (Plan: ${plan.cardio.sessionsPerWeek}).`);
+  lines.push(`Cardio diese Woche: ${cardio.length} Einheiten, ${cardio.reduce((a, c) => a + c.minutes, 0)} min (Plan: ${plan.cardio.sessionsPerWeek}${plan.cardio.sessions.some((c) => c.weekday != null) ? `, Tage: ${plan.cardio.sessions.map((c) => `${c.name.split(' (')[0]} ${['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'][c.weekday] || 'flexibel'}`).join(', ')}` : ''}).`);
   const ci = (s.checkins || []).slice(-7);
   if (ci.length) lines.push(`Check-ins (letzte ${ci.length}): ${ci.map((c) => `${c.date.slice(5)} Schlaf ${c.sleep}h/${c.sleepQuality} Stress ${c.stress} Energie ${c.energy}${c.sore?.length ? ` Kater ${c.sore.join(',')}` : ''}`).join('; ')}`);
   const t = dailyTargets(s);

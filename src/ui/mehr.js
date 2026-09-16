@@ -5,7 +5,7 @@ import { GOALS, EXPERIENCE } from '../engine/plan.js';
 import { buildICS } from '../engine/reminders.js';
 import { openCoachSettings } from './coach.js';
 
-export const APP_VERSION = '1.4.1';
+export const APP_VERSION = '1.5.0';
 
 export function renderMehr(root) {
   const s = store.get();
@@ -23,7 +23,7 @@ export function renderMehr(root) {
       <div class="card">
         <div class="card-title">Einstellungen</div>
         <div class="grid2">
-          <label class="field"><span>Stangengewicht (kg)</span><input id="set-bar" type="number" step="0.5" value="${s.settings.barWeight}"></label>
+          <label class="field"><span>Stangengewicht (kg)</span><select id="set-bar">${raw([[10, '10 kg – Technikstange'], [15, '15 kg – Frauenstange'], [20, '20 kg – Standard']].concat([10, 15, 20].includes(s.settings.barWeight) ? [] : [[s.settings.barWeight, `${s.settings.barWeight} kg`]]).map(([v, l]) => `<option value="${v}" ${s.settings.barWeight === v ? 'selected' : ''}>${l}</option>`).join(''))}</select></label>
           <label class="field"><span>Verfügbare Scheiben (kg, Komma-getrennt)</span><input id="set-plates" value="${s.settings.plates.join(', ')}"></label>
         </div>
         <label class="chip"><input type="checkbox" id="set-rest" ${s.settings.restTimer ? 'checked' : ''}><span>Pausentimer nach jedem Satz starten</span></label>

@@ -12,20 +12,20 @@ Alle Regeln sind bewusst einfach, nachvollziehbar und aus der Trainingswissensch
 - Auch ohne Onboarding nutzbar: „Nur Schnelltraining, ohne Fragen“ auf dem Startbildschirm.
 
 **Training mit Plan**
-- Onboarding in 5 Schritten: Ziel (Muskelaufbau, Fettabbau, Kraft, Ausdauer, Fitness), Erfahrung, Zielgewicht, Trainingstage, Dauer, Ausrüstung (Studio oder Zuhause mit Kurzhanteln, Langhantel, Kettlebell, Bank, Klimmzugstange, Bändern, Schlingentrainer), Beschwerden, Cardio-Vorlieben aus 65 Aktivitäten, Muskel-Schwerpunkte.
-- Kraftplan als Mesozyklus (4 Aufbauwochen + Deload): Split je nach Tagen, Volumen pro Muskel nach Erfahrung und Trainingsfrequenz, Wiederholungsbereiche nach Ziel, RIR-Steuerung pro Woche, Zeitbudget pro Einheit, Übungsrotation pro Block.
+- Onboarding in 5 Schritten: Ziel (Muskelaufbau, Fettabbau, Kraft, Ausdauer, Fitness), Erfahrung, Zielgewicht, Trainingstage, Dauer, Ausrüstung (Studio oder Zuhause mit Kurzhanteln, Langhantel, Kettlebell, Bank, Klimmzugstange, Bändern, Schlingentrainer), Beschwerden, kurzes Gesundheits-Screening (PAR-Q+), Cardio-Vorlieben aus 65 Aktivitäten, Muskel-Schwerpunkte. Bei einem „Ja“ im Screening plant die App vorsichtiger: keine harten Intervalle, mindestens 2 Wiederholungen in Reserve, keine 3–5er-Sätze, bei Schwangerschaft kein Kaloriendefizit und keine Übungen in Rückenlage.
+- Kraftplan als Mesozyklus (4 Aufbauwochen + Deload, Anfänger 6 + 1): Split je nach Tagen, Volumen pro Muskel nach Erfahrung und Trainingsfrequenz, Wiederholungsbereiche nach Ziel, RIR-Steuerung pro Woche, Zeitbudget pro Einheit, Übungsrotation pro Block (beim Kraftziel bleiben die Langhantel-Hauptübungen fest). Jede Übung wird auf Machbarkeit geprüft: Körpergewichtsübungen nur, wenn die geschätzten Wiederholungen den Zielbereich erreichen, Langhantelübungen nur, wenn das rechnerische Startgewicht über der Stange liegt – Anfänger bekommen so Kniebeugen statt Pistol Squats und den Latzug statt 4×10 Klimmzügen.
 - 233 Übungen mit Technik-Hinweisen, Körperkarte, Alternativen und Technik-Videolinks; Bibliothek mit Suche und Filtern.
 - Startgewichte werden aus Körpergewicht, Erfahrung, Geschlecht und Alter geschätzt; Aufwärmsätze werden automatisch berechnet.
 - Trainings-Logging: Sätze mit Gewicht, Wiederholungen und RIR, Pausentimer mit Ton und Vibration, Scheibenrechner, Übungen tauschen, ergänzen und verschieben, freies Training ohne Plan.
 - Kurzversion (20/30/45 min) und leichte Version, wenn Zeit oder Bereitschaft fehlen; verpasste Einheiten werden nachgeholt.
-- Progression: doppelte Progression (erst Wiederholungen, dann Gewicht), Deload-Vorgaben, Rückstufung nach zwei verfehlten Einheiten.
-- Autoregulation pro Muskel: nach jeder Einheit kurzes Feedback (Anstrengung, Leistung, welche Muskeln nicht erholt waren, wo mehr ging) – daraus ±1 Satz pro Übung. Der nächste Block übernimmt das gedämpft.
+- Progression: doppelte Progression (erst Wiederholungen, dann Gewicht), Deload-Vorgaben, Rückstufung nach zwei verfehlten Einheiten. Die geloggte Reserve zählt in beide Richtungen: deutlich mehr RIR als geplant → sofort steigern; Obergrenze nur bis zum Versagen geschafft → halten, bis die Reserve stimmt. Anfänger steigern an Grundübungen linear jede Einheit. Top-Satz und Backoff-Sätze werden getrennt bewertet.
+- Autoregulation pro Muskel: nach jeder Einheit kurzes Feedback (Anstrengung, Leistung, welche Muskeln nicht erholt waren, wo mehr ging) – daraus ±1 Satz pro Muskel und Woche, verteilt auf die Übungen des Muskels (Plus zuerst an Hauptübungen, Minus zuerst an Isolation), gedeckelt auf ca. 30 % des Wochenziels. Im Check-in als „nicht erholt“ markierte Muskeln bekommen am selben Tag einen Satz weniger. Der nächste Block übernimmt das halbiert.
 - Täglicher Check-in (Schlaf, Stress, Energie, Muskelkater) mit Bereitschafts-Score und Empfehlung.
-- Cardio: Einheiten nach Ziel (Zone 2, Intervalle, lange Einheit, Tempo) mit Wochenprogression, persönlichen Pulszonen und Intervall-Timer.
+- Cardio: Einheiten nach Ziel (Zone 2, Schwellen-Intervalle in Zone 4, VO₂max-Intervalle 4×4 in Zone 5, lange Einheit, Tempo) mit Wochenprogression, festen Wochentagen (trainingsfreie Tage zuerst, Intervalle nie am Tag vor dem Beintraining), persönlichen Pulszonen (gemessener Maximalpuls geht vor Formel) und Intervall-Timer. Cardio-Tage erscheinen in Tageszielen, Kalender, Erinnerungen und Kalender-Export.
 - Mobilität: 10-Minuten-Routinen für Unterkörper-, Oberkörper- und Ruhetage, abgestimmt auf Beschwerden.
 
 **Ernährung**
-- Kalorien- und Makroziel aus Grundumsatz, Alltagsaktivität, Trainingsenergie und Ziel; manuell überschreibbar.
+- Kalorien- und Makroziel aus Grundumsatz, Alltagsaktivität, Trainingsenergie und Ziel; rechnet mit dem aktuellen Gewicht (7-Tage-Mittel der Wiegungen), nicht mit dem Onboarding-Wert; manuell überschreibbar.
 - Ernährungstagebuch mit Mahlzeiten, Portionen, Makro-Balken und Trinken.
 - Offline-Basisliste mit 254 Lebensmitteln, Online-Suche und Barcode-Abfrage über Open Food Facts, Barcode-Scan per Kamera.
 - Eigene Lebensmittel und Rezepte, Favoriten, Zuletzt-Liste, „Gestern kopieren“.
@@ -34,7 +34,7 @@ Alle Regeln sind bewusst einfach, nachvollziehbar und aus der Trainingswissensch
 
 **Motivation & Belohnungen**
 - XP für alles, was du tust: Training (50 + 8 pro Satz, +25 je Bestleistung), Cardio (2 pro Minute), Check-in, erfasste Ernährung, Trinken, Wiegen, Mobilität und perfekte Tage.
-- Level mit Titeln von „Neuling“ bis „Legende“, Streak-Flamme mit Meilenstein-Feiern, 65 Abzeichen in sieben Gruppen (Training, Kraft & Volumen, Konstanz, Ausdauer, Alltag & Erholung, besondere Momente, Level).
+- Level mit Titeln von „Neuling“ bis „Legende“, Streak-Flamme mit Meilenstein-Feiern, 65 Abzeichen in sieben Gruppen (Training, Kraft & Volumen, Konstanz, Ausdauer, Alltag & Erholung, besondere Momente wie „Ausgeschlafen“ und „Deload durchgezogen“, Level).
 - Herausforderungen: jede Woche drei neue (z. B. alle Krafteinheiten, Cardio-Minuten, perfekte Tage, Bestleistung, Beintag) und eine im Monat, mit Fortschrittsbalken und XP. Abgeschlossene werden gefeiert und zählen für Abzeichen.
 - Tägliche Ziel-Checkliste auf der Startseite (Check-in, Training oder Bewegung, Ernährung, Trinken, Mobilität, optional Wiegen) mit Bonus für den perfekten Tag.
 - Feier nach jedem Training mit Konfetti, XP-Zähler, neuen Bestleistungen, Abzeichen und Level-ups.
@@ -107,18 +107,18 @@ Kein Build nötig: `index.html` lädt die ES-Module direkt.
 | Baustein | Regel | Quelle |
 | --- | --- | --- |
 | Split | 2–3 Tage Ganzkörper, 4 Tage Ober/Unter, 5 Tage Ober/Unter + Push/Pull/Beine, 6 Tage PPL×2 – jeder Muskel mind. 2×/Woche | Schoenfeld et al. 2016 (Frequenz) |
-| Volumen | Basis 10 / 14 / 16 harte Sätze pro Muskel und Woche (Anfänger / Fortgeschritten / Erfahren), skaliert nach Ziel, Muskel, Prioritäten und Trainingstagen; Nebenmuskeln zählen halb | Schoenfeld et al. 2017, Baz-Valle et al. 2022 |
-| Intensität | Grundübungen 6–10, Zusatzübungen 8–12, Isolation 10–15 Wdh.; Kraftziel 3–5 Wdh. bei Hauptübungen; RIR 3 → 2 → 1 → 0–1, Deload 4+ | Schoenfeld et al. 2017 (Last), Refalo et al. 2023 (Nähe zum Versagen) |
+| Volumen | Basis 10 / 14 / 16 harte Sätze pro Muskel und Woche (Anfänger / Fortgeschritten / Erfahren), skaliert nach Ziel, Muskel, Prioritäten und Trainingstagen (Faktor 0,9–1,15); Nebenmuskeln zählen halb, Schulterdrücken zählt für die Schultern halb; Arme, Waden und Schulter-Isolation bekommen direkte Mindestsätze (2–6 je nach Trainingstagen) | Schoenfeld et al. 2017, Baz-Valle et al. 2022 |
+| Intensität | Grundübungen 6–10, Zusatzübungen 8–12, Isolation 10–15 Wdh.; Kraftziel 3–5 Wdh. nur bei Langhantel-Hauptübungen (Kniebeuge, Bankdrücken, Kreuzheben, Schulterdrücken), Rudern und Maschinen 5–8; schwere Körpergewichtsübungen mit eigenem Bereich (z. B. Nordic Curl 3–8); RIR 3 → 2 → 1 → 0–1 (Anfänger 3 → 2), Deload 4+; schwere Langhantel-Kniebeugen und Kreuzheben nie unter RIR 1 | Schoenfeld et al. 2017 (Last), Refalo et al. 2023, Robinson et al. 2024 (Nähe zum Versagen) |
 | Pausen | 2–3 min bei Grundübungen, 75–105 s bei Isolation | Schoenfeld et al. 2016 |
-| Startgewichte | 1RM-Verhältnis zum Körpergewicht je Übung, skaliert nach Erfahrung, Geschlecht, Alter; Arbeitsgewicht über Epley für Wiederholungen + RIR | Praxiswerte, Epley 1985 |
-| Progression | Doppelte Progression; Deload jede 5. Woche mit halben Sätzen und −10 % Gewicht | Helms, Israetel u. a. |
-| Autoregulation | Muskel nicht erholt → −1 Satz; „mehr vertragen“ → +1 Satz; Check-in steuert leichte Tage | RP-Prinzip MEV/MAV/MRV |
-| Cardio | Zone 2 als Basis, Intervalle für VO₂max; Kalorien über MET-Werte | WHO 2020, Schumann et al. 2022, Ainsworth et al. 2011 |
-| Pulszonen | HFmax = 208 − 0,7 × Alter; mit Ruhepuls nach Karvonen | Tanaka et al. 2001 |
-| Ernährung | Mifflin-St Jeor + Aktivitätsfaktor + Trainingsenergie; Protein 1,6–2,2 g/kg; Fett ≥ 0,7 g/kg; Muskelaufbau +150–300 kcal, Fettabbau −20 % (max. −600) | Mifflin et al. 1990, Morton et al. 2018, Helms et al. 2014 |
-| Gewichtstrend | 7-Tage-Schnitt; erwartet +0,1–0,5 %/Woche (Aufbau) bzw. −0,5–1 %/Woche (Fettabbau); Wochenrückblick schlägt ±150 kcal vor | Helms et al. 2014 |
+| Startgewichte | 1RM-Verhältnis zum Körpergewicht je Übung, skaliert nach Erfahrung, Geschlecht (Ober-/Unterkörper getrennt), Alter; Arbeitsgewicht über Epley für Wiederholungen + RIR; liegt der Rechenwert unter der Stange, wird das gesagt und die Kurzhantel-/Maschinenvariante vorgeschlagen | Praxiswerte, Epley 1985 |
+| Progression | Doppelte Progression, RIR-Überschuss (≥ +2) steigert sofort, Anfänger linear an Grundübungen; Deload in der letzten Blockwoche mit halben Sätzen bei gehaltenem Gewicht; Block 4 + 1 Wochen, Anfänger 6 + 1 | ACSM 2009, Bell et al. 2023, Coleman et al. 2024 |
+| Autoregulation | Muskel nicht erholt → −1 Satz pro Woche; „mehr vertragen“ → +1 Satz pro Woche, verteilt auf die Übungen, Deckel ca. 30 % des Ziels; kein Plus bei niedriger Bereitschaft; Check-in-Muskelkater → heute −1 Satz | RP-Prinzip MEV/MAV/MRV, Zourdos et al. 2016 |
+| Cardio | Zone 2 als Basis, Schwellen-Intervalle (Zone 4, 3–5 × 3 min) und VO₂max-Intervalle (Zone 5, 4 × 4 min) je nach Ziel; Wochentage: freie Tage zuerst, Intervalle nicht vor Beintagen; Kalorien netto über MET − 1; ohne Freigabe im Gesundheits-Screening nur Zone 2 | WHO 2020, Schumann et al. 2022, Helgerud et al. 2007, Ainsworth et al. 2011 |
+| Pulszonen | HFmax gemessen oder 208 − 0,7 × Alter (Streuung ±10); mit Ruhepuls nach Karvonen | Tanaka et al. 2001 |
+| Ernährung | Mifflin-St Jeor + Aktivitätsfaktor + Trainingsenergie, aktuelles Gewicht aus den Wiegungen; Protein 1,6–2,2 g/kg (beim Fettabbau bezogen auf das Zielgewicht, mind. 85 % des aktuellen); Fett ≥ 0,8 g/kg, Frauen ≥ 1,0 g/kg; Muskelaufbau +150–300 kcal, Fettabbau −20 % (max. −600), kein Defizit in Schwangerschaft/Wochenbett | Mifflin et al. 1990, Morton et al. 2018, Helms et al. 2014, Iraki et al. 2019 |
+| Gewichtstrend | 7-Tage-Schnitt über die letzten 28 Tage; erwartet +0,1–0,5 %/Woche (Aufbau) bzw. −0,5–1 %/Woche (Fettabbau; −0,25–0,7 % bei BMI < 22 oder kurz vor dem Ziel); Wochenrückblick schlägt ±150 kcal vor | Helms et al. 2014, Garthe et al. 2011 |
 
-Die App ersetzt keine ärztliche oder physiotherapeutische Beratung.
+Die App ersetzt keine ärztliche oder physiotherapeutische Beratung. Das Gesundheits-Screening im Onboarding erkennt Warnzeichen und macht den Plan vorsichtiger, ersetzt aber keine Freigabe. Ausführliche Begründung und Befunde: `docs/REVIEW-Trainingsmethoden.md`.
 
 ## Was LMCI bewusst nicht nachbaut
 
@@ -137,10 +137,11 @@ src/state.js                  Zustand, Speicherung, Export/Import
 src/data/exercises.js         233 Übungen (Muskeln, Ausrüstung, Kontraindikationen, 1RM-Verhältnis, Technik)
 src/data/mobility.js          Mobilitätsübungen
 src/data/foods.js             254 Basis-Lebensmittel
-src/engine/plan.js            Plangenerator, Startgewichte, Aufwärmsätze, Kurzversion, nächste Einheit
+src/engine/plan.js            Plangenerator, Machbarkeitsprüfung, Startgewichte, Aufwärmsätze, Kurzversion, Autoregulation, nächste Einheit
 src/engine/progression.js     Doppelte Progression, Autoregulation pro Muskel, Scheibenrechner
 src/engine/recovery.js        Check-in → Bereitschaft
-src/engine/cardio.js          65 Aktivitäten mit MET, Pulszonen, Cardio-Planung
+src/engine/health.js          Gesundheits-Screening (PAR-Q+) und daraus abgeleitete Vorsichtsregeln
+src/engine/cardio.js          65 Aktivitäten mit MET, Pulszonen, Cardio-Planung mit Wochentagen
 src/engine/nutrition.js       Kalorien, Makros, Gewichtstrend
 src/engine/food.js            Tagebuch-Makros, Suche, Open Food Facts, Rezepte, Wochenrückblick
 src/engine/analytics.js       Auswertungen (Volumen, 1RM, Rekorde, Konstanz)

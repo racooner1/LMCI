@@ -2,7 +2,7 @@
 import { html, raw, esc, toast, num, openModal, closeModal, confirmDialog } from './dom.js';
 import * as store from '../state.js';
 import { animateAll } from './motion.js';
-import { computeNutrition, weightTrend, trendAdvice, ACTIVITY_LEVELS } from '../engine/nutrition.js';
+import { currentWeight, computeNutrition, weightTrend, trendAdvice, ACTIVITY_LEVELS } from '../engine/nutrition.js';
 import { MEALS, dayTotals, macrosFor, weeklyReview } from '../engine/food.js';
 import { GOALS } from '../engine/plan.js';
 import { toISODate, addDays, formatDate, uid } from '../engine/util.js';
@@ -13,7 +13,8 @@ let viewDate = toISODate();
 
 // Tagesziele inkl. Wochen-Anpassung und manueller Vorgabe.
 export function dailyTargets(s) {
-  const n = computeNutrition(s.profile, s.plan);
+  // Ziele rechnen mit dem aktuellen Gewicht (7-Tage-Mittel der Wiegungen), nicht mit dem Onboarding-Wert.
+  const n = computeNutrition(s.profile, s.plan, { weightKg: currentWeight(s.profile, s.bodyLogs) || s.profile.weightKg });
   const o = s.settings.targetOverride;
   const adjust = s.settings.kcalAdjust || 0;
   if (o?.kcal) {
@@ -50,7 +51,7 @@ export function renderErnaehrung(root) {
 
   root.innerHTML = String(html`
     <section class="page">
-      <header class="page-head"><div><h1>Ernährung</h1><p class="muted">Ziel: ${GOALS[profile.goal]?.name} · ${profile.weightKg} kg</p></div></header>
+      <header class="page-head"><div><h1>Ernährung</h1><p class="muted">Ziel: ${GOALS[profile.goal]?.name} · ${n.weightKg} kg${n.noDeficit ? ' · kein Defizit (Schwangerschaft/Wochenbett)' : ''}</p></div></header>
 
       <div class="date-nav">
         <button class="btn" data-act="prev" aria-label="Vorheriger Tag">◀</button>

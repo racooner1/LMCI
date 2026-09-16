@@ -32,7 +32,8 @@ test('Zirkel-Stil nutzt kurze Pausen und hohe Wiederholungen', () => {
   const r = buildQuickWorkout({ gear: ['kurzhantel', 'band'], focus: ['unterkoerper'], muscles: ['bauch'], minutes: 30, style: 'zirkel', profile, seed: 3 });
   assert.ok(r.tasks.every((t) => t.restSec <= 60));
   assert.ok(r.tasks.some((t) => t.muscle === 'bauch'));
-  assert.ok(r.tasks.filter((t) => t.load !== 'time').every((t) => t.repMin >= 12));
+  // Eigene Bereiche schwerer Körpergewichtsübungen (z. B. Nordic Curl) gelten auch im Zirkel.
+  assert.ok(r.tasks.filter((t) => t.load !== 'time' && !getExercise(t.exId).reps).every((t) => t.repMin >= 12));
 });
 
 test('Seed macht das Ergebnis reproduzierbar, anderer Seed variiert', () => {

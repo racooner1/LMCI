@@ -4,6 +4,7 @@ import { GOALS, EXPERIENCE, generatePlan } from '../engine/plan.js';
 import { defaultCardioSessions, CARDIO_ACTIVITIES, CARDIO_GROUPS } from '../engine/cardio.js';
 import { ACTIVITY_LEVELS } from '../engine/nutrition.js';
 import { LIMITATIONS, GEAR, PRIORITY_OPTIONS, MUSCLE_BY_ID } from '../data/muscles.js';
+import { HEALTH_QUESTIONS, healthFlags } from '../engine/health.js';
 import { WEEKDAYS_LONG } from '../engine/util.js';
 import * as store from '../state.js';
 import { icon } from './icons.js';
@@ -13,13 +14,13 @@ const STEPS = ['Über dich', 'Ziel', 'Training', 'Ausrüstung', 'Cardio & Fokus'
 export const QUICK_PROFILE = {
   name: '', sex: 'm', age: 30, heightCm: 175, weightKg: 75, activityLevel: 'leicht',
   goal: 'fitness', experience: 'anfaenger', strengthDays: 3, sessionMinutes: 45, trainingWeekdays: [],
-  equipment: 'home', gear: [], limitations: [], cardio: ['walken'], cardioSessions: 1, priorities: [],
+  equipment: 'home', gear: [], limitations: [], health: [], cardio: ['walken'], cardioSessions: 1, priorities: [],
 };
 
 export const DEMO_PROFILE = {
   name: 'Beispiel', sex: 'm', age: 29, heightCm: 180, weightKg: 79, activityLevel: 'leicht',
   goal: 'muskelaufbau', experience: 'fortgeschritten', strengthDays: 4, sessionMinutes: 60, trainingWeekdays: [0, 1, 3, 4],
-  equipment: 'gym', gear: [], limitations: [], cardio: ['laufen', 'rad'], cardioSessions: 2, priorities: ['brust'], restingHr: 58,
+  equipment: 'gym', gear: [], limitations: [], health: [], cardio: ['laufen', 'rad'], cardioSessions: 2, priorities: ['brust'], restingHr: 58,
 };
 
 let step = 0;
@@ -30,7 +31,7 @@ export function renderOnboarding(root, { edit = false } = {}) {
   if (edit && s.profile && !draft.__edit) {
     draft = { ...s.profile, __edit: true };
   } else if (!edit && !draft.__started) {
-    draft = { __started: true, sex: 'm', activityLevel: 'leicht', goal: 'muskelaufbau', experience: 'anfaenger', strengthDays: 3, sessionMinutes: 60, equipment: 'gym', gear: [], limitations: [], cardio: ['walken'], priorities: [] };
+    draft = { __started: true, sex: 'm', activityLevel: 'leicht', goal: 'muskelaufbau', experience: 'anfaenger', strengthDays: 3, sessionMinutes: 60, equipment: 'gym', gear: [], limitations: [], health: [], cardio: ['walken'], priorities: [] };
   }
   root.innerHTML = String(html`
     <section class="onb">
@@ -98,6 +99,8 @@ function collect(root) {
     draft.weightKg = num(d.weightKg);
     draft.activityLevel = d.activityLevel;
     draft.restingHr = num(d.restingHr, 0) || undefined;
+    draft.maxHr = num(d.maxHr, 0) || undefined;
+    if (draft.maxHr && (draft.maxHr < 120 || draft.maxHr > 230)) return 'Bitte einen plausiblen Maximalpuls angeben (120–230) oder das Feld leer lassen.';
     if (!draft.age || draft.age < 14 || draft.age > 99) return 'Bitte ein Alter zwischen 14 und 99 angeben.';
     if (!draft.heightCm || draft.heightCm < 120 || draft.heightCm > 230) return 'Bitte eine Körpergröße in cm angeben (120–230).';
     if (!draft.weightKg || draft.weightKg < 30 || draft.weightKg > 250) return 'Bitte ein Körpergewicht in kg angeben (30–250).';
@@ -122,6 +125,7 @@ function collect(root) {
     draft.equipment = d.equipment;
     draft.gear = d.equipment === 'gym' ? [] : d.gear || [];
     draft.limitations = d.limitations || [];
+    draft.health = d.health || [];
   }
   if (step === 4) {
     draft.cardio = d.cardio || [];
@@ -142,7 +146,7 @@ function finish(edit, target = null) {
     st.profile = profile;
     if (!keepPlan) {
       if (st.plan) st.planHistory.push(st.plan);
-      st.plan = generatePlan(profile, { mesoIndex: st.plan ? st.plan.mesoIndex + 1 : 0 });
+      st.plan = generatePlan(profile, { mesoIndex: st.plan ? st.plan.mesoIndex + 1 : 0, barWeight: st.settings?.barWeight });
     }
     if (profile.weightKg && !st.bodyLogs.some((b) => b.date === st.meta.lastOpened)) {
       st.bodyLogs.push({ date: st.meta.lastOpened, weightKg: profile.weightKg });
@@ -150,11 +154,13 @@ function finish(edit, target = null) {
   });
   draft = {};
   step = 0;
-  if (!target) toast(keepPlan ? 'Profil gespeichert.' : 'Dein Plan ist fertig.', 'ok');
+  const flags = healthFlags(profile);
+  if (flags.cautious) toast('Du hast eine Gesundheitsfrage mit Ja beantwortet: Der Plan ist vorsichtiger (keine Intervalle, mehr Reserve). Bitte ärztlich abklären.', 'warn');
+  else if (!target) toast(keepPlan ? 'Profil gespeichert.' : 'Dein Plan ist fertig.', 'ok');
   location.hash = target || (keepPlan ? '#/mehr' : '#/plan');
 }
 
-const PLAN_KEYS = ['goal', 'experience', 'strengthDays', 'sessionMinutes', 'equipment', 'gear', 'limitations', 'cardio', 'cardioSessions', 'priorities', 'trainingWeekdays'];
+const PLAN_KEYS = ['goal', 'experience', 'strengthDays', 'sessionMinutes', 'equipment', 'gear', 'limitations', 'health', 'cardio', 'cardioSessions', 'priorities', 'trainingWeekdays', 'maxHr'];
 function samePlanInputs(a, b) {
   if (!a) return false;
   return PLAN_KEYS.every((k) => JSON.stringify(a[k] ?? null) === JSON.stringify(b[k] ?? null));
@@ -187,6 +193,7 @@ function renderStep(i, d) {
         <label class="field"><span>Größe (cm)</span><input id="f-height" name="heightCm" type="number" inputmode="numeric" min="120" max="230" value="${d.heightCm || ''}" required></label>
         <label class="field"><span>Gewicht (kg)</span><input id="f-weight" name="weightKg" type="number" inputmode="decimal" step="0.1" min="30" max="250" value="${d.weightKg || ''}" required></label>
         <label class="field"><span>Ruhepuls (optional)</span><input id="f-rhr" name="restingHr" type="number" inputmode="numeric" min="30" max="110" value="${d.restingHr || ''}" placeholder="z. B. 60"></label>
+        <label class="field"><span>Maximalpuls, falls gemessen (optional)</span><input id="f-maxhr" name="maxHr" type="number" inputmode="numeric" min="120" max="230" value="${d.maxHr || ''}" placeholder="sonst geschätzt"></label>
       </div>
       <h3>Alltag außerhalb des Trainings</h3>
       <div class="choices">${radioCards('activityLevel', Object.entries(ACTIVITY_LEVELS), d.activityLevel)}</div>`;
@@ -230,7 +237,10 @@ function renderStep(i, d) {
       </div>
       <h3>Beschwerden / Einschränkungen</h3>
       <div class="chips">${checkChips('limitations', LIMITATIONS.map((l) => [l.id, l.name]), d.limitations || [])}</div>
-      <p class="hint">Betroffene Übungen werden ausgelassen. Das ersetzt keine ärztliche Abklärung.</p>`;
+      <p class="hint">Betroffene Übungen werden ausgelassen. Das ersetzt keine ärztliche Abklärung.</p>
+      <h3>Gesundheit <span class="muted">(kurzer Check, angelehnt an PAR-Q+)</span></h3>
+      <p class="muted small">Ehrlich beantworten – bei einem Ja plant LMCI vorsichtiger (keine harten Intervalle, mehr Reserve) und empfiehlt eine ärztliche Freigabe.</p>
+      <div class="health-list">${HEALTH_QUESTIONS.map((q) => html`<label class="chip health"><input type="checkbox" name="health[]" value="${q.id}" ${(d.health || []).includes(q.id) ? 'checked' : ''}><span>${q.text}</span></label>`)}</div>`;
   }
   return html`
     <h2>Cardio & Schwerpunkte</h2>

@@ -35,6 +35,7 @@ export function renderKalender(root) {
   const monthWorkouts = s.workouts.filter((w) => w.date.startsWith(`${view.y}-${String(view.m + 1).padStart(2, '0')}`));
   const monthCardio = s.cardioLogs.filter((c) => c.date.startsWith(`${view.y}-${String(view.m + 1).padStart(2, '0')}`));
   const plannedWeekdays = new Set(s.plan.days.map((d) => d.weekday));
+  const cardioWeekdays = new Set((s.plan.cardio?.sessions || []).map((c) => c.weekday).filter((x) => x != null));
 
   root.innerHTML = String(html`
     <section class="page">
@@ -50,15 +51,17 @@ export function renderKalender(root) {
           ${cells.map((iso) => {
             if (!iso) return html`<div class="cal-cell empty"></div>`;
             const d = byDay(iso);
-            const planned = plannedWeekdays.has((fromISODate(iso).getDay() + 6) % 7) && iso >= s.plan.startDate;
+            const wdi = (fromISODate(iso).getDay() + 6) % 7;
+            const planned = plannedWeekdays.has(wdi) && iso >= s.plan.startDate;
+            const cardioPlanned = !planned && cardioWeekdays.has(wdi) && iso >= s.plan.startDate;
             const any = d.workouts.length || d.cardio.length || d.checkin || d.food || d.weight;
-            return html`<button class="cal-cell ${iso === today ? 'today' : ''} ${iso > today ? 'future' : ''} ${planned && !d.workouts.length && iso < today ? 'missed' : ''}" data-day="${iso}" ${any ? '' : 'data-empty="1"'}>
+            return html`<button class="cal-cell ${iso === today ? 'today' : ''} ${iso > today ? 'future' : ''} ${planned && !d.workouts.length && iso < today ? 'missed' : ''} ${cardioPlanned ? 'cardio-planned' : ''} ${cardioPlanned && !d.cardio.length && iso < today ? 'missed-cardio' : ''}" data-day="${iso}" ${any ? '' : 'data-empty="1"'}>
               <span class="cal-num">${Number(iso.slice(8))}</span>
               <span class="cal-dots">${d.workouts.length ? html`<i class="d-strength" title="Krafttraining"></i>` : ''}${d.cardio.length ? html`<i class="d-cardio" title="Cardio"></i>` : ''}${d.food ? html`<i class="d-food" title="Ernährung"></i>` : ''}${d.checkin ? html`<i class="d-checkin" title="Check-in"></i>` : ''}</span>
             </button>`;
           })}
         </div>
-        <div class="cal-legend"><span><i class="d-strength"></i> Kraft</span><span><i class="d-cardio"></i> Cardio</span><span><i class="d-food"></i> Ernährung</span><span><i class="d-checkin"></i> Check-in</span><span class="missed-legend">Rahmen = geplant, nicht trainiert</span></div>
+        <div class="cal-legend"><span><i class="d-strength"></i> Kraft</span><span><i class="d-cardio"></i> Cardio</span><span><i class="d-food"></i> Ernährung</span><span><i class="d-checkin"></i> Check-in</span><span class="cardio-legend">Punkt oben = Cardio-Tag</span><span class="missed-legend">Rahmen = geplant, nicht trainiert</span></div>
       </div>
       <div class="card">
         <div class="card-title">${MONTHS[view.m]} in Zahlen</div>

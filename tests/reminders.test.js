@@ -9,7 +9,10 @@ test('ICS-Export enthält alle Trainingstage des Blocks', () => {
   const plan = generatePlan(profile, { startDate: '2026-09-14' });
   const ics = buildICS(plan, { time: '18:30', durationMin: 60 });
   assert.ok(ics.startsWith('BEGIN:VCALENDAR'));
-  assert.equal((ics.match(/BEGIN:VEVENT/g) || []).length, 15);
+  const cardioEvents = plan.cardio.sessions.filter((c) => c.weekday != null).length * 5;
+  assert.equal((ics.match(/BEGIN:VEVENT/g) || []).length, 15 + cardioEvents);
+  assert.equal((ics.match(/SUMMARY:LMCI: /g) || []).length, 15);
+  if (cardioEvents) assert.ok(ics.includes('SUMMARY:LMCI Cardio:'));
   assert.ok(ics.includes('DTSTART:20260914T183000'));
   assert.ok(ics.includes('SUMMARY:LMCI: Ganzkörper A'));
   assert.ok(ics.includes('(Deload)'));
@@ -17,11 +20,14 @@ test('ICS-Export enthält alle Trainingstage des Blocks', () => {
 
 test('Erinnerung wird nur einmal pro Trainingstag fällig', () => {
   const plan = generatePlan(profile, { startDate: '2026-09-14' });
-  const s = { plan, workouts: [], settings: { reminders: { enabled: true, time: '18:00', lastFired: null } } };
+  const s = { plan, workouts: [], cardioLogs: [], settings: { reminders: { enabled: true, time: '18:00', lastFired: null } } };
   const monday18 = new Date(2026, 8, 14, 18, 5);
   assert.ok(reminderDue(s, monday18));
   assert.equal(reminderDue(s, new Date(2026, 8, 14, 17, 0)), null);
   assert.equal(reminderDue({ ...s, workouts: [{ date: '2026-09-14' }] }, monday18), null);
   assert.equal(reminderDue({ ...s, settings: { reminders: { enabled: true, time: '18:00', lastFired: '2026-09-14' } } }, monday18), null);
-  assert.equal(reminderDue(s, new Date(2026, 8, 15, 18, 5)), null); // Dienstag: kein Plantag bei 3× (Mo/Mi/Fr)
+  const tue = reminderDue(s, new Date(2026, 8, 15, 18, 5)); // Dienstag: kein Krafttag bei 3× (Mo/Mi/Fr) – höchstens Cardio
+  assert.ok(!tue || tue.cardio);
+  const tueDone = reminderDue({ ...s, cardioLogs: [{ date: '2026-09-15', minutes: 20 }] }, new Date(2026, 8, 15, 18, 5));
+  assert.equal(tueDone, null);
 });

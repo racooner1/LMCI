@@ -3,6 +3,32 @@
 Stand: Branch `claude/mci-training-app-no-subscription-v5zglx`, Commit `c9d372d` (16.09.2026).
 Geprüft wurden die Engine (`src/engine/*`), die Übungsdatenbank, das Onboarding, der Coach-Prompt und die Stellen im UI, an denen die Regeln angewendet werden. Alle Zahlen unten stammen aus tatsächlich generierten Plänen (Simulation über `generatePlan`, `computeNutrition`, `suggestNext`), nicht aus dem README.
 
+## Status der Umsetzung
+
+Alle Befunde dieses Reviews sind im Folge-Commit auf demselben Branch umgesetzt (Version 1.5.0). Die Tests in `tests/engine.test.js` (Abschnitt „Review-Umsetzung“) stellen die Simulationen aus dem Review nach; die Suite umfasst 50 Tests.
+
+| Befund | Umsetzung |
+| --- | --- |
+| 1 Machbarkeit Körpergewicht | `isFeasibleFor` in `plan.js` prüft geschätzte Wiederholungen ≥ Untergrenze und Startgewicht ≥ Stange; Notnagel wählt die am wenigsten unmachbare Übung. 25 schwere Übungen haben eigene Bereiche (`reps` in `exercises.js`). Schnelltraining nutzt dasselbe Gate. |
+| 2 Gesundheits-Screening | `engine/health.js` mit 8 PAR-Q+-Fragen im Onboarding (Schritt 4). Bei „Ja“: keine Intervalle, RIR ≥ 2, keine 3–5er-Sätze, Plan-Notiz, Toast. Schwangerschaft: Kontraindikation für 24 Übungen, kein Defizit. |
+| 3 RIR 0 auf schweren Grundübungen | `rirForExercise`: Langhantel-Hinge/Squat Tier 1 nie unter RIR 1. 3–5 Wdh. nur bei Langhantel-Hauptübungen in squat/hpush/hinge/vpush. |
+| 4 Rückenkategorie | Superman → Rumpf (`bauch`), Rack Pull → Beinbeuger; Pattern-Fallback vpull → hpull mit Plan-Notiz. |
+| 5 Kraft-Rotation | Hauptübungen rotieren beim Kraftziel nicht mehr. |
+| 6 Progression | Häufigstes Gewicht statt Satz 1; RIR ≥ Ziel + 2 → steigern; Obergrenze ohne Reserve → halten mit korrekter Meldung; Anfänger linear an Tier 1; e1RM mit Reserve. |
+| 7 Anfänger | Block 6 + 1 Wochen, RIR 3/3/3/2/2/2; lineare Progression; Cardio-Progression auf Blocklänge. |
+| 8 Autoregulation | `muscleAdjust` ist ein Wochen-Satzdelta, verteilt über `adjustmentFor`; Deckel max(2, 30 % Ziel); kein Plus bei niedriger Bereitschaft; Blockwechsel halbiert; Check-in-Muskelkater → heute −1 Satz. |
+| 9 Arme/Schultern | Direkte Mindestsätze (2/3/4/6 je nach Tagen) vor dem Greedy; Schulterdrücken zählt für Schultern 0,5; Frequenzfaktor 6 Tage 1,15. |
+| 10 Trendfenster | `weightTrend` standardmäßig 28 Tage, in allen Ansichten und im Coach. |
+| 11 Ernährung | `currentWeight` (7-Tage-Mittel) in `dailyTargets`; Fett ≥ 0,8 g/kg (Frauen 1,0); Protein-Referenz Zielgewicht; Abnahmerate −0,25…−0,7 % bei BMI < 22 oder kurz vor dem Ziel; Cardio-kcal netto (MET − 1). |
+| 12 Cardio | Vorlagen Schwelle (Zone 4, 3–5 × 3 min) und VO₂max (Zone 5, 4 × 4); Wochentage über `assignCardioWeekdays`; Ausdauer-Default 4 Einheiten; Cardio-Tage in Tageszielen, Heute, Kalender, Erinnerungen, ICS. |
+| 13 Startgewichte | Geschlechtsfaktor nach Körperregion; Hinweis und Alternative, wenn der Rechenwert unter der Stange liegt; Stangengewicht 10/15/20 kg wählbar. |
+| 14 Deload | Halbe Sätze, Gewicht halten (kein −10 %). |
+| 15 Coach | Kontext mit Einschränkungen, Screening-Flags, aktuellem Gewicht und Cardio-Tagen; Systemprompt mit Warnzeichen-Regel. |
+| 16 Gamification | „Nachteule“ und „Doppelschicht“ ersetzt durch „Ausgeschlafen“ und „Deload durchgezogen“. |
+| 17 Kleinigkeiten | Kreuzheben-Aufwärmen ab 40 kg ohne leere Stange; HFmax manuell im Profil, Streuungshinweis; Timer für lange Intervalle mit 10 min Einlaufen. |
+
+Nicht umgesetzt: eine eigene Muskelgruppe „unterer Rücken“ (hätte Körperkarte, Abzeichen und Volumenziele mitgezogen; die Umklassifizierung von Superman und Rack Pull löst das eigentliche Problem) und der responsive Deload für Anfänger (der längere Block deckt den Fall ab). Shrugs bleiben als oberer Rücken klassifiziert.
+
 ## Kurzfassung
 
 Das Fundament ist solide. Split, Frequenz, Volumenbereiche, Wiederholungsbereiche, Pausen, RIR-Verlauf, doppelte Progression, Deload, Ernährungsformeln und der Gewichtstrend liegen im Rahmen der aktuellen Evidenz und sind sauber umgesetzt. Die Tests laufen durch (40/40).

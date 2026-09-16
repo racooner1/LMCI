@@ -72,12 +72,18 @@ test('Plan: Einschränkungen und Ausrüstung filtern Übungen', () => {
   for (const d of p2.days) for (const pe of d.exercises) assert.ok(!getExercise(pe.exId).contra.some((c) => ['schulter', 'knie', 'ruecken_unten'].includes(c)));
 });
 
-test('Plan: Kraft-Ziel nutzt niedrige Wiederholungen bei Hauptübungen', () => {
+test('Plan: Kraft-Ziel nutzt 3–5 Wiederholungen nur bei Langhantel-Hauptübungen', () => {
   const plan = generatePlan({ ...base, goal: 'kraft', strengthDays: 3 });
   const mains = plan.days.flatMap((d) => d.exercises.filter((e) => e.main && getExercise(e.exId).tier === 1 && getExercise(e.exId).load !== 'bw'));
   assert.ok(mains.length > 0);
-  for (const m of mains) assert.deepEqual([m.repMin, m.repMax], [3, 5]);
+  const heavy = mains.filter((m) => getExercise(m.exId).load === 'barbell' && ['squat', 'hpush', 'hinge', 'vpush'].includes(getExercise(m.exId).pattern));
+  assert.ok(heavy.length >= 3);
+  for (const m of heavy) assert.deepEqual([m.repMin, m.repMax], [3, 5]);
+  // Maschinen, Kurzhanteln und Rudern bleiben bei 5–8 – dort sind 3er-Sätze weder praktisch noch spezifisch.
+  for (const m of mains.filter((m) => !heavy.includes(m))) assert.deepEqual([m.repMin, m.repMax], [5, 8]);
   assert.ok(plan.days.some((d) => d.exercises.some((e) => e.exId === 'kniebeuge_lh')));
+  // Kein Rudern mit 3–5
+  for (const d of plan.days) for (const e of d.exercises) if (getExercise(e.exId).pattern === 'hpull') assert.ok(e.repMin >= 5, e.exId);
 });
 
 test('Plan: Rotation über Mesozyklen wechselt Übungen bei Erfahrenen', () => {
@@ -124,7 +130,7 @@ test('Progression: doppelte Progression', () => {
   assert.ok(down.weight < 60);
   const deload = suggestNext(pe, [{ date: '2026-09-01', sets: [{ weight: 60, reps: 9, rir: 1 }] }], 4, true);
   assert.equal(deload.kind, 'deload');
-  assert.equal(deload.weight, 55);
+  assert.equal(deload.weight, 60); // Deload senkt die Sätze, nicht zusätzlich das Gewicht
   const bw = suggestNext({ exId: 'klimmzuege', repMin: 6, repMax: 10 }, [{ date: '2026-09-01', sets: [{ weight: 0, reps: 10, rir: 2 }] }], 2);
   assert.equal(bw.kind, 'up');
 });
@@ -169,7 +175,7 @@ test('Cardio: Zonen und Plan', () => {
   assert.deepEqual(zk.zones[1].range, [136, 149]);
   const c = buildCardioPlan({ ...base, goal: 'fettabbau', cardioSessions: 4 });
   assert.equal(c.sessions.length, 4);
-  assert.ok(c.sessions.some((s) => s.type === 'intervall'));
+  assert.ok(c.sessions.some((s) => s.intervals));
   assert.equal(c.sessions[0].minutesByWeek.length, 5);
 });
 
@@ -239,4 +245,191 @@ test('Autoregulation pro Muskel und Readiness', () => {
   assert.equal(low.level, 'niedrig');
   assert.equal(readinessAdvice(low).mode, 'leicht');
   assert.equal(readinessAdvice(null).mode, 'normal');
+});
+
+// ---------------------------------------------------------------- Review-Umsetzung (siehe docs/REVIEW-Trainingsmethoden.md)
+import { isFeasibleFor, rirForExercise, rirForWeek, mesoWeeks, adjustmentFor, muscleAdjustCap, minDirectSets, rawStartWeight } from '../src/engine/plan.js';
+import { healthFlags } from '../src/engine/health.js';
+import { currentWeight, expectedWeeklyRate } from '../src/engine/nutrition.js';
+import { assignCardioWeekdays, cardioKcal } from '../src/engine/cardio.js';
+import { bestE1RM, muscleDeltasFromFeedback as deltas2 } from '../src/engine/progression.js';
+
+const homeBeginner = { ...base, experience: 'anfaenger', equipment: 'home', gear: [], strengthDays: 3, sessionMinutes: 45 };
+
+test('Machbarkeit: Anfänger bekommen keine Körpergewichtsübungen, die sie nicht ausführen können', () => {
+  for (const p of [homeBeginner, { ...homeBeginner, gear: ['klimmzugstange', 'band'] }, { ...base, experience: 'anfaenger', strengthDays: 3 }, { ...base, experience: 'anfaenger', strengthDays: 4 }]) {
+    const plan = generatePlan(p);
+    for (const d of plan.days) for (const pe of d.exercises) {
+      const ex = getExercise(pe.exId);
+      if (!ex.bwReps || ['invertiertes_rudern', 'bank_dips'].includes(ex.id)) continue; // einzige Zug-/Trizepsoption ohne Gerät
+      assert.ok(estimateStartReps(ex, p) >= pe.repMin, `${ex.name}: ${estimateStartReps(ex, p)} < ${pe.repMin}`);
+    }
+    const ids = plan.days.flatMap((d) => d.exercises.map((e) => e.exId));
+    for (const bad of ['pistol_squat', 'handstand_liegestuetze', 'klimmzuege', 'chin_ups', 'toes_to_bar', 'dragon_flag']) assert.ok(!ids.includes(bad), `${bad} im Anfängerplan`);
+  }
+  // Schwere Übungen haben eigene Bereiche, in die Fortgeschrittene passen
+  assert.deepEqual(getExercise('nordic_curl').reps, [3, 8]);
+  assert.ok(isFeasibleFor(getExercise('pistol_squat'), 3, { ...base, experience: 'fortgeschritten' }));
+  assert.ok(!isFeasibleFor(getExercise('pistol_squat'), 3, { ...base, experience: 'anfaenger' }));
+  // Langhantel unter Stangengewicht → nicht machbar, Kurzhantelvariante wird gewählt
+  const woman = { ...base, sex: 'w', weightKg: 58, experience: 'anfaenger', equipment: 'gym', strengthDays: 3 };
+  assert.ok(rawStartWeight(getExercise('schulterdruecken_lh'), woman, 8, 2) < 20);
+  assert.ok(!isFeasibleFor(getExercise('schulterdruecken_lh'), 8, woman, { barWeight: 20 }));
+  const wp = generatePlan(woman);
+  assert.ok(!wp.days.some((d) => d.exercises.some((e) => e.exId === 'schulterdruecken_lh')));
+});
+
+test('Rücken: ohne Klimmzugstange kein Superman als Hauptübung, dafür Hinweis', () => {
+  const plan = generatePlan(homeBeginner);
+  const ids = plan.days.flatMap((d) => d.exercises.map((e) => ({ id: e.exId, muscle: e.muscle, main: e.main })));
+  assert.ok(!ids.some((x) => x.id === 'superman' && x.muscle === 'ruecken'));
+  assert.ok(plan.notes.some((n) => n.includes('vertikalen Zug')));
+  assert.deepEqual(getExercise('superman').primary, ['bauch']);
+  assert.deepEqual(getExercise('rack_pull').primary, ['beinbeuger']);
+});
+
+test('Kraftziel: Hauptübungen bleiben über Blöcke fest, RIR-Untergrenze bei schwerem Kreuzheben/Kniebeuge', () => {
+  const p = { ...base, goal: 'kraft', experience: 'erfahren', strengthDays: 4 };
+  // Langhantel-Hauptübungen bleiben fest (Körpergewichts-Züge dürfen je nach Restauswahl wechseln).
+  const mains = (i) => generatePlan(p, { mesoIndex: i }).days.flatMap((d) => d.exercises.filter((e) => e.main && getExercise(e.exId).load === 'barbell').map((e) => e.exId)).join(',');
+  assert.equal(mains(0), mains(1));
+  assert.equal(mains(0), mains(3));
+  assert.ok(mains(0).includes('kniebeuge_lh') && mains(0).includes('bankdruecken_lh') && mains(0).includes('kreuzheben'));
+  const plan = generatePlan(p);
+  assert.equal(rirForWeek(plan, 4), 0);
+  assert.equal(rirForExercise(plan, 4, getExercise('kreuzheben')), 1);
+  assert.equal(rirForExercise(plan, 4, getExercise('kniebeuge_lh')), 1);
+  assert.equal(rirForExercise(plan, 4, getExercise('bankdruecken_lh')), 0);
+  assert.equal(rirForExercise(plan, 1, getExercise('kreuzheben')), 3);
+});
+
+test('Gesundheits-Screening: keine Intervalle, RIR ≥ 2, keine 3–5er-Sätze, Schwangerschaft ohne Rückenlage und Defizit', () => {
+  const flagged = { ...base, goal: 'kraft', experience: 'erfahren', health: ['herz'] };
+  assert.ok(healthFlags(flagged).cautious);
+  const plan = generatePlan({ ...flagged, cardioSessions: 4, goal: 'ausdauer' });
+  assert.ok(plan.cardio.sessions.every((s) => !s.intervals));
+  assert.ok(plan.rir.slice(0, -1).every((r) => r >= 2));
+  assert.ok(plan.notes.some((n) => n.includes('ärztlich')));
+  const kraft = generatePlan(flagged);
+  for (const d of kraft.days) for (const e of d.exercises) if (!getExercise(e.exId).reps) assert.ok(e.repMin >= 5, e.exId);
+  const preg = { ...base, sex: 'w', goal: 'fettabbau', health: ['schwangerschaft'] };
+  const pp = generatePlan(preg);
+  const ids = pp.days.flatMap((d) => d.exercises.map((e) => e.exId));
+  for (const bad of ['crunches', 'kreuzheben', 'haengendes_beinheben', 'hip_thrust', 'ab_wheel']) assert.ok(!ids.includes(bad), bad);
+  const n = computeNutrition(preg, pp);
+  assert.equal(n.adjustment, 0);
+  assert.ok(n.noDeficit);
+  // Ohne Angaben ändert sich nichts
+  assert.ok(!healthFlags(base).cautious);
+  assert.ok(generatePlan({ ...base, goal: 'ausdauer', cardioSessions: 4 }).cardio.sessions.some((s) => s.intervals));
+});
+
+test('Progression: RIR-Überschuss steigert, Obergrenze ohne Reserve hält, Backoff-Sätze werden erkannt, Anfänger linear', () => {
+  const pe = { exId: 'bankdruecken_lh', repMin: 6, repMax: 10 };
+  const tooEasy = suggestNext(pe, [{ date: '2026-09-01', sets: [{ weight: 60, reps: 8, rir: 5 }, { weight: 60, reps: 8, rir: 4 }] }], 2);
+  assert.equal(tooEasy.kind, 'up');
+  assert.equal(tooEasy.weight, 62.5);
+  const grind = suggestNext(pe, [{ date: '2026-09-01', sets: [{ weight: 60, reps: 10, rir: 0 }, { weight: 60, reps: 10, rir: 0 }] }], 2);
+  assert.equal(grind.kind, 'hold');
+  assert.ok(grind.note.includes('zu nah am Versagen'));
+  const backoff = suggestNext(pe, [{ date: '2026-09-01', sets: [{ weight: 80, reps: 6, rir: 2 }, { weight: 70, reps: 10, rir: 2 }, { weight: 70, reps: 10, rir: 2 }] }], 2);
+  assert.equal(backoff.kind, 'up');
+  assert.equal(backoff.weight, 72.5);
+  const beginner = suggestNext({ exId: 'kniebeuge_lh', repMin: 8, repMax: 12 }, [{ date: '2026-09-01', sets: [{ weight: 40, reps: 8, rir: 3 }, { weight: 40, reps: 8, rir: 3 }, { weight: 40, reps: 8, rir: 3 }] }], 3, false, { profile: { ...base, experience: 'anfaenger' } });
+  assert.equal(beginner.kind, 'up');
+  assert.equal(beginner.weight, 45);
+  const beginnerNoRir = suggestNext({ exId: 'kniebeuge_lh', repMin: 8, repMax: 12 }, [{ date: '2026-09-01', sets: [{ weight: 40, reps: 9 }, { weight: 40, reps: 8 }] }], 3, false, { profile: { ...base, experience: 'anfaenger' } });
+  assert.equal(beginnerNoRir.kind, 'reps');
+  // e1RM berücksichtigt die Reserve
+  assert.ok(bestE1RM({ sets: [{ weight: 100, reps: 5, rir: 3 }] }) > bestE1RM({ sets: [{ weight: 100, reps: 5, rir: 0 }] }));
+  // Startgewicht unter Stange → Hinweis
+  const w = suggestNext({ exId: 'schulterdruecken_lh', repMin: 8, repMax: 12 }, [], 3, false, { profile: { ...base, sex: 'w', weightKg: 58, experience: 'anfaenger' }, settings: { barWeight: 20 } });
+  assert.ok(w.belowBar && w.note.includes('Stange'));
+});
+
+test('Autoregulation: Wochen-Delta wird auf die Übungen verteilt, Deckel und Bereitschaft', () => {
+  const plan = generatePlan(base);
+  const day = plan.days.find((d) => d.exercises.some((e) => e.muscle === 'brust'));
+  const chest = plan.days.flatMap((d) => d.exercises.filter((e) => e.muscle === 'brust').map((e) => ({ d, e })));
+  assert.ok(chest.length >= 2);
+  plan.muscleAdjust.brust = 1;
+  const total = (adj) => {
+    plan.muscleAdjust.brust = adj;
+    return chest.reduce((a, { d, e }) => a + adjustmentFor(plan, d, e), 0);
+  };
+  assert.equal(total(1), 1);
+  assert.equal(total(2), 2);
+  assert.equal(total(-2), -2);
+  // Plus zuerst an der Hauptübung, Minus zuerst an Isolation
+  plan.muscleAdjust.brust = 1;
+  const plusOn = chest.find(({ d, e }) => adjustmentFor(plan, d, e) === 1).e;
+  assert.ok(plusOn.main);
+  assert.ok(muscleAdjustCap(plan, 'brust') >= 2 && muscleAdjustCap(plan, 'brust') <= Math.round(plan.volume.brust.target * 0.3) + 1);
+  assert.equal(effectiveSets(plan, day, day.exercises[0], 1), day.exercises[0].sets + adjustmentFor(plan, day, day.exercises[0]));
+  const d = deltas2({ rpe: 6, performance: 'besser', more: ['brust'] }, ['brust', 'ruecken'], { lowReadiness: true });
+  assert.deepEqual(d, { brust: 0, ruecken: 0 });
+});
+
+test('Anfänger: 6+1 Wochen, Cardio-Progression passt zur Blocklänge; direkte Mindestsätze für Arme und Schultern', () => {
+  const p = { ...base, experience: 'anfaenger' };
+  assert.equal(mesoWeeks(p), 7);
+  const plan = generatePlan(p, { startDate: '2026-09-14' });
+  assert.equal(plan.weeks, 7);
+  assert.equal(plan.deloadWeek, 7);
+  assert.equal(plan.rir.length, 7);
+  assert.equal(planWeek(plan, '2026-10-26'), 7);
+  for (const c of plan.cardio.sessions) assert.equal(c.minutesByWeek.length, 7);
+  assert.equal(generatePlan(base).weeks, 5);
+  // Direkte Sätze
+  const adv = generatePlan(base);
+  const direct = (m, iso = false) => adv.days.flatMap((d) => d.exercises).filter((e) => e.muscle === m && getExercise(e.exId).primary.includes(m) && (!iso || getExercise(e.exId).pattern === 'iso')).reduce((a, e) => a + e.sets, 0);
+  assert.ok(direct('bizeps') >= minDirectSets(4), `Bizeps ${direct('bizeps')}`);
+  assert.ok(direct('trizeps') >= minDirectSets(4), `Trizeps ${direct('trizeps')}`);
+  assert.ok(direct('schultern', true) >= minDirectSets(4), `Schultern iso ${direct('schultern', true)}`);
+  // Schulterdrücken zählt für die Schultern halb
+  const vol = weeklyVolume([{ date: '2026-09-14', entries: [{ exId: 'schulterdruecken_lh', sets: [{ reps: 8 }, { reps: 8 }] }, { exId: 'seitheben_kh', sets: [{ reps: 12 }, { reps: 12 }] }] }], '2026-09-14');
+  assert.equal(vol.schultern, 3);
+});
+
+test('Ernährung: aktuelles Gewicht, Trendfenster, Fett-Untergrenze, Abnahmerate, Netto-Cardio', () => {
+  const logs = [];
+  for (let i = 0; i < 90; i++) logs.push({ date: new Date(2026, 5, 1 + i).toISOString().slice(0, 10), weightKg: i < 69 ? 85 - (i / 7) * 0.5 : 80.1 });
+  assert.equal(currentWeight({ weightKg: 92 }, logs), 80.1);
+  const t = weightTrend(logs);
+  assert.ok(Math.abs(t.perWeek) < 0.15, `Plateau nicht erkannt: ${t.perWeek}`);
+  assert.ok(t.days <= 28);
+  const woman = { ...base, sex: 'w', weightKg: 65, heightCm: 168, goal: 'fettabbau', targetWeightKg: 58 };
+  const n = computeNutrition(woman, null);
+  assert.ok(n.fat >= 65, `Fett ${n.fat}`);
+  assert.equal(n.proteinRefKg, 58);
+  const n2 = computeNutrition(woman, null, { weightKg: 60 });
+  assert.ok(n2.target < n.target);
+  assert.deepEqual(expectedWeeklyRate({ ...woman, heightCm: 175 }, 60), [-0.7, -0.25]);
+  assert.deepEqual(expectedWeeklyRate({ ...base, goal: 'fettabbau', weightKg: 95 }), [-1.0, -0.5]);
+  assert.equal(cardioKcal('laufen', 30, 78), Math.round(((8.8 - 1) * 3.5 * 78 / 200) * 30));
+});
+
+test('Cardio: Vorlagen, Wochentage und gemessener Maximalpuls', () => {
+  const days = [{ weekday: 0, lower: false }, { weekday: 1, lower: true }, { weekday: 3, lower: false }, { weekday: 4, lower: true }];
+  const c = buildCardioPlan({ ...base, goal: 'fettabbau', cardioSessions: 3 }, { weeks: 5, strengthDays: days });
+  assert.ok(c.sessions.some((s) => s.type === 'schwelle' && s.zone === 4));
+  for (const s of c.sessions) {
+    assert.ok(s.weekday != null);
+    assert.ok(![1, 4].includes(s.weekday), 'Cardio nicht am Beintag');
+    if (s.intervals) assert.ok(![0, 3].includes(s.weekday), 'Intervalle nicht am Tag vor dem Beintag');
+  }
+  assert.equal(new Set(c.sessions.map((s) => s.weekday)).size, c.sessions.length);
+  const wd = assignCardioWeekdays([{ intervals: true }, { intervals: null }], [{ weekday: 0, lower: true }, { weekday: 2, lower: true }, { weekday: 4, lower: true }]);
+  assert.equal(wd[0], 5);
+  assert.equal(buildCardioPlan({ ...base, goal: 'ausdauer', cardioSessions: undefined }).sessionsPerWeek, 4);
+  assert.equal(heartRateZones(30, 60, 190).max, 190);
+  assert.ok(heartRateZones(30, 60, 190).measured);
+});
+
+test('Deload hält das Gewicht, Aufwärmen beim Kreuzheben ohne leere Stange', () => {
+  const wu = warmupSets(getExercise('kreuzheben'), 140, 20, 'voll');
+  assert.ok(wu.every((s) => s.weight >= 40));
+  assert.ok(!wu.some((s) => s.note === 'leere Stange'));
+  const bench = warmupSets(getExercise('bankdruecken_lh'), 80, 20, 'voll');
+  assert.equal(bench[0].weight, 20);
 });

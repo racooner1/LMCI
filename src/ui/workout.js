@@ -1,7 +1,7 @@
 // Trainings-Logging: Sätze eintragen, Aufwärmsätze, Pausentimer, Kurz-/Leichtversion, Feedback, Autoregulation.
 import { html, raw, esc, toast, openModal, closeModal, confirmDialog, num, fmtMin } from './dom.js';
 import * as store from '../state.js';
-import { planWeek, effectiveSets, rirForWeek, alternativesFor, shortenDay, warmupSets, availableExercises } from '../engine/plan.js';
+import { planWeek, effectiveSets, rirForWeek, rirForExercise, alternativesFor, shortenDay, warmupSets, availableExercises, muscleAdjustCap } from '../engine/plan.js';
 import { suggestNext, muscleDeltasFromFeedback, plates, incrementFor } from '../engine/progression.js';
 import { historyFor, newRecords, totalSets, totalTonnage } from '../engine/analytics.js';
 import { readinessScore } from '../engine/recovery.js';
@@ -63,6 +63,7 @@ export function renderWorkout(root, dayId) {
         <button class="btn btn-small ${aw.shortMinutes ? 'active' : ''}" data-act="short">Wenig Zeit? Kurzversion</button>
         <button class="btn btn-small ${aw.mode === 'leicht' ? 'active' : ''}" data-act="light">${aw.mode === 'leicht' ? 'Normale Version' : 'Leichte Version'}</button>
         ${readiness && readiness.level === 'niedrig' && aw.mode !== 'leicht' ? html`<span class="muted small">Check-in: niedrige Bereitschaft – leichte Version empfohlen.</span>` : ''}
+        ${aw.soreReduced?.length ? html`<span class="muted small">Check-in: ${aw.soreReduced.map((m) => MUSCLE_BY_ID[m]?.short || m).join(', ')} noch nicht erholt – je ein Satz weniger.</span>` : ''}
       </div>` : ''}
       <div class="note small">Aufwärmen: 5 min locker, dann die Aufwärmsätze der ersten Übung. Arbeitssätze abhaken – der Pausentimer startet automatisch.</div>
       ${aw.entries.map((e, ei) => renderEntry(e, ei, s, plan, rir, deload, aw.entries.length))}
@@ -214,8 +215,9 @@ function bind(root, dayId) {
   });
 }
 
-function makeEntry(st, pe, sets, week, deload, rir, warmLevel) {
+function makeEntry(st, pe, sets, week, deload, dayRir, warmLevel) {
   const ex = getExercise(pe.exId);
+  const rir = rirForExercise(st.plan, week, ex, dayRir);
   const sug = suggestNext(pe, historyFor(st.workouts, pe.exId), rir, deload, { profile: st.profile, settings: st.settings });
   return {
     exId: pe.exId,
@@ -224,6 +226,7 @@ function makeEntry(st, pe, sets, week, deload, rir, warmLevel) {
     repMax: pe.repMax,
     restSec: pe.restSec,
     main: !!pe.main,
+    rir,
     baseSets: sets,
     suggestion: sug,
     warmup: warmLevel ? warmupSets(ex, sug.weight, st.settings.barWeight, warmLevel) : [],
@@ -236,6 +239,9 @@ function buildWorkout(st, day) {
   const week = planWeek(st.plan);
   const deload = week === st.plan.deloadWeek;
   const rir = rirForWeek(st.plan, week);
+  const today = toISODate();
+  const sore = new Set(deload ? [] : (st.checkins || []).find((c) => c.date === today)?.sore || []);
+  const soreReduced = [];
   let firstHeavy = true;
   return {
     id: uid(),
@@ -244,8 +250,9 @@ function buildWorkout(st, day) {
     week,
     mode: 'normal',
     shortMinutes: null,
-    date: toISODate(),
+    date: today,
     startedAt: new Date().toISOString(),
+    soreReduced,
     entries: day.exercises.map((pe) => {
       const ex = getExercise(pe.exId);
       let level = null;
@@ -253,7 +260,13 @@ function buildWorkout(st, day) {
         level = firstHeavy ? 'voll' : 'kurz';
         firstHeavy = false;
       } else if (ex.tier === 1) level = 'kurz';
-      return makeEntry(st, pe, effectiveSets(st.plan, day, pe, week), week, deload, rir, level);
+      let sets = effectiveSets(st.plan, day, pe, week);
+      // Muskel im Check-in als „nicht erholt“ markiert → heute ein Satz weniger für diesen Muskel.
+      if (sore.has(pe.muscle) && sets > 1) {
+        sets -= 1;
+        if (!soreReduced.includes(pe.muscle)) soreReduced.push(pe.muscle);
+      }
+      return makeEntry(st, pe, sets, week, deload, rir, level);
     }),
   };
 }
@@ -267,7 +280,7 @@ function renderEntry(e, ei, s, plan, rir, deload, count) {
     <div class="row between top">
       <div>
         <div class="ex-title">${ex.name}</div>
-        <div class="muted small">${ex.primary.map((m) => MUSCLE_BY_ID[m].short).join(', ')} · Ziel ${e.sets.length} × ${e.repMin}–${e.repMax} ${unit} · ${rir} RIR · Pause ${Math.round(e.restSec / 60 * 10) / 10} min</div>
+        <div class="muted small">${ex.primary.map((m) => MUSCLE_BY_ID[m].short).join(', ')} · Ziel ${e.sets.length} × ${e.repMin}–${e.repMax} ${unit} · ${e.rir ?? rir} RIR${(e.rir ?? rir) > rir ? ' (schwere Grundübung: nie bis zum Versagen)' : ''} · Pause ${Math.round(e.restSec / 60 * 10) / 10} min</div>
       </div>
       <div class="ex-tools">
         <button class="btn-icon" data-act="move" data-ei="${ei}" data-dir="-1" title="Nach oben" aria-label="Nach oben" ${ei === 0 ? 'disabled' : ''}>${raw(icon('up', { size: 18 }))}</button>
@@ -502,7 +515,7 @@ function finishWorkout(root) {
         <div class="chips">${trained.map((mu) => `<label class="chip"><input type="checkbox" name="sore[]" value="${mu}" ${preSore.has(mu) ? 'checked' : ''}><span>${MUSCLE_BY_ID[mu].short}</span></label>`).join('')}</div></fieldset>
       <fieldset class="field"><legend>Wo hättest du heute mehr vertragen?</legend>
         <div class="chips">${trained.map((mu) => `<label class="chip"><input type="checkbox" name="more[]" value="${mu}"><span>${MUSCLE_BY_ID[mu].short}</span></label>`).join('')}</div></fieldset>
-      <p class="hint">Daraus passt LMCI das Volumen pro Muskel an: nicht erholt → ein Satz weniger, mehr vertragen → ein Satz mehr.</p>
+      <p class="hint">Daraus passt LMCI das Wochenvolumen pro Muskel an: nicht erholt → ein Satz weniger pro Woche, mehr vertragen → ein Satz mehr pro Woche (verteilt auf die Übungen des Muskels).</p>
       <div class="row end"><button class="btn btn-primary" type="submit">Speichern</button></div>
     </form>`,
     { title: 'Kurzes Feedback' },
@@ -517,7 +530,8 @@ function finishWorkout(root) {
       sore: [...m.querySelectorAll('input[name="sore[]"]:checked')].map((x) => x.value),
       more: [...m.querySelectorAll('input[name="more[]"]:checked')].map((x) => x.value),
     };
-    const deltas = aw.dayId === 'frei' || aw.dayId === 'schnell' ? {} : muscleDeltasFromFeedback(feedback, trained);
+    const lowReadiness = readinessScore(checkin)?.level === 'niedrig';
+    const deltas = aw.dayId === 'frei' || aw.dayId === 'schnell' ? {} : muscleDeltasFromFeedback(feedback, trained, { lowReadiness });
     const workout = { id: aw.id, planId: aw.planId, dayId: aw.dayId, week: aw.week, date: aw.date, startedAt: aw.startedAt, finishedAt: new Date().toISOString(), mode: aw.mode, entries, feedback };
     const records = newRecords(workout, s.workouts);
     workout.xp = xpForWorkout(workout, records.length);
@@ -533,7 +547,8 @@ function finishWorkout(root) {
         for (const [mu, d] of Object.entries(deltas)) {
           if (!d) continue;
           const before = st.plan.muscleAdjust[mu] || 0;
-          const after = clamp(before + d, -2, 2);
+          const cap = muscleAdjustCap(st.plan, mu);
+          const after = clamp(before + d, -cap, cap);
           if (after !== before) applied.push(`${MUSCLE_BY_ID[mu].short} ${d > 0 ? '+1' : '−1'}`);
           st.plan.muscleAdjust[mu] = after;
         }
@@ -562,7 +577,7 @@ function finishWorkout(root) {
       levelUp: lvlAfter.level > lvlBefore.level,
       records: records.map((r) => `${r.name}: ${r.e1rm ? `geschätztes 1RM ${r.e1rm} kg` : `${r.reps} Wiederholungen`}`),
       badges: newBadges,
-      note: applied.length ? `Volumen angepasst (Sätze pro Übung): ${applied.join(', ')}.` : aw.dayId === 'frei' || aw.dayId === 'schnell' ? '' : 'Volumen bleibt – passt.',
+      note: applied.length ? `Wochenvolumen angepasst (Sätze pro Woche): ${applied.join(', ')}.` : aw.dayId === 'frei' || aw.dayId === 'schnell' ? '' : 'Volumen bleibt – passt.',
     }));
     location.hash = '#/heute';
   });

@@ -142,7 +142,7 @@ export function weeklyReview({ foodLog = {}, bodyLogs = [], target, protein, pro
     return b.date >= d.toISOString().slice(0, 10);
   });
   const trend = weightTrend(recent);
-  const [lo, hi] = expectedWeeklyRate(profile);
+  const [lo, hi] = expectedWeeklyRate(profile, trend?.current || 0);
   let suggestion = { deltaKcal: 0, level: 'info', text: '' };
   if (logged.length < 4) {
     suggestion.text = `Erst ${logged.length} von 7 Tagen erfasst. Ab 4 Tagen gibt es eine Empfehlung – lieber grob jeden Tag als perfekt an zweien.`;

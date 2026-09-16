@@ -22,11 +22,11 @@ function beep(freq = 880, ms = 250) {
 }
 
 export function openIntervalTimer(session, week) {
-  const w = Math.max(0, Math.min(4, week - 1));
+  const w = Math.max(0, Math.min(session.minutesByWeek.length - 1, week - 1));
   const phases = [];
   if (session.intervals) {
     const rounds = session.intervals.roundsByWeek[w];
-    phases.push({ name: 'Aufwärmen', sec: 300, kind: 'easy' });
+    phases.push({ name: 'Aufwärmen', sec: session.intervals.work >= 180 ? 600 : 300, kind: 'easy' });
     for (let i = 1; i <= rounds; i++) {
       phases.push({ name: `Intervall ${i}/${rounds} – hart`, sec: session.intervals.work, kind: 'hard' });
       if (i < rounds) phases.push({ name: `Locker`, sec: session.intervals.rest, kind: 'easy' });

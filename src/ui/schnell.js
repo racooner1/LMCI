@@ -56,7 +56,7 @@ export function renderSchnell(root) {
     e.preventDefault();
     read();
     seed = Date.now();
-    result = buildQuickWorkout({ ...form, profile: s.profile, seed });
+    result = buildQuickWorkout({ ...form, profile: s.profile, seed, barWeight: s.settings?.barWeight });
     if (result.note) toast(result.note, 'warn');
     renderSchnell(root);
     root.querySelector('#q-result')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -64,7 +64,7 @@ export function renderSchnell(root) {
   root.querySelector('[data-act="reroll"]')?.addEventListener('click', () => {
     read();
     seed += 1;
-    result = buildQuickWorkout({ ...form, profile: s.profile, seed });
+    result = buildQuickWorkout({ ...form, profile: s.profile, seed, barWeight: s.settings?.barWeight });
     renderSchnell(root);
   });
   root.querySelector('[data-act="start"]')?.addEventListener('click', () => startQuick(result));

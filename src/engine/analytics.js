@@ -1,5 +1,5 @@
 // Auswertungen für Fortschritt und Dashboard.
-import { getExercise } from '../data/exercises.js';
+import { getExercise, primaryVolumeWeight } from '../data/exercises.js';
 import { MUSCLES } from '../data/muscles.js';
 import { bestE1RM } from './progression.js';
 import { startOfWeek, addDays, toISODate } from './util.js';
@@ -9,7 +9,7 @@ export function workoutsInWeek(workouts, weekStart) {
   return workouts.filter((w) => w.date >= weekStart && w.date < end);
 }
 
-// Harte Sätze pro Muskel in einer Woche (Nebenmuskeln halb).
+// Harte Sätze pro Muskel in einer Woche (Nebenmuskeln halb, Schulterdrücken zählt für die Schultern halb).
 export function weeklyVolume(workouts, weekStart) {
   const vol = Object.fromEntries(MUSCLES.map((m) => [m.id, 0]));
   for (const w of workoutsInWeek(workouts, weekStart)) {
@@ -17,7 +17,7 @@ export function weeklyVolume(workouts, weekStart) {
       const ex = getExercise(e.exId);
       if (!ex) continue;
       const n = e.sets.filter((s) => s.reps > 0).length;
-      for (const m of ex.primary) vol[m] += n;
+      for (const m of ex.primary) vol[m] += n * primaryVolumeWeight(ex, m);
       for (const m of ex.secondary) vol[m] += n * 0.5;
     }
   }

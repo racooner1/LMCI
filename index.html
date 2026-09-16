@@ -19,9 +19,34 @@
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <main id="app" class="app" aria-live="polite"></main>
+  <main id="app" class="app" aria-live="polite"><p class="boot-hint">Lädt …</p></main>
   <nav id="nav" class="nav" hidden aria-label="Hauptnavigation"></nav>
   <noscript><p class="page">LMCI braucht JavaScript.</p></noscript>
+  <script>
+    // Startwächter: Wenn die App nach 5 Sekunden nicht läuft (z. B. veraltete Dateien im Cache),
+    // einmal Cache leeren und neu laden. Deine Daten (localStorage) bleiben dabei unberührt.
+    (function () {
+      var flag = 'lmci.repaired';
+      function tried() { try { return sessionStorage.getItem(flag) === '1'; } catch (e) { return false; } }
+      function mark() { try { sessionStorage.setItem(flag, '1'); } catch (e) { /* egal */ } }
+      window.__lmciRepair = function () {
+        mark();
+        var p = Promise.resolve();
+        if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+          p = navigator.serviceWorker.getRegistrations().then(function (rs) { return Promise.all(rs.map(function (r) { return r.unregister(); })); });
+        }
+        p.then(function () { return window.caches ? caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })); }) : null; })
+          .catch(function () {})
+          .then(function () { location.reload(); });
+      };
+      setTimeout(function () {
+        if (window.__lmciBooted) return;
+        if (!tried()) { window.__lmciRepair(); return; }
+        var app = document.getElementById('app');
+        if (app) app.innerHTML = '<div class="card" style="margin-top:24px"><h2>LMCI konnte nicht starten</h2><p>Meist hilft es, den Zwischenspeicher zu leeren. Deine Trainingsdaten bleiben erhalten.</p><button class="btn btn-primary" onclick="window.__lmciRepair()">App reparieren</button><p class="muted small">Wenn das nicht hilft: App komplett schließen und erneut öffnen.</p></div>';
+      }, 5000);
+    })();
+  </script>
   <script type="module" src="./src/app.js"></script>
 </body>
 </html>

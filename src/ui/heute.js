@@ -82,7 +82,10 @@ export function renderHeute(root) {
   const greet = hour < 11 ? 'Guten Morgen' : hour < 18 ? 'Hallo' : 'Guten Abend';
   const sessionTitle = { heute: 'Heute dran', nachholen: 'Nachholen', erledigt: 'Heute erledigt', naechste: 'Nächste Einheit' }[next.kind];
   const challenges = weeklyChallenges(s, ws);
-  const prevXp = Number(sessionStorage.getItem('lmci.xpShown') || xp);
+  let prevXp = xp;
+  try {
+    prevXp = Number(sessionStorage.getItem('lmci.xpShown') || xp);
+  } catch { /* Speicher gesperrt, z. B. in Sandboxes */ }
 
   root.innerHTML = String(html`
     <section class="page">

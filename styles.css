@@ -632,3 +632,5 @@ details.group .chips { margin-top: 10px; }
 .badge-group { display: flex; flex-direction: column; gap: 8px; }
 .badge-group-title { display: flex; justify-content: space-between; font-weight: 700; font-size: 0.9rem; }
 .card:has(.hero-count) { }
+
+.boot-hint { color: var(--muted); text-align: center; padding: 40px 0; }

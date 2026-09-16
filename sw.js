@@ -1,5 +1,8 @@
 // Service Worker: App-Shell offline verfügbar machen.
-const VERSION = 'lmci-v1.4.0';
+// Wichtig: Alle App-Dateien einer Version werden gemeinsam vorgeladen und ausschließlich aus diesem Versions-Cache
+// bedient. Es werden nie einzelne Dateien im Hintergrund ausgetauscht – sonst passen die Module nicht mehr zusammen.
+const VERSION = 'lmci-v1.4.1';
+const RUNTIME = 'lmci-runtime';
 const SHELL = [
   './', './index.html', './styles.css', './manifest.webmanifest',
   './src/app.js', './src/state.js',
@@ -11,18 +14,19 @@ const SHELL = [
   './vendor/anthropic-sdk.js',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png',
 ];
+const SHELL_URLS = new Set(SHELL.map((p) => new URL(p, self.registration.scope).href.replace(/\/$/, '/index.html')));
 
 self.addEventListener('install', (event) => {
-  // Neue Version vorbereiten; aktiv wird sie erst, wenn die App es anstößt (Hinweis „Jetzt aktualisieren“) oder beim nächsten Start.
-  event.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)));
+  // Neue Version komplett vorladen (scheitert eine Datei, bleibt die alte Version aktiv) und sofort übernehmen.
+  event.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL.map((p) => new Request(p, { cache: 'reload' })))).then(() => self.skipWaiting()));
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== VERSION && k !== RUNTIME).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
 });
 
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
-});
-
-self.addEventListener('activate', (event) => {
-  event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== VERSION).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
 });
 
 self.addEventListener('fetch', (event) => {
@@ -30,24 +34,30 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   const sameOrigin = url.origin === self.location.origin;
-  // Eigene Dateien: Cache zuerst, im Hintergrund aktualisieren. Fremde (Fonts): Netz zuerst, Cache als Fallback.
+  const key = url.href.split('?')[0].replace(/\/$/, '/index.html');
+
+  if (sameOrigin && (SHELL_URLS.has(key) || req.mode === 'navigate')) {
+    // App-Dateien: nur aus dem Versions-Cache, sonst Netz (ohne den Cache zu verändern).
+    event.respondWith(
+      caches.open(VERSION).then(async (cache) => {
+        const cached = await cache.match(req.mode === 'navigate' ? './index.html' : key, { ignoreSearch: true });
+        return cached || fetch(req);
+      }),
+    );
+    return;
+  }
+  // Alles andere (Fonts, sonstige Dateien): Netz zuerst, Cache als Fallback.
   event.respondWith(
-    caches.open(VERSION).then(async (cache) => {
-      const cached = await cache.match(req, { ignoreSearch: true });
-      const fetchAndCache = fetch(req)
-        .then((res) => {
-          if (res && (res.ok || res.type === 'opaque')) cache.put(req, res.clone());
-          return res;
-        })
-        .catch(() => cached);
-      if (sameOrigin) {
-        if (cached) {
-          fetchAndCache.catch(() => {});
-          return cached;
-        }
-        return fetchAndCache;
+    caches.open(RUNTIME).then(async (cache) => {
+      try {
+        const res = await fetch(req);
+        if (res && (res.ok || res.type === 'opaque')) cache.put(req, res.clone());
+        return res;
+      } catch (err) {
+        const cached = await cache.match(req, { ignoreSearch: true });
+        if (cached) return cached;
+        throw err;
       }
-      return fetchAndCache.then((res) => res || cached);
     }),
   );
 });

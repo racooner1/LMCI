@@ -103,6 +103,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 store.load();
+window.__lmciBooted = true;
 store.subscribe(() => {
   // Nach Zustandsänderungen die aktuelle Seite neu zeichnen – außer im laufenden Training (dort wird gezielt aktualisiert).
   if (!location.hash.startsWith('#/workout')) route();
@@ -133,6 +134,8 @@ if (!SINGLE_FILE && 'serviceWorker' in navigator && location.protocol.startsWith
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         if (reloading) return;
         reloading = true;
+        // Neue Version ist aktiv: Zustand sichern und einmal sauber neu laden.
+        store.saveNow();
         location.reload();
       });
     } catch {

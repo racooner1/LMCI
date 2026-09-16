@@ -643,10 +643,12 @@ details.group .chips { margin-top: 10px; }
 .badge-group-title { display: flex; justify-content: space-between; font-weight: 700; font-size: 0.9rem; }
 .card:has(.hero-count) { }
 
+.boot-hint { color: var(--muted); text-align: center; padding: 40px 0; }
+
 </style>
 </head>
 <body>
-<main id="app" class="app" aria-live="polite"></main>
+<main id="app" class="app" aria-live="polite"><p class="boot-hint">Lädt …</p></main>
   <nav id="nav" class="nav" hidden aria-label="Hauptnavigation"></nav>
   <noscript><p class="page">LMCI braucht JavaScript.</p></noscript>
 <script>
@@ -9448,7 +9450,11 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const greet = hour < 11 ? "Guten Morgen" : hour < 18 ? "Hallo" : "Guten Abend";
     const sessionTitle = { heute: "Heute dran", nachholen: "Nachholen", erledigt: "Heute erledigt", naechste: "N\xE4chste Einheit" }[next.kind];
     const challenges = weeklyChallenges(s, ws2);
-    const prevXp = Number(sessionStorage.getItem("lmci.xpShown") || xp);
+    let prevXp = xp;
+    try {
+      prevXp = Number(sessionStorage.getItem("lmci.xpShown") || xp);
+    } catch {
+    }
     root2.innerHTML = String(html`
     <section class="page">
       <div class="card card-hero hero">
@@ -11039,7 +11045,7 @@ ${buildContext(get())}` }
   }
 
   // src/ui/mehr.js
-  var APP_VERSION = "1.4.0";
+  var APP_VERSION = "1.4.1";
   function renderMehr(root2) {
     const s = get();
     const p2 = s.profile;
@@ -11601,6 +11607,7 @@ ${buildContext(get())}` }
     if (e.key === "Escape") closeModal();
   });
   load();
+  window.__lmciBooted = true;
   subscribe(() => {
     if (!location.hash.startsWith("#/workout")) route();
   });
@@ -11628,6 +11635,7 @@ ${buildContext(get())}` }
         navigator.serviceWorker.addEventListener("controllerchange", () => {
           if (reloading) return;
           reloading = true;
+          saveNow();
           location.reload();
         });
       } catch {

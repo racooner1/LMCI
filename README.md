@@ -77,6 +77,10 @@ Der veröffentlichte Artifact-Link aus dem Chat funktioniert auch auf dem Handy 
 
 Mit einer nativen Hülle (Capacitor) ließe sich LMCI in den App Store und Play Store bringen und bekäme dann Zugriff auf Schrittzähler, Pulsdaten und Push-Benachrichtigungen. Das kostet ein Apple-Entwicklerkonto (99 $/Jahr) und einen Mac mit Xcode – für den eigenen Gebrauch ist die PWA der einfachere Weg.
 
+### Neue Version bekommen / leere Seite
+
+Nach jedem Push baut GitHub die App neu. Auf dem Handy holt sich LMCI die neue Version beim nächsten Öffnen komplett im Hintergrund und zeigt dann „Neue Version verfügbar“ – oder lädt sich einmal selbst neu. Bleibt die Seite nach einem Update einmal leer, einfach die App komplett schließen und erneut öffnen: LMCI räumt den Zwischenspeicher dann selbst auf und startet neu. Falls eine Karte „LMCI konnte nicht starten“ erscheint, auf **App reparieren** tippen. Die Trainingsdaten bleiben dabei erhalten – bitte **nicht** in den Browser-Einstellungen die Website-Daten löschen, das würde sie mit entfernen.
+
 > **Wichtig:** Die Daten sind an die Adresse und den Browser gebunden. Vor einem Handywechsel unter *Mehr → Sicherung exportieren* eine Kopie ziehen.
 
 ### Lokal entwickeln

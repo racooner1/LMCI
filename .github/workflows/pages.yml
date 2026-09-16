@@ -37,7 +37,7 @@ jobs:
       - name: Nur die App-Dateien bereitstellen
         run: |
           mkdir -p site
-          cp -r index.html styles.css manifest.webmanifest sw.js icons src site/
+          cp -r index.html styles.css manifest.webmanifest sw.js icons src vendor site/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

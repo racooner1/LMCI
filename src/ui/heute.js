@@ -2,7 +2,6 @@
 import { html, raw, toast, openModal, closeModal, num, fmtKg } from './dom.js';
 import * as store from '../state.js';
 import { planWeek, isMesoFinished, effectiveSets, rirForWeek, generatePlan, nextSession, dayDuration } from '../engine/plan.js';
-import { computeNutrition } from '../engine/nutrition.js';
 import { adherence, streakWeeks } from '../engine/analytics.js';
 import { readinessScore, readinessAdvice } from '../engine/recovery.js';
 import { getExercise } from '../data/exercises.js';
@@ -11,6 +10,8 @@ import { MOBILITY_BY_ID } from '../data/mobility.js';
 import { ACTIVITY_BY_ID, CARDIO_ACTIVITIES, CARDIO_GROUPS } from '../engine/cardio.js';
 import { toISODate, weekdayIndex, startOfWeek, WEEKDAYS, WEEKDAYS_LONG, formatDate, uid } from '../engine/util.js';
 import { openIntervalTimer } from './timer.js';
+import { dayTotals } from '../engine/food.js';
+import { dailyTargets } from './ernaehrung.js';
 
 export function renderHeute(root) {
   const s = store.get();
@@ -23,7 +24,8 @@ export function renderHeute(root) {
   const ws = startOfWeek(today);
   const ad = adherence(plan, s.workouts, ws);
   const next = nextSession(plan, s.workouts, today);
-  const nutrition = computeNutrition(profile, plan);
+  const nutrition = dailyTargets(s);
+  const eaten = dayTotals(s.foodLog[today] || []);
   const streak = streakWeeks(plan, s.workouts, today);
   const lastWeight = [...s.bodyLogs].sort((a, b) => (a.date < b.date ? 1 : -1))[0];
   const cardioThisWeek = s.cardioLogs.filter((c) => c.date >= ws);
@@ -106,9 +108,10 @@ export function renderHeute(root) {
         </div>
         <div class="card">
           <div class="card-title">Ernährung heute</div>
-          <div class="stat"><span class="stat-num">${nutrition.target}</span><span class="stat-unit">kcal</span></div>
-          <p class="muted">Protein ${nutrition.protein} g · Fett ${nutrition.fat} g · Kohlenhydrate ${nutrition.carbs} g</p>
-          <a class="btn btn-ghost" href="#/ernaehrung">Details</a>
+          <div class="stat"><span class="stat-num">${eaten.kcal}</span><span class="stat-unit">/ ${nutrition.target} kcal</span></div>
+          <div class="mini-bar"><div style="width:${Math.min(100, (eaten.kcal / nutrition.target) * 100).toFixed(0)}%"></div></div>
+          <p class="muted">Protein ${eaten.protein} / ${nutrition.protein} g · ${nutrition.target - eaten.kcal > 0 ? `${nutrition.target - eaten.kcal} kcal übrig` : `${eaten.kcal - nutrition.target} kcal über dem Ziel`}</p>
+          <a class="btn btn-ghost" href="#/ernaehrung">Tagebuch</a>
         </div>
         <div class="card">
           <div class="card-title">Gewicht</div>

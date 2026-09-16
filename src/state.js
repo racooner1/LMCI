@@ -13,8 +13,14 @@ const EMPTY = () => ({
   cardioLogs: [],
   bodyLogs: [],
   checkins: [],
+  foodLog: {},
+  waterLog: {},
+  customFoods: [],
+  recipes: [],
+  favorites: [],
+  recents: [],
   activeWorkout: null,
-  settings: { barWeight: 20, plates: [25, 20, 15, 10, 5, 2.5, 1.25], restTimer: true, sound: true },
+  settings: { barWeight: 20, plates: [25, 20, 15, 10, 5, 2.5, 1.25], restTimer: true, sound: true, kcalAdjust: 0, targetOverride: null },
   meta: { createdAt: toISODate(), lastOpened: toISODate() },
 });
 
@@ -61,6 +67,11 @@ function migrate(s) {
   if (!Array.isArray(s.bodyLogs)) s.bodyLogs = [];
   if (!Array.isArray(s.workouts)) s.workouts = [];
   if (!Array.isArray(s.checkins)) s.checkins = [];
+  if (!s.foodLog || typeof s.foodLog !== 'object') s.foodLog = {};
+  if (!s.waterLog || typeof s.waterLog !== 'object') s.waterLog = {};
+  for (const k of ['customFoods', 'recipes', 'favorites', 'recents']) if (!Array.isArray(s[k])) s[k] = [];
+  if (s.settings.kcalAdjust == null) s.settings.kcalAdjust = 0;
+  if (s.settings.targetOverride === undefined) s.settings.targetOverride = null;
   if (s.plan && !s.plan.muscleAdjust) s.plan.muscleAdjust = {};
   for (const d of s.plan?.days || []) for (const pe of d.exercises) if (pe.tier == null) pe.tier = 1;
   s.schema = SCHEMA;

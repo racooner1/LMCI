@@ -348,3 +348,56 @@ details.group .chips { margin-top: 8px; }
 .itimer-list li { display: flex; justify-content: space-between; padding: 4px 8px; border-radius: 6px; }
 .itimer-list li.now { background: var(--accent-soft); font-weight: 600; }
 .itimer-list li.hard span:first-child { color: var(--danger); }
+
+/* Stufe 2: Ernährungstagebuch */
+.mini-bar { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+.mini-bar > div { height: 100%; background: var(--accent); border-radius: 3px; }
+.date-nav { display: flex; align-items: center; gap: 8px; }
+.date-nav .btn { min-height: 36px; padding: 6px 12px; }
+.date-nav strong { flex: 1; text-align: center; font-family: var(--font-display); font-size: 1.2rem; }
+.kcal-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.kcal-head .stat-num { font-size: 3rem; }
+.kcal-bar { height: 12px; background: var(--surface); border-radius: 6px; overflow: hidden; border: 1px solid var(--line); }
+.kcal-bar > div { height: 100%; background: var(--accent); transition: width 0.3s; }
+.kcal-bar > div.over { background: var(--danger); }
+.macro-bars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.mbar { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; }
+.mbar-track { height: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.mbar-track > div { height: 100%; border-radius: 4px; }
+.mbar.protein .mbar-track > div { background: var(--ok); }
+.mbar.carbs .mbar-track > div { background: var(--accent); }
+.mbar.fat .mbar-track > div { background: var(--warn); }
+.mbar-num { font-weight: 600; }
+.mbar-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.meal-card { gap: 6px; }
+.meal-head { display: flex; justify-content: space-between; align-items: center; }
+.entry-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--line); cursor: pointer; }
+.entry-row:last-of-type { border-bottom: 0; }
+.entry-row .muted { font-size: 0.8rem; }
+.entry-kcal { font-weight: 600; white-space: nowrap; }
+.water-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.glasses { display: flex; gap: 4px; flex-wrap: wrap; }
+.glass { width: 18px; height: 24px; border: 2px solid var(--accent); border-radius: 3px 3px 6px 6px; background: transparent; }
+.glass.full { background: var(--accent); }
+.picker-tabs { display: flex; gap: 4px; overflow-x: auto; border-bottom: 1px solid var(--line); }
+.picker-tabs .tab { padding: 8px 10px; font-size: 0.9rem; }
+.food-list { list-style: none; padding: 0; margin: 0; max-height: 50vh; overflow: auto; }
+.food-list li button { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 8px 6px; border-radius: 8px; }
+.food-list li button:hover { background: var(--surface-2); }
+.food-kcal { text-align: right; font-size: 0.85rem; color: var(--muted); white-space: nowrap; }
+.food-kcal strong { color: var(--ink); display: block; }
+.portion-preview { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; text-align: center; background: var(--surface-2); border-radius: 8px; padding: 8px; }
+.portion-preview span { display: block; font-size: 0.75rem; color: var(--muted); }
+.portion-preview strong { font-family: var(--font-display); font-size: 1.2rem; }
+.quick { display: flex; gap: 6px; flex-wrap: wrap; }
+.bc-video { width: 100%; max-height: 40vh; background: #000; border-radius: 8px; }
+.star { appearance: none; border: 0; background: none; font-size: 1.4rem; cursor: pointer; color: var(--muted); }
+.star.on { color: var(--warn); }
+.ingredient-row { display: grid; grid-template-columns: 1fr 80px 32px; gap: 6px; align-items: center; }
+.review-days { display: flex; gap: 4px; align-items: flex-end; height: 70px; }
+.review-day { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 0.7rem; color: var(--muted); height: 100%; justify-content: flex-end; }
+.review-day i { width: 100%; background: var(--accent); border-radius: 3px 3px 0 0; min-height: 2px; }
+.review-day.over i { background: var(--danger); }
+.review-day.none i { background: var(--line); }
+.danger-text { color: var(--danger); }
+.warn-text { color: var(--warn); }

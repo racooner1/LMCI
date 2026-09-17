@@ -1,6 +1,7 @@
 // Fortschritt: Verlauf, Rekorde, Volumen, Gewicht.
 import { html, raw, esc, openModal, closeModal, confirmDialog, toast, fmtKg } from './dom.js';
 import * as store from '../state.js';
+import { isQuickLog, LOG_DAY_NAME } from '../engine/quicklog.js';
 import { lineChart, barChart, volumeBars } from './charts.js';
 import { weeklySeries, weeklyVolume, e1rmHistory, totalSets, totalTonnage } from '../engine/analytics.js';
 import { weightTrend } from '../engine/nutrition.js';
@@ -129,7 +130,7 @@ export function renderFortschritt(root) {
 
       <div class="card">
         <div class="card-title">Letzte Trainings</div>
-        ${recent.length ? html`<ul class="list tappable">${recent.map((w) => html`<li><button class="link" data-w="${w.id}"><strong>${w.dayId === 'frei' ? 'Freies Training' : w.dayId === 'schnell' ? 'Schnelltraining' : plan.days.find((d) => d.id === w.dayId)?.name || s.planHistory.flatMap((p) => p.days).find((d) => d.id === w.dayId && p.id === w.planId)?.name || 'Training'}</strong><div class="muted small">${formatDate(w.date)} · ${totalSets(w)} Sätze · ${totalTonnage(w).toLocaleString('de-DE')} kg${w.feedback ? ` · RPE ${w.feedback.rpe}` : ''}</div></button></li>`)}</ul>` : html`<p class="muted">Noch nichts geloggt – starte auf „Heute“.</p>`}
+        ${recent.length ? html`<ul class="list tappable">${recent.map((w) => html`<li><button class="link" data-w="${w.id}"><strong>${w.dayId === 'frei' ? 'Freies Training' : w.dayId === 'schnell' ? 'Schnelltraining' : isQuickLog(w) ? LOG_DAY_NAME : plan.days.find((d) => d.id === w.dayId)?.name || s.planHistory.flatMap((p) => p.days).find((d) => d.id === w.dayId && p.id === w.planId)?.name || 'Training'}</strong><div class="muted small">${formatDate(w.date)} · ${totalSets(w)} Sätze${totalTonnage(w) ? ` · ${totalTonnage(w).toLocaleString('de-DE')} kg` : ''}${w.feedback ? ` · RPE ${w.feedback.rpe}` : ''}</div></button></li>`)}</ul>` : html`<p class="muted">Noch nichts geloggt – starte auf „Heute“.</p>`}
       </div>
     </section>`);
 

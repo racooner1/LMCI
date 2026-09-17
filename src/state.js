@@ -1,5 +1,6 @@
 // Zentraler Zustand der App. Alles liegt lokal im Browser (localStorage) – kein Server, kein Konto.
 import { toISODate } from './engine/util.js';
+import { makeRoutine } from './engine/routines.js';
 
 export const STORAGE_KEY = 'lmci.v1';
 const SCHEMA = 1;
@@ -21,10 +22,12 @@ const EMPTY = () => ({
   recents: [],
   measurements: [],
   mobilityLogs: [],
+  routines: [],
+  routineLog: {},
   quickPrefs: null,
   coach: { apiKey: '', model: 'claude-opus-5', history: [] },
   activeWorkout: null,
-  settings: { barWeight: 20, plates: [25, 20, 15, 10, 5, 2.5, 1.25], restTimer: true, sound: true, kcalAdjust: 0, targetOverride: null, reminders: { enabled: false, time: '18:00', lastFired: null } },
+  settings: { barWeight: 20, plates: [25, 20, 15, 10, 5, 2.5, 1.25], restTimer: true, sound: true, kcalAdjust: 0, targetOverride: null, focus: 'training', reminders: { enabled: false, time: '18:00', lastFired: null, routineFired: {} } },
   meta: { createdAt: toISODate(), lastOpened: toISODate(), celebrated: { level: 1, badges: [] } },
 });
 
@@ -76,7 +79,15 @@ function migrate(s) {
   for (const k of ['customFoods', 'recipes', 'favorites', 'recents']) if (!Array.isArray(s[k])) s[k] = [];
   if (s.settings.kcalAdjust == null) s.settings.kcalAdjust = 0;
   if (s.settings.targetOverride === undefined) s.settings.targetOverride = null;
-  if (!s.settings.reminders) s.settings.reminders = { enabled: false, time: '18:00', lastFired: null };
+  if (!s.settings.reminders) s.settings.reminders = { enabled: false, time: '18:00', lastFired: null, routineFired: {} };
+  if (!s.settings.reminders.routineFired) s.settings.reminders.routineFired = {};
+  if (!['training', 'routine'].includes(s.settings.focus)) s.settings.focus = 'training';
+  s.routines = Array.isArray(s.routines) ? s.routines.map((r) => makeRoutine(r)) : [];
+  if (!s.routineLog || typeof s.routineLog !== 'object') s.routineLog = {};
+  for (const [d, list] of Object.entries(s.routineLog)) {
+    if (!Array.isArray(list) || !list.length) delete s.routineLog[d];
+    else s.routineLog[d] = [...new Set(list.filter((x) => typeof x === 'string'))];
+  }
   if (!Array.isArray(s.measurements)) s.measurements = [];
   if (!Array.isArray(s.mobilityLogs)) s.mobilityLogs = [];
   if (!s.meta.celebrated) s.meta.celebrated = { level: 1, badges: [] };

@@ -21,6 +21,13 @@ import { confetti, pop, medal } from './celebrate.js';
 import { animateAll } from './motion.js';
 import { recordBoard, RECORD_STREAK_MILESTONES } from '../engine/records.js';
 import { recordsWeekLine } from './records.js';
+import { ring } from './charts.js';
+import { routineDayStatus, DAYPARTS, ROUTINE_TEMPLATES, activeRoutines } from '../engine/routines.js';
+import { questRow, toggleQuest, celebrateRoutineDay, openQuestPicker, addRoutines } from './routine.js';
+import { openQuickLog, quickLogCardHTML, bindQuickLogCard } from './quicklog.js';
+import { sessionWorkouts } from '../engine/quicklog.js';
+
+export { ring };
 
 const STREAK_MILESTONES = [3, 7, 14, 30, 60, 100, 365];
 
@@ -46,13 +53,6 @@ export function noteNewBadges(s, today) {
   return fresh;
 }
 
-export function ring(value, max, { label = '', cls = '' } = {}) {
-  const r = 36;
-  const c = 2 * Math.PI * r;
-  const p = max ? Math.min(1, value / max) : 0;
-  return `<div class="ring ${cls} ${p >= 1 ? 'ok' : ''}"><svg viewBox="0 0 84 84"><circle class="track" cx="42" cy="42" r="${r}"/><circle class="fill" cx="42" cy="42" r="${r}" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${(c * (1 - p)).toFixed(1)}"/></svg><div class="ring-label"><strong>${value}<span style="font-size:.7em;color:var(--muted)">/${max}</span></strong><span>${label}</span></div></div>`;
-}
-
 export function renderHeute(root) {
   const s = store.get();
   const { profile, plan } = s;
@@ -75,10 +75,23 @@ export function renderHeute(root) {
   const activeToday = streak > 0 && [...s.workouts, ...s.cardioLogs, ...s.checkins].some((x) => x.date === today);
   const xp = totalXP(s);
   const lvl = levelInfo(xp);
-  const goals = dailyGoals(s, today);
-  const required = goals.filter((g) => !g.optional);
+  const goalsAll = dailyGoals(s, today);
+  const goals = goalsAll.filter((g) => !g.routineId); // Gewohnheiten bekommen eine eigene Karte
+  const required = goalsAll.filter((g) => !g.optional);
   const doneCount = required.filter((g) => g.done).length;
-  const perfect = doneCount === required.length;
+  const perfect = required.length > 0 && doneCount === required.length;
+  const cardRequired = goals.filter((g) => !g.optional);
+  const cardGoals = cardRequired.length ? cardRequired : goals;
+  const cardDone = cardGoals.filter((g) => g.done).length;
+  const routineDay = routineDayStatus(s, today);
+  const focusRoutine = s.settings?.focus === 'routine';
+  const routineCard = routineCardHTML(s, today, routineDay);
+  // Motivationszeile: passt zur Karte, verrät aber, wenn nur noch die Routine offen ist.
+  const motivationText = perfect
+    ? motivation(s, { streak, goals: goalsAll, today })
+    : cardGoals.every((g) => g.done) && routineDay.total > routineDay.done
+      ? `Tagesziele erledigt – jetzt noch ${routineDay.total - routineDay.done} aus deiner Routine.`
+      : motivation(s, { streak, goals, today });
   const todayXp = xpToday(s, today);
   const hour = new Date().getHours();
   const greet = hour < 11 ? 'Guten Morgen' : hour < 18 ? 'Hallo' : 'Guten Abend';
@@ -114,18 +127,22 @@ export function renderHeute(root) {
         <button class="btn btn-primary" data-act="new-meso">Neuen Block starten</button>
       </div>` : ''}
 
+      ${focusRoutine ? raw(routineCard) : ''}
+
       <div class="card">
         <div class="row between"><div class="card-title">Tagesziele</div><span class="xp-chip">${raw(icon('bolt', { size: 14 }))} +${XP.perfectDay} XP für alle</span></div>
-        <div class="goals-progress"><div class="xp-bar"><div style="width:${((doneCount / required.length) * 100).toFixed(0)}%"></div></div><strong>${doneCount}/${required.length}</strong></div>
+        <div class="goals-progress"><div class="xp-bar"><div style="width:${((cardDone / Math.max(1, cardGoals.length)) * 100).toFixed(0)}%"></div></div><strong>${cardDone}/${cardGoals.length}</strong></div>
         <ul class="goals">
-          ${goals.map((g) => html`<li><button class="goal ${g.done ? 'done' : ''} ${g.optional ? 'optional' : ''}" data-goal="${g.id}" data-href="${g.href}" data-goal-act="${g.act || ''}">
+          ${goals.map((g) => html`<li><button class="goal ${g.done ? 'done' : ''} ${g.optional ? 'optional' : ''}" data-goal="${g.id}" data-href="${g.href}" data-goal-act="${g.act || ''}" data-routine-id="${g.routineId || ''}">
             <span class="goal-check">${raw(icon('check', { size: 20 }))}</span>
             <span class="goal-text"><strong>${g.label}</strong><span>${g.hint}${g.optional ? ' · optional' : ''}</span></span>
             <span class="xp-chip">+${g.xp}</span>
           </button></li>`)}
         </ul>
-        <p class="small ${perfect ? '' : 'muted'}">${perfect ? raw(`${icon('star', { size: 16 })} `) : ''}${motivation(s, { streak, goals, today })}</p>
+        <p class="small ${perfect ? '' : 'muted'}">${perfect ? raw(`${icon('star', { size: 16 })} `) : ''}${motivationText}</p>
       </div>
+
+      ${focusRoutine ? '' : raw(routineCard)}
 
       <div class="card">
         <div class="row between"><div class="card-title">Herausforderungen der Woche</div><a class="btn btn-small btn-ghost" href="#/fortschritt">${raw(icon('trophy', { size: 16 }))} Alle</a></div>
@@ -156,11 +173,14 @@ export function renderHeute(root) {
       </div>`}
 
       <div class="actions">
+        <button class="action xp" data-act="quicklog">${raw(icon('bolt', { size: 26 }))}Satz eintragen</button>
         <a class="action" href="#/schnell">${raw(icon('zap', { size: 26 }))}Schnell­training</a>
         <button class="action flame" data-act="log-cardio">${raw(icon('run', { size: 26 }))}Cardio</button>
         <button class="action ok" data-act="mobility">${raw(icon('stretch', { size: 26 }))}Mobilität</button>
-        <a class="action xp" href="#/coach">${raw(icon('chat', { size: 26 }))}Coach</a>
+        <a class="action" href="#/coach">${raw(icon('chat', { size: 26 }))}Coach</a>
       </div>
+
+      ${raw(quickLogCardHTML(s, today))}
 
       <div class="card">
         <div class="row between"><div class="card-title">Diese Woche</div><a class="btn btn-small btn-ghost" href="#/kalender">${raw(icon('calendar', { size: 16 }))} Kalender</a></div>
@@ -178,7 +198,7 @@ export function renderHeute(root) {
           <span class="small">${raw(icon('run', { size: 16 }))} Cardio ${cardioThisWeek.length}/${plan.cardio.sessionsPerWeek}${plan.cardio.sessions.length ? html` · nächste: ${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length]?.name} ${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length]?.minutesByWeek[week - 1]} min` : ''}</span>
           ${plan.cardio.sessions.length ? html`<button class="btn btn-small" data-timer="${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length].id}">${raw(icon('timer', { size: 16 }))} Timer</button>` : ''}
         </div>
-        <p class="muted small">${streakWeeks(plan, s.workouts, today)} Woche${streakWeeks(plan, s.workouts, today) === 1 ? '' : 'n'} in Folge dran · ${s.workouts.length} Trainings gesamt</p>
+        <p class="muted small">${streakWeeks(plan, s.workouts, today)} Woche${streakWeeks(plan, s.workouts, today) === 1 ? '' : 'n'} in Folge dran · ${sessionWorkouts(s.workouts).length} Trainings gesamt</p>
         ${recordLine ? html`<a class="record-line ${board.streak.atRisk ? 'risk' : board.thisWeek ? 'hot' : ''}" href="#/fortschritt">${raw(icon('trophy', { size: 18 }))}<span>${recordLine}</span>${raw(icon('right', { size: 16 }))}</a>` : ''}
       </div>
 
@@ -221,6 +241,11 @@ export function renderHeute(root) {
     if (act === 'checkin') return openCheckin(checkin);
     if (act === 'mobility') return openMobility(plan, next.kind === 'heute' || next.kind === 'nachholen' ? next.day : null);
     if (act === 'weight') return root.querySelector('#weight-input')?.focus();
+    if (act === 'routine' && b.dataset.routineId) {
+      toggleQuest(b.dataset.routineId, today);
+      celebrateRoutineDay(store.get(), today);
+      return refreshHeute(root);
+    }
     location.hash = b.dataset.href;
   }));
   root.querySelector('#weight-form').addEventListener('submit', (e) => {
@@ -234,6 +259,23 @@ export function renderHeute(root) {
     });
     toast(`Gewicht gespeichert · +${XP.weight} XP`, 'ok');
   });
+  root.querySelectorAll('[data-act="quicklog"]').forEach((b) => b.addEventListener('click', () => openQuickLog({ after: () => refreshHeute(root) })));
+  bindQuickLogCard(root, { date: today, after: () => refreshHeute(root) });
+  root.querySelectorAll('[data-quest]').forEach((b) => b.addEventListener('click', () => {
+    toggleQuest(b.dataset.quest, today);
+    celebrateRoutineDay(store.get(), today);
+    refreshHeute(root);
+  }));
+  root.querySelector('[data-act="routine-start"]')?.addEventListener('click', () => openQuestPicker(() => refreshHeute(root)));
+  root.querySelector('[data-act="routine-starter"]')?.addEventListener('click', () => {
+    const names = ['Zähne putzen (morgens)', 'Glas Wasser nach dem Aufstehen', '20 Minuten lesen', 'Zähne putzen (abends)', 'Pünktlich ins Bett'];
+    addRoutines(ROUTINE_TEMPLATES.filter((t) => names.includes(t.name)));
+    toast('Starter-Set angelegt – unter „Routine“ anpassbar.', 'ok');
+    refreshHeute(root);
+  });
+  root.querySelector('[data-act="routine-hide"]')?.addEventListener('click', () => {
+    store.update((st) => (st.meta.routineHintHidden = true));
+  });
   celebrateIfPerfect(s, today, perfect);
   celebrateChallenges(s, ws, challenges);
   celebrateStreak(s, streak);
@@ -243,6 +285,37 @@ export function renderHeute(root) {
     sessionStorage.setItem('lmci.xpShown', String(xp));
   } catch { /* egal */ }
   animateAll(root);
+}
+
+// „Heute“ neu zeichnen, ohne nach oben zu springen (z. B. nach dem Abhaken einer Gewohnheit).
+function refreshHeute(root) {
+  const y = window.scrollY;
+  renderHeute(root);
+  window.scrollTo({ top: y });
+}
+
+// Karte „Deine Routine“ – die eigenen Gewohnheiten des Tages, direkt abhakbar.
+function routineCardHTML(s, today, day) {
+  const hasRoutines = activeRoutines(s).length > 0;
+  if (!hasRoutines) {
+    if (s.meta?.routineHintHidden) return '';
+    return `<div class="card card-accent">
+      <div class="card-title">${icon('check', { size: 18 })} Routine & Quests</div>
+      <p>Zähne putzen, Wasser trinken, lesen, früh ins Bett: eigene Gewohnheiten als tägliche Quests – mit XP, Serie und Abzeichen. LMCI wird damit auch zur Routine-App.</p>
+      <div class="row gap wrap">
+        <button class="btn btn-primary" data-act="routine-start">${icon('plus', { size: 16 })} Routine einrichten</button>
+        <button class="btn" data-act="routine-starter">Starter-Set</button>
+        <button class="btn btn-ghost btn-small" data-act="routine-hide">Später</button>
+      </div>
+    </div>`;
+  }
+  const parts = DAYPARTS.map((p) => ({ ...p, items: day.items.filter((r) => r.daypart === p.id) })).filter((p) => p.items.length);
+  return `<div class="card">
+    <div class="row between"><div class="card-title">Deine Routine</div><a class="btn btn-small btn-ghost" href="#/routine">${icon('list', { size: 16 })} Alle</a></div>
+    ${day.total ? `<div class="goals-progress"><div class="xp-bar"><div style="width:${(day.progress * 100).toFixed(0)}%"></div></div><strong>${day.done}/${day.total}</strong></div>` : ''}
+    ${parts.map((p) => `<div class="quest-group"><div class="quest-group-head">${icon(p.icon, { size: 15 })} ${p.name}</div><div class="quests">${p.items.map((r) => questRow(r, { date: today })).join('')}</div></div>`).join('')}
+    ${day.total === 0 ? '<p class="muted small">Heute ist in deiner Routine nichts geplant.</p>' : day.all ? '<p class="small">Routine komplett – stark.</p>' : ''}
+  </div>`;
 }
 
 // Abgeschlossene Herausforderungen einmalig feiern.

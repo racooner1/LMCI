@@ -1,5 +1,6 @@
 // Erinnerungen: lokale Benachrichtigung bei geöffneter App und Kalender-Export (.ics).
 import { toISODate, weekdayIndex, addDays } from './util.js';
+import { routineRemindersDue } from './routines.js';
 
 export function reminderDue(s, now = new Date()) {
   const r = s.settings?.reminders;
@@ -15,22 +16,38 @@ export function reminderDue(s, now = new Date()) {
   return { day, text: `Heute steht „${day.name}“ an – ${day.exercises.length} Übungen, ca. ${day.minutes} min.` };
 }
 
+// Eine Benachrichtigung anzeigen (still scheitern, wenn der Browser sie nicht erlaubt).
+function notify(title, body, tag, hash) {
+  try {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    const n = new Notification(title, { body, tag });
+    n.onclick = () => {
+      window.focus();
+      location.hash = hash;
+    };
+  } catch { /* Benachrichtigungen nicht verfügbar */ }
+}
+
 export function startReminderLoop(store) {
   if (typeof window === 'undefined') return;
   const tick = () => {
     const s = store.get();
+    const today = toISODate();
+    // Erinnerungen an einzelne Gewohnheiten – unabhängig vom Trainings-Schalter, pro Gewohnheit eine Uhrzeit.
+    const routines = s.settings?.reminders?.enabled ? routineRemindersDue(s) : [];
+    if (routines.length) {
+      store.update((st) => {
+        st.settings.reminders.routineFired ||= {};
+        for (const r of routines) st.settings.reminders.routineFired[r.id] = today;
+        // Alte Einträge (vergangene Tage) aufräumen.
+        for (const [id, d] of Object.entries(st.settings.reminders.routineFired)) if (d !== today) delete st.settings.reminders.routineFired[id];
+      }, { silent: true });
+      for (const r of routines) notify('LMCI – Routine', `${r.name} steht noch offen.`, `lmci-routine-${r.id}`, '#/routine');
+    }
     const due = reminderDue(s);
     if (!due) return;
-    store.update((st) => (st.settings.reminders.lastFired = toISODate()), { silent: true });
-    try {
-      if ('Notification' in window && Notification.permission === 'granted') {
-        const n = new Notification('LMCI – Training heute', { body: due.text, tag: 'lmci-training' });
-        n.onclick = () => {
-          window.focus();
-          location.hash = `#/workout/${due.day.id}`;
-        };
-      }
-    } catch { /* Benachrichtigungen nicht verfügbar */ }
+    store.update((st) => (st.settings.reminders.lastFired = today), { silent: true });
+    notify('LMCI – Training heute', due.text, 'lmci-training', `#/workout/${due.day.id}`);
   };
   tick();
   setInterval(tick, 60 * 1000);

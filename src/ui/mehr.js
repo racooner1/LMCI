@@ -4,8 +4,11 @@ import * as store from '../state.js';
 import { GOALS, EXPERIENCE } from '../engine/plan.js';
 import { buildICS } from '../engine/reminders.js';
 import { openCoachSettings } from './coach.js';
+import { activeRoutines } from '../engine/routines.js';
+import { openFocusDialog, openQuestPicker } from './routine.js';
+import { icon } from './icons.js';
 
-export const APP_VERSION = '1.4.1';
+export const APP_VERSION = '1.7.0';
 
 export function renderMehr(root) {
   const s = store.get();
@@ -31,10 +34,17 @@ export function renderMehr(root) {
       </div>
 
       <div class="card">
+        <div class="card-title">Routine & Fokus</div>
+        <p class="muted small">${activeRoutines(s).length ? `${activeRoutines(s).length} eigene Gewohnheit${activeRoutines(s).length === 1 ? '' : 'en'} in deiner Routine.` : 'Noch keine eigenen Gewohnheiten – z. B. Zähne putzen, Wasser trinken, lesen.'} Aktueller Fokus: <strong>${s.settings?.focus === 'routine' ? 'nur Routine' : 'Training & Routine'}</strong>.</p>
+        <p class="muted small">Im Fokus „nur Routine“ sind deine Gewohnheiten die Pflichtziele des Tages; Trainingsplan und Ernährung bleiben erhalten, zählen aber als optional.</p>
+        <div class="row gap wrap"><a class="btn" href="#/routine">${raw(icon('check', { size: 16 }))} Routine öffnen</a><button class="btn" data-act="focus">Fokus ändern</button><button class="btn btn-ghost" data-act="add-quest">Gewohnheit hinzufügen</button><a class="btn btn-ghost" href="#/plan">Trainingsplan</a></div>
+      </div>
+
+      <div class="card">
         <div class="card-title">Erinnerungen</div>
-        <p class="muted small">Die App kann dich an Trainingstagen erinnern, solange sie geöffnet oder im Hintergrund aktiv ist. Für zuverlässige Erinnerungen: Trainingstage in deinen Kalender exportieren.</p>
+        <p class="muted small">Die App kann dich an Trainingstagen und an Gewohnheiten mit Uhrzeit erinnern, solange sie geöffnet oder im Hintergrund aktiv ist. Für zuverlässige Erinnerungen: Trainingstage in deinen Kalender exportieren.</p>
         <div class="row gap wrap">
-          <label class="chip"><input type="checkbox" id="rem-enabled" ${s.settings.reminders?.enabled ? 'checked' : ''}><span>Erinnerung an Trainingstagen</span></label>
+          <label class="chip"><input type="checkbox" id="rem-enabled" ${s.settings.reminders?.enabled ? 'checked' : ''}><span>Erinnerungen an Training & Routine</span></label>
           <label class="field"><span>Uhrzeit</span><input id="rem-time" type="time" value="${s.settings.reminders?.time || '18:00'}"></label>
         </div>
         <p class="muted small" id="rem-status">${typeof Notification === 'undefined' ? 'Benachrichtigungen werden hier nicht unterstützt.' : Notification.permission === 'granted' ? 'Benachrichtigungen erlaubt.' : Notification.permission === 'denied' ? 'Benachrichtigungen im Browser blockiert.' : 'Beim Aktivieren fragt der Browser nach Erlaubnis.'}</p>
@@ -92,6 +102,8 @@ export function renderMehr(root) {
   root.querySelector('#set-sound').addEventListener('change', (e) => store.update((st) => (st.settings.sound = e.target.checked)));
   root.querySelector('[data-act="export"]').addEventListener('click', exportBackup);
   root.querySelector('[data-act="coach-settings"]').addEventListener('click', openCoachSettings);
+  root.querySelector('[data-act="focus"]').addEventListener('click', () => openFocusDialog(() => renderMehr(root)));
+  root.querySelector('[data-act="add-quest"]').addEventListener('click', () => openQuestPicker(() => renderMehr(root)));
   root.querySelector('#rem-enabled').addEventListener('change', async (e) => {
     let ok = true;
     if (e.target.checked && typeof Notification !== 'undefined' && Notification.permission === 'default') {

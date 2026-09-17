@@ -3,6 +3,8 @@ import { toISODate, startOfWeek, addDays, seededRandom } from './util.js';
 import { totalSets, totalTonnage, personalRecords } from './analytics.js';
 import { getExercise } from '../data/exercises.js';
 import { isPerfectDay } from './goals.js';
+import { activeRoutines, routineCompletions, routinePerfectDays } from './routines.js';
+import { isQuickLog } from './quicklog.js';
 
 const LEGS = new Set(['quadrizeps', 'beinbeuger', 'gesaess', 'waden']);
 
@@ -38,7 +40,7 @@ export function periodMetrics(s, from, to) {
   const days = [];
   for (let d = from; d <= to; d = addDays(d, 1)) days.push(d);
   return {
-    workouts: workouts.length,
+    workouts: workouts.filter((w) => !isQuickLog(w)).length,
     sets: workouts.reduce((a, w) => a + totalSets(w), 0),
     tonnage: workouts.reduce((a, w) => a + totalTonnage(w), 0),
     cardioMin: cardio.reduce((a, c) => a + (c.minutes || 0), 0),
@@ -49,10 +51,12 @@ export function periodMetrics(s, from, to) {
     mobility: (s.mobilityLogs || []).filter((d) => inP(d)).length,
     weights: s.bodyLogs.filter((b) => inP(b.date)).length,
     perfectDays: days.filter((d) => d <= toISODate() && isPerfectDay(s, d)).length,
+    routineDone: routineCompletions(s, from, to),
+    routinePerfect: routinePerfectDays(s, from, to),
     prs,
     legSets,
     quick: workouts.filter((w) => w.dayId === 'schnell').length,
-    early: workouts.filter((w) => w.finishedAt && new Date(w.finishedAt).getHours() < 9).length,
+    early: workouts.filter((w) => !isQuickLog(w) && w.finishedAt && new Date(w.finishedAt).getHours() < 9).length,
     variety: ex.size,
     activeDays: days.filter((d) => workouts.some((w) => w.date === d) || cardio.some((c) => c.date === d) || (s.mobilityLogs || []).includes(d)).length,
   };
@@ -77,6 +81,8 @@ export const WEEKLY_POOL = [
   C('early', 'Frühstart', 'sun', 'early', () => 1, 30, () => 'Ein Training vor 9 Uhr beenden'),
   C('variety', 'Abwechslung', 'refresh', 'variety', () => 15, 40, (t) => `${t} verschiedene Übungen`),
   C('active_days', 'Jeden Tag etwas', 'flame', 'activeDays', () => 5, 60, (t) => `An ${t} Tagen aktiv (Training, Cardio oder Mobilität)`),
+  C('routine_done', 'Routine durchziehen', 'check', 'routineDone', (p) => Math.max(10, (p.routineCount || 1) * 5), 50, (t) => `${t} Gewohnheiten abhaken`, (p) => (p.routineCount || 0) > 0),
+  C('routine_perfect', 'Runde Tage', 'star', 'routinePerfect', () => 4, 60, (t) => `An ${t} Tagen die ganze Routine schaffen`, (p) => (p.routineCount || 0) > 0),
 ];
 
 export const MONTHLY_POOL = [
@@ -86,6 +92,8 @@ export const MONTHLY_POOL = [
   C('m_tonnage', 'Schwerlast', 'weight', 'tonnage', (p) => Math.round(((p.weightKg || 75) * 500) / 5000) * 5000, 200, (t) => `${t.toLocaleString('de-DE')} kg im Monat bewegen`),
   C('m_active', 'Zwanzig aktive Tage', 'flame', 'activeDays', () => 20, 220, (t) => `An ${t} Tagen im Monat aktiv`),
   C('m_checkins', 'Achtsam', 'sun', 'checkins', () => 20, 150, (t) => `${t} Check-ins im Monat`),
+  C('m_routine', 'Gewohnheitsmonat', 'check', 'routineDone', (p) => Math.max(40, (p.routineCount || 1) * 20), 200, (t) => `${t} Gewohnheiten im Monat abhaken`, (p) => (p.routineCount || 0) > 0),
+  C('m_routine_perfect', 'Fünfzehn runde Tage', 'star', 'routinePerfect', () => 15, 220, (t) => `An ${t} Tagen im Monat die ganze Routine schaffen`, (p) => (p.routineCount || 0) > 0),
 ];
 
 function hash(str) {
@@ -109,9 +117,15 @@ function materialize(c, profile, metrics) {
   return { id: c.id, name: c.name, icon: c.icon, desc: c.desc(target), target, value, xp: c.xp, done: value >= target, progress: target ? value / target : 0 };
 }
 
+// Profil plus Kennzahlen, die für die Auswahl der Herausforderungen zählen (z. B. eigene Routine).
+function challengeProfile(s) {
+  return { ...(s.profile || {}), routineCount: activeRoutines(s).length };
+}
+
 export function weeklyChallenges(s, weekStart = startOfWeek(toISODate())) {
   const m = periodMetrics(s, weekStart, addDays(weekStart, 6));
-  return pick(WEEKLY_POOL, s.profile || {}, `w:${weekStart}:${s.meta?.createdAt || ''}`, 3).map((c) => materialize(c, s.profile || {}, m));
+  const p = challengeProfile(s);
+  return pick(WEEKLY_POOL, p, `w:${weekStart}:${s.meta?.createdAt || ''}`, 3).map((c) => materialize(c, p, m));
 }
 
 export function monthlyChallenge(s, monthKey = toISODate().slice(0, 7)) {
@@ -119,7 +133,8 @@ export function monthlyChallenge(s, monthKey = toISODate().slice(0, 7)) {
   const d = new Date(Number(monthKey.slice(0, 4)), Number(monthKey.slice(5, 7)), 0);
   const to = toISODate(d);
   const m = periodMetrics(s, from, to);
-  return materialize(pick(MONTHLY_POOL, s.profile || {}, `m:${monthKey}:${s.meta?.createdAt || ''}`, 1)[0], s.profile || {}, m);
+  const p = challengeProfile(s);
+  return materialize(pick(MONTHLY_POOL, p, `m:${monthKey}:${s.meta?.createdAt || ''}`, 1)[0], p, m);
 }
 
 // XP aus allen abgeschlossenen Herausforderungen seit Kontoerstellung.

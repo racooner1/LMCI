@@ -298,14 +298,15 @@ details.group .chips { margin-top: 10px; }
 .dot-sum { font-weight: 800; font-size: 1.15rem; padding-left: 6px; }
 
 /* Schnellaktionen */
-.actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.actions { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
 .action { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px; border-radius: var(--radius-s); background: var(--surface); border: 1px solid var(--line); border-bottom-width: 4px; text-decoration: none; color: var(--ink); font-size: 0.78rem; font-weight: 700; text-align: center; transition: transform 0.08s; box-shadow: var(--shadow-card); }
 .action:active { transform: translateY(3px); border-bottom-width: 1px; }
 .action .ico { width: 26px; height: 26px; color: var(--accent); }
 .action.flame .ico { color: var(--flame); }
 .action.ok .ico { color: var(--ok); }
 .action.xp .ico { color: var(--xp); }
-@media (max-width: 380px) { .actions { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .actions { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 340px) { .actions { grid-template-columns: repeat(2, 1fr); } }
 
 .week-chip { display: flex; flex-direction: column; align-items: flex-end; background: var(--accent-soft); border-radius: 12px; padding: 6px 12px; line-height: 1.15; }
 .week-chip.deload { background: var(--deload-soft); }
@@ -760,6 +761,91 @@ details.group .chips { margin-top: 10px; }
 .d-pr { background: var(--xp); }
 
 .boot-hint { color: var(--muted); text-align: center; padding: 40px 0; }
+
+/* ---- Routine & Quests ---- */
+.nav.compact a { font-size: 0.6rem; padding: 7px 0; }
+.nav.compact a .ico { width: 22px; height: 22px; }
+.nav a span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.routine-hero { gap: 14px; }
+.routine-hero-main { display: flex; align-items: center; gap: 16px; }
+.routine-hero-main h2 { font-size: 1.25rem; margin: 0; }
+.routine-hero-main p { margin: 2px 0 0; }
+
+.week-picker { display: flex; align-items: stretch; gap: 4px; }
+.wp-day { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 2px; border: 1.5px solid var(--line); border-radius: var(--radius-xs); background: var(--surface); color: var(--muted); font: inherit; font-size: 0.7rem; font-weight: 700; cursor: pointer; transition: border-color 0.15s, background 0.15s, color 0.15s; }
+.wp-day i { display: block; width: 100%; height: 5px; border-radius: 3px; background: var(--surface-3); position: relative; overflow: hidden; }
+.wp-day i::after { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--p, 0%); background: var(--ok); border-radius: 3px; }
+.wp-day.part { color: var(--ink); }
+.wp-day.all { border-color: var(--ok); background: var(--ok-soft); color: var(--ok-deep); }
+.wp-day.today { border-color: var(--accent); }
+.wp-day.sel { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-deep); }
+.wp-day.future { opacity: 0.4; cursor: default; }
+.wp-num { font-size: 0.62rem; font-weight: 600; }
+
+.quests { display: flex; flex-direction: column; gap: 8px; }
+.quest-group { display: flex; flex-direction: column; gap: 8px; }
+.quest-group + .quest-group { margin-top: 6px; }
+.quest-group-head { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.quest { display: grid; grid-template-columns: 36px 28px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: var(--radius-s); background: var(--surface-2); border: 0; font: inherit; color: inherit; text-align: left; width: 100%; cursor: pointer; transition: background 0.15s, transform 0.08s; }
+.quest:active { transform: scale(0.99); }
+.quest.done { background: var(--ok-soft); }
+.quest-check { width: 32px; height: 32px; border-radius: 50%; border: 2.5px solid var(--line); background: var(--surface); display: inline-flex; align-items: center; justify-content: center; color: transparent; transition: background 0.2s, border-color 0.2s; }
+.quest-check .ico { transform: scale(0); transition: transform 0.25s cubic-bezier(0.2, 1.4, 0.4, 1); }
+.quest.done .quest-check { background: var(--ok); border-color: var(--ok); color: #fff; }
+.quest.done .quest-check .ico { transform: scale(1); }
+.quest-icon { display: inline-flex; align-items: center; justify-content: center; color: var(--accent); }
+.quest.done .quest-icon { color: var(--ok-deep); }
+.quest-text { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
+.quest-text strong { font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
+.quest-text span { font-size: 0.78rem; color: var(--muted); }
+.quest.done .quest-text strong { text-decoration: line-through; color: var(--muted); }
+.quest-right { display: flex; align-items: center; gap: 6px; }
+.quest-streak { display: inline-flex; align-items: center; gap: 2px; font-size: 0.75rem; font-weight: 800; color: var(--flame); background: var(--flame-soft); border-radius: 999px; padding: 3px 8px; }
+
+.habit-grid { display: flex; flex-direction: column; gap: 6px; }
+.habit-row { display: grid; grid-template-columns: 38% 1fr; gap: 10px; align-items: center; }
+.habit-name { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+.habit-cells { display: grid; grid-template-columns: repeat(var(--cols, 14), minmax(0, 1fr)); gap: 3px; min-width: 0; }
+.habit-cell { aspect-ratio: 1; min-height: 11px; border: 0; border-radius: 4px; padding: 0; cursor: pointer; background: var(--surface-3); }
+.habit-cell.done { background: var(--ok); }
+.habit-cell.open { background: var(--surface-3); border: 1.5px dashed var(--line); }
+.habit-cell.off { background: transparent; border: 1px solid var(--line); opacity: 0.5; }
+.habit-legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.75rem; color: var(--muted); }
+.habit-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+.habit-legend i.done { background: var(--ok); }
+.habit-legend i.open { background: var(--surface-3); border: 1.5px dashed var(--line); }
+.habit-legend i.off { border: 1px solid var(--line); }
+
+.routine-manage { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.routine-manage li { display: grid; grid-template-columns: 34px 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border-radius: var(--radius-s); background: var(--surface-2); }
+.rm-icon { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 10px; background: var(--surface); color: var(--accent); }
+.rm-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.3; }
+.rm-text strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rm-stats { font-size: 0.74rem; color: var(--muted); display: inline-flex; align-items: center; gap: 4px; }
+.rm-stats .ico { color: var(--flame); }
+.rm-actions { display: flex; gap: 4px; }
+.rm-actions .btn-icon { width: 32px; height: 32px; }
+
+.icon-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 6px; }
+.icon-choice { display: inline-flex; }
+.icon-choice input { position: absolute; opacity: 0; pointer-events: none; }
+.icon-choice span { display: inline-flex; align-items: center; justify-content: center; width: 100%; height: 44px; border: 2px solid var(--line); border-radius: var(--radius-xs); color: var(--muted); cursor: pointer; transition: border-color 0.15s, background 0.15s, color 0.15s; }
+.icon-choice:has(input:checked) span { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-deep); }
+
+.chip-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border: 2px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); font: inherit; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: border-color 0.15s, background 0.15s, transform 0.08s; }
+.chip-btn:hover { border-color: var(--accent); }
+.chip-btn:active { transform: scale(0.97); }
+.chip-btn .ico { color: var(--accent); }
+.tpl-head { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); display: flex; align-items: center; gap: 6px; margin: 14px 0 6px; }
+
+/* ---- Schnelleintrag ---- */
+.ql-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+.ql-head strong { display: block; line-height: 1.25; }
+.ql-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ql-list li { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border-radius: var(--radius-s); background: var(--surface-2); }
+.ql-name { display: flex; flex-direction: column; min-width: 0; line-height: 1.3; }
+.ql-name strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 </style>
 </head>
@@ -5876,6 +5962,186 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     return weight * (1 + reps / 30);
   }
 
+  // src/engine/routines.js
+  var DEFAULT_ROUTINE_XP = 10;
+  var ROUTINE_XP_CHOICES = [5, 10, 15, 20, 30];
+  var MAX_ROUTINES = 40;
+  var DAYPARTS = [
+    { id: "morgen", name: "Morgen", hint: "Start in den Tag", icon: "sun" },
+    { id: "tag", name: "Tags\xFCber", hint: "irgendwann am Tag", icon: "list" },
+    { id: "abend", name: "Abend", hint: "Ausklang", icon: "moon" }
+  ];
+  var DAYPART_BY_ID = Object.fromEntries(DAYPARTS.map((d) => [d.id, d]));
+  var ROUTINE_TEMPLATES = [
+    { name: "Z\xE4hne putzen (morgens)", icon: "tooth", daypart: "morgen", xp: 5 },
+    { name: "Glas Wasser nach dem Aufstehen", icon: "drop", daypart: "morgen", xp: 5 },
+    { name: "Bett machen", icon: "bed", daypart: "morgen", xp: 5 },
+    { name: "Vitamin D / Supplement", icon: "pill", daypart: "morgen", xp: 5 },
+    { name: "10 Minuten Tageslicht", icon: "sun", daypart: "morgen", xp: 10 },
+    { name: "Kalt duschen", icon: "drop", daypart: "morgen", xp: 10 },
+    { name: "Proteinreiches Fr\xFChst\xFCck", icon: "food", daypart: "morgen", xp: 10 },
+    { name: "Spaziergang / 8.000 Schritte", icon: "run", daypart: "tag", xp: 15 },
+    { name: "Nacken & R\xFCcken am Schreibtisch", icon: "stretch", daypart: "tag", xp: 5 },
+    { name: "15 Minuten lernen", icon: "book", daypart: "tag", xp: 15 },
+    { name: "Bei Familie oder Freunden melden", icon: "chat", daypart: "tag", xp: 10, schedule: { type: "times", times: 3 } },
+    { name: "Kein Zucker heute", icon: "heart", daypart: "tag", xp: 10 },
+    { name: "20 Minuten lesen", icon: "book", daypart: "abend", xp: 10 },
+    { name: "Meditation / Atem\xFCbung", icon: "leaf", daypart: "abend", xp: 10 },
+    { name: "Tagebuch: 3 gute Dinge", icon: "note", daypart: "abend", xp: 10 },
+    { name: "Z\xE4hne putzen (abends)", icon: "tooth", daypart: "abend", xp: 5 },
+    { name: "5 Minuten dehnen", icon: "stretch", daypart: "abend", xp: 10 },
+    { name: "10 Minuten aufr\xE4umen", icon: "home", daypart: "abend", xp: 5 },
+    { name: "Handy weg, 1 h vor dem Schlafen", icon: "phone", daypart: "abend", xp: 10 },
+    { name: "P\xFCnktlich ins Bett", icon: "moon", daypart: "abend", xp: 10 },
+    { name: "Woche planen", icon: "calendar", daypart: "abend", xp: 20, schedule: { type: "weekdays", days: [6] } }
+  ];
+  function normalizeSchedule(sc2) {
+    const type = ["daily", "weekdays", "times"].includes(sc2?.type) ? sc2.type : "daily";
+    if (type === "weekdays") {
+      const days = [...new Set((sc2.days || []).map(Number).filter((d) => Number.isInteger(d) && d >= 0 && d <= 6))].sort((a2, b2) => a2 - b2);
+      return days.length ? { type: "weekdays", days } : { type: "daily" };
+    }
+    if (type === "times") return { type: "times", times: clamp(Math.round(Number(sc2.times) || 3), 1, 7) };
+    return { type: "daily" };
+  }
+  function makeRoutine(input = {}) {
+    const xp = Number(input.xp);
+    return {
+      id: input.id || uid(),
+      name: String(input.name || "Neue Gewohnheit").trim().slice(0, 60) || "Neue Gewohnheit",
+      icon: input.icon || "check",
+      daypart: DAYPART_BY_ID[input.daypart] ? input.daypart : "tag",
+      xp: clamp(Number.isFinite(xp) && xp > 0 ? Math.round(xp) : DEFAULT_ROUTINE_XP, 1, 50),
+      schedule: normalizeSchedule(input.schedule),
+      reminder: /^\d{1,2}:\d{2}$/.test(input.reminder || "") ? input.reminder : null,
+      counts: input.counts !== false,
+      note: String(input.note || "").slice(0, 140),
+      archived: !!input.archived,
+      createdAt: input.createdAt || toISODate()
+    };
+  }
+  function scheduleLabel(r) {
+    const sc2 = r.schedule || { type: "daily" };
+    if (sc2.type === "times") return `${sc2.times}\xD7 pro Woche`;
+    if (sc2.type === "weekdays") {
+      if (sc2.days.length === 7) return "t\xE4glich";
+      if (sc2.days.length === 5 && sc2.days.every((d) => d < 5)) return "Mo\u2013Fr";
+      if (sc2.days.length === 2 && sc2.days.includes(5) && sc2.days.includes(6)) return "Wochenende";
+      if (sc2.days.length === 1) return `jeden ${WEEKDAYS_LONG[sc2.days[0]]}`;
+      return sc2.days.map((d) => WEEKDAYS[d]).join(", ");
+    }
+    return "t\xE4glich";
+  }
+  var activeRoutines = (s) => (s.routines || []).filter((r) => !r.archived);
+  var doneOn = (s, id, date) => (s.routineLog?.[date] || []).includes(id);
+  function scheduledOn(r, date) {
+    if (r.archived) return false;
+    if (r.createdAt && date < r.createdAt) return false;
+    const sc2 = r.schedule || { type: "daily" };
+    if (sc2.type === "weekdays") return sc2.days.includes(weekdayIndex(date));
+    return true;
+  }
+  function weekCount(s, r, date) {
+    const ws2 = startOfWeek(date);
+    let n = 0;
+    for (let i = 0; i < 7; i++) if (doneOn(s, r.id, addDays(ws2, i))) n += 1;
+    return n;
+  }
+  function routinesForDay(s, date = toISODate()) {
+    return activeRoutines(s).filter((r) => scheduledOn(r, date)).map((r) => {
+      const done = doneOn(s, r.id, date);
+      const times = r.schedule?.type === "times" ? r.schedule.times : 0;
+      const wk = times ? weekCount(s, r, date) : 0;
+      return { ...r, done, due: times ? done || wk < times : true, weekDone: wk, weekTarget: times };
+    }).filter((r) => r.due).sort((a2, b2) => DAYPARTS.findIndex((d) => d.id === a2.daypart) - DAYPARTS.findIndex((d) => d.id === b2.daypart));
+  }
+  function routineDayStatus(s, date = toISODate()) {
+    const items = routinesForDay(s, date);
+    const done = items.filter((r) => r.done).length;
+    return { items, done, total: items.length, all: items.length > 0 && done === items.length, progress: items.length ? done / items.length : 0 };
+  }
+  function routineStreak(s, r, today = toISODate()) {
+    const sc2 = r.schedule || { type: "daily" };
+    if (sc2.type === "times") {
+      let ws2 = startOfWeek(today);
+      let n2 = 0;
+      for (let i = 0; i < 260; i++) {
+        if (weekCount(s, r, ws2) >= sc2.times) n2 += 1;
+        else if (i > 0) break;
+        ws2 = addDays(ws2, -7);
+        if (r.createdAt && ws2 < startOfWeek(r.createdAt)) break;
+      }
+      return n2;
+    }
+    let d = today;
+    if (scheduledOn(r, today) && !doneOn(s, r.id, today)) d = addDays(today, -1);
+    let n = 0;
+    for (let guard = 0; guard < 1100; guard++) {
+      if (r.createdAt && d < r.createdAt) break;
+      if (!scheduledOn(r, d)) {
+        d = addDays(d, -1);
+        continue;
+      }
+      if (!doneOn(s, r.id, d)) break;
+      n += 1;
+      d = addDays(d, -1);
+    }
+    return n;
+  }
+  function routineRate(s, r, today = toISODate(), days = 30) {
+    let planned = 0;
+    let done = 0;
+    for (let i = 0; i < days; i++) {
+      const d = addDays(today, -i);
+      if (!scheduledOn(r, d)) continue;
+      planned += 1;
+      if (doneOn(s, r.id, d)) done += 1;
+    }
+    return { planned, done, rate: planned ? done / planned : 0 };
+  }
+  function routineStats(s, r, today = toISODate()) {
+    const total = Object.entries(s.routineLog || {}).filter(([, list]) => list.includes(r.id)).length;
+    return { total, streak: routineStreak(s, r, today), ...routineRate(s, r, today), xp: total * (r.xp || DEFAULT_ROUTINE_XP) };
+  }
+  function routineActiveDays(s) {
+    return Object.entries(s.routineLog || {}).filter(([, list]) => Array.isArray(list) && list.length).map(([d]) => d);
+  }
+  function routineCompletions(s, from, to2) {
+    let n = 0;
+    for (const [d, list] of Object.entries(s.routineLog || {})) if (d >= from && d <= to2) n += (list || []).length;
+    return n;
+  }
+  function routinePerfectDays(s, from, to2, today = toISODate()) {
+    let n = 0;
+    for (let d = from; d <= to2 && d <= today; d = addDays(d, 1)) if (routineDayStatus(s, d).all) n += 1;
+    return n;
+  }
+  function routineXP(s) {
+    const xpById = Object.fromEntries((s.routines || []).map((r) => [r.id, r.xp || DEFAULT_ROUTINE_XP]));
+    let xp = 0;
+    for (const list of Object.values(s.routineLog || {})) for (const id of list || []) xp += xpById[id] ?? DEFAULT_ROUTINE_XP;
+    return xp;
+  }
+  function toggleRoutine(st2, id, date = toISODate()) {
+    st2.routineLog || (st2.routineLog = {});
+    const list = st2.routineLog[date] || [];
+    const has = list.includes(id);
+    const next = has ? list.filter((x) => x !== id) : [...list, id];
+    if (next.length) st2.routineLog[date] = next;
+    else delete st2.routineLog[date];
+    return !has;
+  }
+  function routineRemindersDue(s, now = /* @__PURE__ */ new Date()) {
+    const today = toISODate(now);
+    const fired = s.settings?.reminders?.routineFired || {};
+    const minutes = now.getHours() * 60 + now.getMinutes();
+    return routinesForDay(s, today).filter((r) => {
+      if (!r.reminder || r.done || fired[r.id] === today) return false;
+      const [hh, mm] = r.reminder.split(":").map(Number);
+      return minutes >= hh * 60 + mm;
+    });
+  }
+
   // src/state.js
   var STORAGE_KEY = "lmci.v1";
   var SCHEMA = 1;
@@ -5896,10 +6162,12 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     recents: [],
     measurements: [],
     mobilityLogs: [],
+    routines: [],
+    routineLog: {},
     quickPrefs: null,
     coach: { apiKey: "", model: "claude-opus-5", history: [] },
     activeWorkout: null,
-    settings: { barWeight: 20, plates: [25, 20, 15, 10, 5, 2.5, 1.25], restTimer: true, sound: true, kcalAdjust: 0, targetOverride: null, reminders: { enabled: false, time: "18:00", lastFired: null } },
+    settings: { barWeight: 20, plates: [25, 20, 15, 10, 5, 2.5, 1.25], restTimer: true, sound: true, kcalAdjust: 0, targetOverride: null, focus: "training", reminders: { enabled: false, time: "18:00", lastFired: null, routineFired: {} } },
     meta: { createdAt: toISODate(), lastOpened: toISODate(), celebrated: { level: 1, badges: [] } }
   });
   var state = EMPTY();
@@ -5946,7 +6214,15 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     for (const k of ["customFoods", "recipes", "favorites", "recents"]) if (!Array.isArray(s[k])) s[k] = [];
     if (s.settings.kcalAdjust == null) s.settings.kcalAdjust = 0;
     if (s.settings.targetOverride === void 0) s.settings.targetOverride = null;
-    if (!s.settings.reminders) s.settings.reminders = { enabled: false, time: "18:00", lastFired: null };
+    if (!s.settings.reminders) s.settings.reminders = { enabled: false, time: "18:00", lastFired: null, routineFired: {} };
+    if (!s.settings.reminders.routineFired) s.settings.reminders.routineFired = {};
+    if (!["training", "routine"].includes(s.settings.focus)) s.settings.focus = "training";
+    s.routines = Array.isArray(s.routines) ? s.routines.map((r) => makeRoutine(r)) : [];
+    if (!s.routineLog || typeof s.routineLog !== "object") s.routineLog = {};
+    for (const [d, list] of Object.entries(s.routineLog)) {
+      if (!Array.isArray(list) || !list.length) delete s.routineLog[d];
+      else s.routineLog[d] = [...new Set(list.filter((x) => typeof x === "string"))];
+    }
     if (!Array.isArray(s.measurements)) s.measurements = [];
     if (!Array.isArray(s.mobilityLogs)) s.mobilityLogs = [];
     if (!s.meta.celebrated) s.meta.celebrated = { level: 1, badges: [] };
@@ -6205,7 +6481,9 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     ex({ id: "dips", name: "Dips", en: "Dips", pattern: "hpush", tier: 1, primary: ["brust", "trizeps"], ctx: ["gym"], load: "bw", inc: 0, bwReps: [3, 8, 12], contra: ["schulter"], cue: "Oberk\xF6rper leicht nach vorn, bis der Oberarm parallel ist. Zusatzgewicht als Steigerung." }),
     ex({ id: "dips_maschine", name: "Dips (Maschine / unterst\xFCtzt)", en: "Assisted Dip Machine", pattern: "hpush", tier: 1, primary: ["brust", "trizeps"], load: "machine", inc: 5, ratio: 0.9, contra: ["schulter"], cue: "Unterst\xFCtzung so w\xE4hlen, dass 8\u201312 saubere Wiederholungen m\xF6glich sind." }),
     ex({ id: "brustpresse_kabel", name: "Brustpresse stehend am Kabel", en: "Standing Cable Press", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["trizeps", "bauch"], load: "cable", inc: 2.5, ratio: 0.5, cue: "Schrittstellung, Rumpf fest, Griffe nach vorn dr\xFCcken." }),
-    ex({ id: "liegestuetze", name: "Liegest\xFCtze", en: "Push-ups", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["trizeps", "schultern"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [8, 15, 25], contra: ["handgelenk"], cue: "K\xF6rper als Linie, Ellbogen ca. 45\xB0, Brust bis kurz \xFCber den Boden. Zu leicht? F\xFC\xDFe erh\xF6hen oder Rucksack." }),
+    ex({ id: "liegestuetze", name: "Liegest\xFCtze (schulterbreit)", en: "Push-ups", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["trizeps", "schultern"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [8, 15, 25], contra: ["handgelenk"], cue: "H\xE4nde etwa schulterbreit, K\xF6rper als Linie, Ellbogen ca. 45\xB0, Brust bis kurz \xFCber den Boden. Zu leicht? F\xFC\xDFe erh\xF6hen oder Rucksack." }),
+    ex({ id: "liegestuetze_breit", name: "Liegest\xFCtze breit", en: "Wide Push-ups", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["schultern", "trizeps"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [8, 15, 24], contra: ["handgelenk", "schulter"], cue: "H\xE4nde deutlich weiter als schulterbreit, Ellbogen zeigen nach au\xDFen \u2013 mehr Brust, weniger Trizeps. Nicht tiefer als angenehm f\xFCr die Schulter." }),
+    ex({ id: "liegestuetze_eng", name: "Liegest\xFCtze eng (H\xE4nde zusammen)", en: "Close-grip Push-ups", pattern: "hpush", tier: 2, primary: ["brust", "trizeps"], secondary: ["schultern"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [6, 12, 20], contra: ["handgelenk"], cue: "H\xE4nde eng unter den Schultern, Ellbogen dicht am K\xF6rper \u2013 deutlich mehr Trizeps. Noch enger: Diamant-Liegest\xFCtze." }),
     ex({ id: "liegestuetze_knie", name: "Liegest\xFCtze auf den Knien", en: "Knee Push-ups", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["trizeps", "schultern"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [10, 18, 25], contra: ["handgelenk"], cue: "Leichtere Variante \u2013 H\xFCfte gestreckt lassen, nicht durchh\xE4ngen." }),
     ex({ id: "liegestuetze_erhoeht", name: "Liegest\xFCtze mit erh\xF6hten F\xFC\xDFen", en: "Decline Push-ups", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["schultern", "trizeps"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [6, 12, 20], contra: ["handgelenk"], cue: "F\xFC\xDFe auf Stuhl/Bank \u2013 mehr Last und mehr obere Brust." }),
     ex({ id: "liegestuetze_kh", name: "Liegest\xFCtze auf Kurzhanteln (F\xFC\xDFe erh\xF6ht)", en: "Deficit Push-ups", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["trizeps", "schultern"], ctx: HOME, gear: ["kurzhantel"], load: "bw", inc: 0, bwReps: [6, 12, 20], cue: "Griffe erlauben mehr Tiefe, F\xFC\xDFe auf Stuhl/Bank erh\xF6hen f\xFCr mehr Last." }),
@@ -7225,6 +7503,15 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     pause: "M8 5v14M16 5v14",
     forward: "M5 5l8 7-8 7zM14 5h2v14h-2z",
     list: "M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01",
+    tooth: "M12 4c-1.6-1.2-4.4-1.4-5.8.4C4.6 6.4 5 9.3 5.6 11.6c.6 2.3.8 4.8 1.7 6.7.7 1.5 1.9 1 2.3-.6.3-1.3.5-2.9 2.4-2.9s2.1 1.6 2.4 2.9c.4 1.6 1.6 2.1 2.3.6.9-1.9 1.1-4.4 1.7-6.7.6-2.3 1-5.2-.6-7.2C16.4 2.6 13.6 2.8 12 4z",
+    bed: "M3 19v-9h13a4 4 0 0 1 4 4v5M3 19h18M3 15h18M7 10V7h6v3",
+    pill: "M10.5 3.6a5 5 0 0 1 7 7l-7 7a5 5 0 1 1-7-7zM7 7.1l7 7",
+    book: "M4 5a2 2 0 0 1 2-2h13v15H6a2 2 0 0 0-2 2zm15 11v5H6",
+    phone: "M7 2h10v20H7zM10.5 18.5h3",
+    leaf: "M20 4C10 4 4 9 4 16v4M4 20c8 0 16-5 16-16M4 20c1.5-5 5-8 10-9",
+    target: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zm0-5a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z",
+    smile: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9 10h.01M15 10h.01M8 14.5a5 5 0 0 0 8 0",
+    repeat: "M4 9a5 5 0 0 1 5-5h9m0 0l-3-3m3 3l-3 3M20 15a5 5 0 0 1-5 5H6m0 0l3 3m-3-3l3-3",
     heart: "M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l8.8 8.8 8.8-8.8a5.5 5.5 0 0 0 0-7.8z"
   };
   function icon(name, { size = 20, cls = "" } = {}) {
@@ -7404,17 +7691,17 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     if (!a2) return false;
     return PLAN_KEYS.every((k) => JSON.stringify(a2[k] ?? null) === JSON.stringify(b2[k] ?? null));
   }
-  function radioCards(name, options, selected, { desc = true } = {}) {
+  function radioCards(name, options, selected2, { desc = true } = {}) {
     return options.map(
-      ([id, o]) => html`<label class="choice ${selected === id ? "selected" : ""}">
-      <input type="radio" name="${name}" value="${id}" ${selected === id ? "checked" : ""}>
+      ([id, o]) => html`<label class="choice ${selected2 === id ? "selected" : ""}">
+      <input type="radio" name="${name}" value="${id}" ${selected2 === id ? "checked" : ""}>
       <span class="choice-title">${o.name}</span>${desc && o.desc ? html`<span class="choice-desc">${o.desc}</span>` : ""}
     </label>`
     );
   }
-  function checkChips(name, options, selected) {
+  function checkChips(name, options, selected2) {
     return options.map(
-      ([id, label]) => html`<label class="chip"><input type="checkbox" name="${name}[]" value="${id}" ${selected.includes(id) ? "checked" : ""}><span>${label}</span></label>`
+      ([id, label]) => html`<label class="chip"><input type="checkbox" name="${name}[]" value="${id}" ${selected2.includes(id) ? "checked" : ""}><span>${label}</span></label>`
     );
   }
   function renderStep(i, d) {
@@ -7519,7 +7806,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const last = history.length ? history[history.length - 1] : null;
     const sets2 = workingSets(last);
     const isLoadable = !["bw", "time", "band"].includes(ex2.load);
-    const unitLabel = ex2.load === "time" ? "Sekunden" : "Wdh.";
+    const unitLabel2 = ex2.load === "time" ? "Sekunden" : "Wdh.";
     if (!sets2.length) {
       const est = ctx.profile ? estimateStartWeight(ex2, ctx.profile, pe.repMin, rirTarget, ctx.settings || {}) : null;
       const estReps = ctx.profile ? estimateStartReps(ex2, ctx.profile) : null;
@@ -7529,7 +7816,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
           weight: est,
           reps: pe.repMin,
           estimated: true,
-          note: `Startgewicht gesch\xE4tzt: ${est} kg f\xFCr ${pe.repMin}\u2013${pe.repMax} ${unitLabel} mit ${rirTarget} in Reserve. Zu leicht oder zu schwer? Einfach anpassen \u2013 ab dem 2. Mal z\xE4hlt nur noch dein Log.`,
+          note: `Startgewicht gesch\xE4tzt: ${est} kg f\xFCr ${pe.repMin}\u2013${pe.repMax} ${unitLabel2} mit ${rirTarget} in Reserve. Zu leicht oder zu schwer? Einfach anpassen \u2013 ab dem 2. Mal z\xE4hlt nur noch dein Log.`,
           prev: ""
         };
       }
@@ -7540,7 +7827,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
           weight: ex2.load === "bw" ? 0 : null,
           reps: r,
           estimated: true,
-          note: `Sch\xE4tzung: ca. ${estReps} ${unitLabel} schaffst du vermutlich. Ziel ${pe.repMin}\u2013${pe.repMax} bei ${rirTarget} in Reserve${estReps > pe.repMax ? " \u2013 w\xE4hle eine schwerere Variante oder Zusatzgewicht" : estReps < pe.repMin ? " \u2013 notfalls leichtere Variante" : ""}.`,
+          note: `Sch\xE4tzung: ca. ${estReps} ${unitLabel2} schaffst du vermutlich. Ziel ${pe.repMin}\u2013${pe.repMax} bei ${rirTarget} in Reserve${estReps > pe.repMax ? " \u2013 w\xE4hle eine schwerere Variante oder Zusatzgewicht" : estReps < pe.repMin ? " \u2013 notfalls leichtere Variante" : ""}.`,
           prev: ""
         };
       }
@@ -7548,7 +7835,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         kind: "start",
         weight: null,
         reps: pe.repMin,
-        note: isLoadable ? `Erste Einheit: W\xE4hle ein Gewicht, mit dem du ${pe.repMin}\u2013${pe.repMax} saubere ${unitLabel} mit ${rirTarget} Wiederholungen Reserve schaffst.` : `Erste Einheit: So viele saubere ${unitLabel} wie m\xF6glich bei ${rirTarget} in Reserve \u2013 Ziel ${pe.repMin}\u2013${pe.repMax}.`,
+        note: isLoadable ? `Erste Einheit: W\xE4hle ein Gewicht, mit dem du ${pe.repMin}\u2013${pe.repMax} saubere ${unitLabel2} mit ${rirTarget} Wiederholungen Reserve schaffst.` : `Erste Einheit: So viele saubere ${unitLabel2} wie m\xF6glich bei ${rirTarget} in Reserve \u2013 Ziel ${pe.repMin}\u2013${pe.repMax}.`,
         prev: ""
       };
     }
@@ -7569,7 +7856,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     if (hitTop) {
       if (isLoadable) {
         const nw = roundToInc(w + inc, inc);
-        return { kind: "up", weight: nw, reps: pe.repMin, note: `Alle S\xE4tze am oberen Ende \u2013 Gewicht erh\xF6hen auf ${nw} kg, zur\xFCck auf ${pe.repMin} ${unitLabel}.`, prev };
+        return { kind: "up", weight: nw, reps: pe.repMin, note: `Alle S\xE4tze am oberen Ende \u2013 Gewicht erh\xF6hen auf ${nw} kg, zur\xFCck auf ${pe.repMin} ${unitLabel2}.`, prev };
       }
       return {
         kind: "up",
@@ -7583,10 +7870,10 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const failedTwice = minReps < pe.repMin && before.length && Math.min(...before.map((s) => s.reps)) < pe.repMin && (before[0].weight || 0) === w;
     if (failedTwice && isLoadable) {
       const nw = roundToInc(w * 0.92, inc);
-      return { kind: "down", weight: nw, reps: pe.repMin, note: `Zweimal unter ${pe.repMin} ${unitLabel} \u2013 Gewicht auf ${nw} kg reduzieren und neu aufbauen.`, prev };
+      return { kind: "down", weight: nw, reps: pe.repMin, note: `Zweimal unter ${pe.repMin} ${unitLabel2} \u2013 Gewicht auf ${nw} kg reduzieren und neu aufbauen.`, prev };
     }
     if (minReps < pe.repMin) {
-      return { kind: "hold", weight: w, reps: pe.repMin, note: `Letztes Mal unter ${pe.repMin} ${unitLabel} \u2013 Gewicht halten, Technik und Pausen pr\xFCfen.`, prev };
+      return { kind: "hold", weight: w, reps: pe.repMin, note: `Letztes Mal unter ${pe.repMin} ${unitLabel2} \u2013 Gewicht halten, Technik und Pausen pr\xFCfen.`, prev };
     }
     return { kind: "reps", weight: w, reps: Math.min(pe.repMax, minReps + 1), note: `Gewicht halten, pro Satz eine Wiederholung mehr anpeilen (Ziel ${pe.repMax}).`, prev };
   }
@@ -7882,6 +8169,95 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     return RANKS.map((r) => ({ ...r, threshold: isReps ? Math.ceil(r.min / 100 * ref) : round1(r.min / 100 * ref), unit: isReps ? ex2.load === "time" ? "s" : "Wdh." : "kg" }));
   }
 
+  // src/engine/xp.js
+  var XP = { workoutBase: 50, perSet: 8, pr: 25, rankUp: 40, cardioPerMin: 2, checkin: 10, food: 15, water: 5, weight: 5, mobility: 15, perfectDay: 40 };
+
+  // src/engine/quicklog.js
+  var LOG_DAY_ID = "log";
+  var LOG_DAY_NAME = "Schnelleintrag";
+  var MAX_SETS_PER_LOG = 20;
+  var MAX_REPS = 999;
+  var isQuickLog = (w) => w?.dayId === LOG_DAY_ID;
+  var toNum = (v) => {
+    const n = Number(String(v ?? "").replace(",", "."));
+    return Number.isFinite(n) ? n : 0;
+  };
+  var sessionWorkouts = (workouts) => (workouts || []).filter((w) => !isQuickLog(w));
+  var quickLogWorkouts = (workouts) => (workouts || []).filter(isQuickLog);
+  var quickLogFor = (s, date = toISODate()) => (s.workouts || []).find((w) => isQuickLog(w) && w.date === date) || null;
+  var countSets = (w) => (w?.entries || []).reduce((a2, e) => a2 + e.sets.filter((x) => x.reps > 0).length, 0);
+  var quickLogXP = (w) => countSets(w) * XP.perSet + (w.prs || 0) * XP.pr;
+  function addQuickSets(st2, { exId, reps, weight = 0, sets: sets2 = 1, date = toISODate(), rir = null, records = 0 }) {
+    const n = clamp(Math.round(toNum(sets2) || 1), 1, MAX_SETS_PER_LOG);
+    const r = clamp(Math.round(toNum(reps)), 1, MAX_REPS);
+    const kg = Math.max(0, toNum(weight));
+    st2.workouts || (st2.workouts = []);
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    let w = st2.workouts.find((x) => isQuickLog(x) && x.date === date);
+    if (!w) {
+      w = { id: uid(), planId: null, dayId: LOG_DAY_ID, date, startedAt: now, finishedAt: now, entries: [], prs: 0 };
+      st2.workouts.push(w);
+    }
+    w.finishedAt = now;
+    let entry = w.entries.find((e) => e.exId === exId);
+    if (!entry) {
+      entry = { exId, sets: [] };
+      w.entries.push(entry);
+    }
+    for (let i = 0; i < n; i++) entry.sets.push({ weight: kg, reps: r, rir });
+    w.prs = (w.prs || 0) + Math.max(0, Math.round(records));
+    w.xp = quickLogXP(w);
+    return w;
+  }
+  function removeQuickEntry(st2, date, exId) {
+    const w = (st2.workouts || []).find((x) => isQuickLog(x) && x.date === date);
+    const entry = w?.entries.find((e) => e.exId === exId);
+    if (!entry) return false;
+    entry.sets = [];
+    cleanup(st2, w, entry);
+    return true;
+  }
+  function cleanup(st2, w, entry) {
+    if (!entry.sets.length) w.entries = w.entries.filter((e) => e !== entry);
+    if (!w.entries.length) {
+      st2.workouts = st2.workouts.filter((x) => x !== w);
+      return;
+    }
+    w.prs = Math.min(w.prs || 0, countSets(w));
+    w.xp = quickLogXP(w);
+  }
+  function quickLogSummary(s, date = toISODate()) {
+    const w = quickLogFor(s, date);
+    if (!w) return [];
+    return w.entries.map((e) => {
+      const sets2 = e.sets.filter((x) => x.reps > 0);
+      return {
+        exId: e.exId,
+        sets: sets2.length,
+        reps: Math.max(0, ...sets2.map((x) => x.reps)),
+        weight: Math.max(0, ...sets2.map((x) => x.weight || 0)),
+        totalReps: sets2.reduce((a2, x) => a2 + x.reps, 0),
+        equal: sets2.every((x) => x.reps === sets2[0]?.reps && (x.weight || 0) === (sets2[0]?.weight || 0))
+      };
+    });
+  }
+  function repsInPeriod(s, exId, from, to2 = toISODate()) {
+    let reps = 0;
+    for (const w of s.workouts || []) {
+      if (w.date < from || w.date > to2) continue;
+      for (const e of w.entries) if (e.exId === exId) for (const x of e.sets) reps += x.reps > 0 ? x.reps : 0;
+    }
+    return reps;
+  }
+  function recentQuickExercises(s, limit = 6) {
+    const seen = [];
+    for (const w of quickLogWorkouts(s.workouts).sort((a2, b2) => a2.date < b2.date ? 1 : -1)) {
+      for (const e of w.entries) if (!seen.includes(e.exId)) seen.push(e.exId);
+      if (seen.length >= limit) break;
+    }
+    return seen.slice(0, limit);
+  }
+
   // src/engine/analytics.js
   function workoutsInWeek(workouts, weekStart) {
     const end = addDays(weekStart, 7);
@@ -7962,7 +8338,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       const end = addDays(ws2, 7);
       const wk = workouts.filter((w) => w.date >= ws2 && w.date < end);
       const cl2 = cardioLogs.filter((c) => c.date >= ws2 && c.date < end);
-      out.push({ weekStart: ws2, sessions: wk.length, sets: wk.reduce((a2, w) => a2 + totalSets(w), 0), tonnage: wk.reduce((a2, w) => a2 + totalTonnage(w), 0), cardioMin: cl2.reduce((a2, c) => a2 + (c.minutes || 0), 0) });
+      out.push({ weekStart: ws2, sessions: wk.filter((w) => !isQuickLog(w)).length, sets: wk.reduce((a2, w) => a2 + totalSets(w), 0), tonnage: wk.reduce((a2, w) => a2 + totalTonnage(w), 0), cardioMin: cl2.reduce((a2, c) => a2 + (c.minutes || 0), 0) });
       ws2 = end;
     }
     return out;
@@ -8962,6 +9338,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     for (const c of s.checkins || []) days.add(c.date);
     for (const [d, list] of Object.entries(s.foodLog || {})) if (list.length) days.add(d);
     for (const b2 of s.bodyLogs) days.add(b2.date);
+    for (const d of routineActiveDays(s)) days.add(d);
     return days;
   }
   function dailyStreak(s, today = toISODate()) {
@@ -8999,17 +9376,17 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     return Object.values(byWeek).some((set) => MUSCLES.every((m) => set.has(m.id)));
   };
   var weekendWarrior = (s) => {
-    const days = new Set(s.workouts.map((w) => w.date));
+    const days = new Set(sessionWorkouts(s.workouts).map((w) => w.date));
     return [...days].some((d) => new Date(d).getDay() === 6 && days.has(addDays(d, 1)));
   };
   var comeback = (s) => {
-    const dates = [...new Set(s.workouts.map((w) => w.date))].sort();
+    const dates = [...new Set(sessionWorkouts(s.workouts).map((w) => w.date))].sort();
     for (let i = 1; i < dates.length; i++) if ((new Date(dates[i]) - new Date(dates[i - 1])) / 864e5 >= 14) return true;
     return false;
   };
   var doubleDay = (s) => {
     const counts = {};
-    for (const w of s.workouts) counts[w.date] = (counts[w.date] || 0) + 1;
+    for (const w of sessionWorkouts(s.workouts)) counts[w.date] = (counts[w.date] || 0) + 1;
     return Object.values(counts).some((c) => c >= 2);
   };
   var perfectDays = (s, ctx) => ctx.perfectDays;
@@ -9019,6 +9396,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     ["kraft", "Kraft & Volumen"],
     ["streak", "Konstanz"],
     ["cardio", "Ausdauer"],
+    ["routine", "Routine & Gewohnheiten"],
     ["alltag", "Alltag & Erholung"],
     ["special", "Besondere Momente"],
     ["level", "Level"]
@@ -9026,21 +9404,21 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
   var B = (id, group, name, desc, icon2, check) => ({ id, group, name, desc, icon: icon2, check });
   var BADGES = [
     // Training
-    B("erstes_training", "training", "Erster Schritt", "Erstes Training gespeichert", "\u{1F3C1}", (s) => s.workouts.length >= 1),
-    B("zehn_trainings", "training", "Zehn im Kasten", "10 Trainings", "\u{1F51F}", (s) => s.workouts.length >= 10),
-    B("25_trainings", "training", "Viertelhundert", "25 Trainings", "\u{1F3AF}", (s) => s.workouts.length >= 25),
-    B("fuenfzig_trainings", "training", "Halbes Hundert", "50 Trainings", "\u{1F3CB}\uFE0F", (s) => s.workouts.length >= 50),
-    B("hundert_trainings", "training", "Hundert", "100 Trainings", "\u{1F4AF}", (s) => s.workouts.length >= 100),
-    B("250_trainings", "training", "Eisenroutine", "250 Trainings", "\u{1F6E1}\uFE0F", (s) => s.workouts.length >= 250),
-    B("500_trainings", "training", "Unaufhaltsam", "500 Trainings", "\u{1F451}", (s) => s.workouts.length >= 500),
-    B("meso_fertig", "training", "Block abgeschlossen", "Ersten Mesozyklus beendet", "\u{1F4E6}", (s) => (s.planHistory || []).length >= 1 && s.workouts.length >= 8),
-    B("meso_3", "training", "Drei Bl\xF6cke", "Drei Mesozyklen beendet", "\u{1F4DA}", (s) => (s.planHistory || []).length >= 3 && s.workouts.length >= 24),
+    B("erstes_training", "training", "Erster Schritt", "Erstes Training gespeichert", "\u{1F3C1}", (s) => sessionWorkouts(s.workouts).length >= 1),
+    B("zehn_trainings", "training", "Zehn im Kasten", "10 Trainings", "\u{1F51F}", (s) => sessionWorkouts(s.workouts).length >= 10),
+    B("25_trainings", "training", "Viertelhundert", "25 Trainings", "\u{1F3AF}", (s) => sessionWorkouts(s.workouts).length >= 25),
+    B("fuenfzig_trainings", "training", "Halbes Hundert", "50 Trainings", "\u{1F3CB}\uFE0F", (s) => sessionWorkouts(s.workouts).length >= 50),
+    B("hundert_trainings", "training", "Hundert", "100 Trainings", "\u{1F4AF}", (s) => sessionWorkouts(s.workouts).length >= 100),
+    B("250_trainings", "training", "Eisenroutine", "250 Trainings", "\u{1F6E1}\uFE0F", (s) => sessionWorkouts(s.workouts).length >= 250),
+    B("500_trainings", "training", "Unaufhaltsam", "500 Trainings", "\u{1F451}", (s) => sessionWorkouts(s.workouts).length >= 500),
+    B("meso_fertig", "training", "Block abgeschlossen", "Ersten Mesozyklus beendet", "\u{1F4E6}", (s) => (s.planHistory || []).length >= 1 && sessionWorkouts(s.workouts).length >= 8),
+    B("meso_3", "training", "Drei Bl\xF6cke", "Drei Mesozyklen beendet", "\u{1F4DA}", (s) => (s.planHistory || []).length >= 3 && sessionWorkouts(s.workouts).length >= 24),
     B("quick_5", "training", "Improvisiert", "5 Schnelltrainings", "\u26A1", (s) => s.workouts.filter((w) => w.dayId === "schnell").length >= 5),
     B("variety_25", "training", "Vielseitig", "25 verschiedene \xDCbungen", "\u{1F9E9}", (s) => distinctExercises(s) >= 25),
     B("variety_60", "training", "Bewegungsbibliothek", "60 verschiedene \xDCbungen", "\u{1F4D6}", (s) => distinctExercises(s) >= 60),
     B("alle_muskeln", "training", "Ganzk\xF6rper", "Alle 10 Muskelgruppen in einer Woche", "\u{1FAC0}", (s) => allMusclesInWeek(s)),
     // Kraft & Volumen
-    B("erster_rekord", "kraft", "Neue Bestleistung", "Erste pers\xF6nliche Bestleistung", "\u{1F947}", (s) => s.workouts.length >= 2 && personalRecords(s.workouts).length >= 1),
+    B("erster_rekord", "kraft", "Neue Bestleistung", "Erste pers\xF6nliche Bestleistung", "\u{1F947}", (s) => sessionWorkouts(s.workouts).length >= 2 && personalRecords(s.workouts).length >= 1),
     B("pr_10", "kraft", "Rekordj\xE4ger", "10 Steigerungen der Bestleistung", "\u{1F3C6}", (s, ctx) => prCount(s, ctx) >= 10),
     B("pr_50", "kraft", "St\xE4rker als gestern", "50 Steigerungen der Bestleistung", "\u{1F680}", (s, ctx) => prCount(s, ctx) >= 50),
     B("pr_day_3", "kraft", "Rekordtag", "3 Steigerungen in einem Training", "\u{1F386}", (s, ctx) => ctx.board.bestDay >= 3),
@@ -9094,10 +9472,22 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     B("gewicht_60", "alltag", "Datenfreund", "60 Gewichtseintr\xE4ge", "\u{1F4C8}", (s) => s.bodyLogs.length >= 60),
     B("mobility_10", "alltag", "Geschmeidig", "10 Mobilit\xE4ts-Routinen", "\u{1F938}", (s) => (s.mobilityLogs || []).length >= 10),
     B("mobility_50", "alltag", "Gummiband", "50 Mobilit\xE4ts-Routinen", "\u{1F9D8}\u200D\u2642\uFE0F", (s) => (s.mobilityLogs || []).length >= 50),
+    // Routine & Gewohnheiten
+    B("routine_start", "routine", "Routine gestartet", "Erste eigene Gewohnheit abgehakt", "\u{1F331}", (s, ctx) => ctx.routine.done >= 1),
+    B("routine_50", "routine", "F\xFCnfzig Haken", "50 Gewohnheiten abgehakt", "\u2705", (s, ctx) => ctx.routine.done >= 50),
+    B("routine_250", "routine", "Alltagsheld", "250 Gewohnheiten abgehakt", "\u{1F9F9}", (s, ctx) => ctx.routine.done >= 250),
+    B("routine_1000", "routine", "Tausend kleine Schritte", "1000 Gewohnheiten abgehakt", "\u{1FA9C}", (s, ctx) => ctx.routine.done >= 1e3),
+    B("routine_streak_7", "routine", "Eine Woche Routine", "Eine Gewohnheit 7 Tage in Folge", "\u{1F4FF}", (s, ctx) => ctx.routine.streak >= 7),
+    B("routine_streak_30", "routine", "Gewohnheit verankert", "Eine Gewohnheit 30 Tage in Folge", "\u2693", (s, ctx) => ctx.routine.streak >= 30),
+    B("routine_streak_66", "routine", "Automatisch", "Eine Gewohnheit 66 Tage in Folge", "\u{1F9F2}", (s, ctx) => ctx.routine.streak >= 66),
+    B("routine_perfect_1", "routine", "Routine komplett", "Einen Tag die ganze Routine geschafft", "\u{1F5C2}\uFE0F", (s, ctx) => ctx.routine.perfectDays >= 1),
+    B("routine_perfect_10", "routine", "Zehn runde Tage", "10 Tage die ganze Routine geschafft", "\u{1F39B}\uFE0F", (s, ctx) => ctx.routine.perfectDays >= 10),
+    B("routine_perfect_50", "routine", "Uhrwerk", "50 Tage die ganze Routine geschafft", "\u23F0", (s, ctx) => ctx.routine.perfectDays >= 50),
+    B("routine_five", "routine", "F\xFCnf Gewohnheiten", "F\xFCnf aktive Gewohnheiten in der Routine", "\u{1F590}\uFE0F", (s) => activeRoutines(s).length >= 5),
     B("masse_5", "alltag", "Ma\xDFband", "5 Messungen der K\xF6rperma\xDFe", "\u{1F4CF}", (s) => (s.measurements || []).length >= 5),
     // Besondere Momente
-    B("frueh", "special", "Fr\xFChaufsteher", "Training vor 8 Uhr beendet", "\u{1F305}", (s) => s.workouts.some((w) => w.finishedAt && new Date(w.finishedAt).getHours() < 8)),
-    B("nachteule", "special", "Nachteule", "Training nach 21 Uhr beendet", "\u{1F989}", (s) => s.workouts.some((w) => w.finishedAt && new Date(w.finishedAt).getHours() >= 21)),
+    B("frueh", "special", "Fr\xFChaufsteher", "Training vor 8 Uhr beendet", "\u{1F305}", (s) => sessionWorkouts(s.workouts).some((w) => w.finishedAt && new Date(w.finishedAt).getHours() < 8)),
+    B("nachteule", "special", "Nachteule", "Training nach 21 Uhr beendet", "\u{1F989}", (s) => sessionWorkouts(s.workouts).some((w) => w.finishedAt && new Date(w.finishedAt).getHours() >= 21)),
     B("wochenende", "special", "Wochenendkrieger", "Samstag und Sonntag trainiert", "\u{1F6E1}\uFE0F", (s) => weekendWarrior(s)),
     B("comeback", "special", "Comeback", "Nach 2 Wochen Pause zur\xFCck", "\u{1F501}", (s) => comeback(s)),
     B("doppelschicht", "special", "Doppelschicht", "Zwei Trainings an einem Tag", "\u26A1\u26A1", (s) => doubleDay(s)),
@@ -9110,9 +9500,9 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     B("level_20", "level", "Level 20", "Maschine erreicht", "\u{1F916}", (s, ctx) => ctx.level >= 20)
   ];
   function badgeContext(s, today = toISODate(), extra = {}) {
-    const ctx = { streak: dailyStreak(s, today), perfectDays: 0, fullWeeks: 0, level: extra.level || 1, challengesDone: extra.challengesDone || 0, board: recordBoard(s, today) };
+    const ctx = { streak: dailyStreak(s, today), perfectDays: 0, fullWeeks: 0, level: extra.level || 1, challengesDone: extra.challengesDone || 0, board: recordBoard(s, today), routine: routineContext(s, today) };
     if (extra.isPerfectDay) {
-      const days = /* @__PURE__ */ new Set([...s.workouts.map((w) => w.date), ...(s.checkins || []).map((c) => c.date)]);
+      const days = /* @__PURE__ */ new Set([...s.workouts.map((w) => w.date), ...(s.checkins || []).map((c) => c.date), ...Object.keys(s.routineLog || {})]);
       ctx.perfectDays = [...days].filter((d) => extra.isPerfectDay(s, d)).length;
     }
     if (s.plan) {
@@ -9128,6 +9518,13 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       ctx.fullWeeks = n;
     }
     return ctx;
+  }
+  function routineContext(s, today) {
+    const log = s.routineLog || {};
+    const done = Object.values(log).reduce((a2, l2) => a2 + (l2?.length || 0), 0);
+    const streak = Math.max(0, ...activeRoutines(s).map((r) => routineStreak(s, r, today)), 0);
+    const perfectDays2 = Object.keys(log).filter((d) => d <= today && routineDayStatus(s, d).all).length;
+    return { done, streak, perfectDays: perfectDays2 };
   }
   function badgeStatus(s, today = toISODate(), extra = {}) {
     const ctx = badgeContext(s, today, extra);
@@ -9440,11 +9837,12 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
   }
 
   // src/engine/goals.js
-  var XP = { workoutBase: 50, perSet: 8, pr: 25, rankUp: 40, cardioPerMin: 2, checkin: 10, food: 15, water: 5, weight: 5, mobility: 15, perfectDay: 40 };
   function dailyGoals(s, today = toISODate()) {
     const goals = [];
+    const routineOnly = s.settings?.focus === "routine";
     const plan = s.plan;
-    const workoutToday = s.workouts.some((w) => w.date === today);
+    const workoutToday = s.workouts.some((w) => w.date === today && !isQuickLog(w));
+    const quickToday = s.workouts.some((w) => w.date === today && isQuickLog(w));
     const cardioToday = s.cardioLogs.some((c) => c.date === today);
     const mobilityToday = (s.mobilityLogs || []).includes(today);
     const checkin = (s.checkins || []).some((c) => c.date === today);
@@ -9452,17 +9850,32 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const entries = (s.foodLog?.[today] || []).length;
     const water = s.waterLog?.[today] || 0;
     const weight = s.bodyLogs.some((b2) => b2.date === today);
-    goals.push({ id: "checkin", label: "Check-in machen", hint: "Schlaf, Stress, Energie", xp: XP.checkin, done: checkin, href: "#/heute", act: "checkin" });
+    goals.push({ id: "checkin", label: "Check-in machen", hint: "Schlaf, Stress, Energie", xp: XP.checkin, done: checkin, href: "#/heute", act: "checkin", optional: routineOnly });
     const next = plan ? nextSession(plan, s.workouts, today) : null;
     if (next && (next.kind === "heute" || next.kind === "nachholen")) {
-      goals.push({ id: "training", label: `Training: ${next.day.name}`, hint: `${next.day.exercises.length} \xDCbungen`, xp: XP.workoutBase, done: workoutToday, href: `#/workout/${next.day.id}` });
+      goals.push({ id: "training", label: `Training: ${next.day.name}`, hint: `${next.day.exercises.length} \xDCbungen`, xp: XP.workoutBase, done: workoutToday, href: `#/workout/${next.day.id}`, optional: routineOnly });
     } else {
-      goals.push({ id: "bewegung", label: "Bewegung heute", hint: "Cardio, Mobilit\xE4t oder Schnelltraining", xp: XP.mobility, done: workoutToday || cardioToday || mobilityToday, href: "#/schnell" });
+      goals.push({ id: "bewegung", label: "Bewegung heute", hint: "Cardio, Mobilit\xE4t, Schnelltraining oder ein paar S\xE4tze", xp: XP.mobility, done: workoutToday || cardioToday || mobilityToday || quickToday, href: "#/schnell", optional: routineOnly });
     }
-    goals.push({ id: "food", label: "Ern\xE4hrung erfassen", hint: "mindestens 3 Eintr\xE4ge", xp: XP.food, done: entries >= 3 || food.kcal >= 800, href: "#/ernaehrung" });
-    goals.push({ id: "water", label: "Genug trinken", hint: "6 Gl\xE4ser (1,5 l)", xp: XP.water, done: water >= 1500, href: "#/ernaehrung" });
-    goals.push({ id: "mobility", label: "Mobilit\xE4t", hint: "10 Minuten", xp: XP.mobility, done: mobilityToday, href: "#/heute", act: "mobility" });
+    goals.push({ id: "food", label: "Ern\xE4hrung erfassen", hint: "mindestens 3 Eintr\xE4ge", xp: XP.food, done: entries >= 3 || food.kcal >= 800, href: "#/ernaehrung", optional: routineOnly });
+    goals.push({ id: "water", label: "Genug trinken", hint: "6 Gl\xE4ser (1,5 l)", xp: XP.water, done: water >= 1500, href: "#/ernaehrung", optional: routineOnly });
+    goals.push({ id: "mobility", label: "Mobilit\xE4t", hint: "10 Minuten", xp: XP.mobility, done: mobilityToday, href: "#/heute", act: "mobility", optional: routineOnly });
     goals.push({ id: "weight", label: "Wiegen", hint: "morgens, n\xFCchtern", xp: XP.weight, done: weight, href: "#/heute", act: "weight", optional: true });
+    for (const r of routinesForDay(s, today)) {
+      goals.push({
+        id: `routine:${r.id}`,
+        routineId: r.id,
+        icon: r.icon,
+        daypart: r.daypart,
+        label: r.name,
+        hint: r.weekTarget ? `${r.weekDone}/${r.weekTarget} diese Woche` : DAYPART_BY_ID[r.daypart]?.name || "Routine",
+        xp: r.xp,
+        done: r.done,
+        href: "#/routine",
+        act: "routine",
+        optional: !r.counts
+      });
+    }
     return goals;
   }
   function isPerfectDay(s, date) {
@@ -9502,7 +9915,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const days = [];
     for (let d = from; d <= to2; d = addDays(d, 1)) days.push(d);
     return {
-      workouts: workouts.length,
+      workouts: workouts.filter((w) => !isQuickLog(w)).length,
       sets: workouts.reduce((a2, w) => a2 + totalSets(w), 0),
       tonnage: workouts.reduce((a2, w) => a2 + totalTonnage(w), 0),
       cardioMin: cardio.reduce((a2, c) => a2 + (c.minutes || 0), 0),
@@ -9513,10 +9926,12 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       mobility: (s.mobilityLogs || []).filter((d) => inP(d)).length,
       weights: s.bodyLogs.filter((b2) => inP(b2.date)).length,
       perfectDays: days.filter((d) => d <= toISODate() && isPerfectDay(s, d)).length,
+      routineDone: routineCompletions(s, from, to2),
+      routinePerfect: routinePerfectDays(s, from, to2),
       prs,
       legSets,
       quick: workouts.filter((w) => w.dayId === "schnell").length,
-      early: workouts.filter((w) => w.finishedAt && new Date(w.finishedAt).getHours() < 9).length,
+      early: workouts.filter((w) => !isQuickLog(w) && w.finishedAt && new Date(w.finishedAt).getHours() < 9).length,
       variety: ex2.size,
       activeDays: days.filter((d) => workouts.some((w) => w.date === d) || cardio.some((c) => c.date === d) || (s.mobilityLogs || []).includes(d)).length
     };
@@ -9538,7 +9953,9 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     C("weigh", "Waage", "scale", "weights", () => 4, 25, (t2) => `${t2}\xD7 wiegen`),
     C("early", "Fr\xFChstart", "sun", "early", () => 1, 30, () => "Ein Training vor 9 Uhr beenden"),
     C("variety", "Abwechslung", "refresh", "variety", () => 15, 40, (t2) => `${t2} verschiedene \xDCbungen`),
-    C("active_days", "Jeden Tag etwas", "flame", "activeDays", () => 5, 60, (t2) => `An ${t2} Tagen aktiv (Training, Cardio oder Mobilit\xE4t)`)
+    C("active_days", "Jeden Tag etwas", "flame", "activeDays", () => 5, 60, (t2) => `An ${t2} Tagen aktiv (Training, Cardio oder Mobilit\xE4t)`),
+    C("routine_done", "Routine durchziehen", "check", "routineDone", (p2) => Math.max(10, (p2.routineCount || 1) * 5), 50, (t2) => `${t2} Gewohnheiten abhaken`, (p2) => (p2.routineCount || 0) > 0),
+    C("routine_perfect", "Runde Tage", "star", "routinePerfect", () => 4, 60, (t2) => `An ${t2} Tagen die ganze Routine schaffen`, (p2) => (p2.routineCount || 0) > 0)
   ];
   var MONTHLY_POOL = [
     C("m_workouts", "Trainingsmonat", "dumbbell", "workouts", (p2) => Math.max(8, (p2.strengthDays || 3) * 4), 200, (t2) => `${t2} Trainings in diesem Monat`),
@@ -9546,7 +9963,9 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     C("m_perfect", "Zehn perfekte Tage", "star", "perfectDays", () => 10, 250, (t2) => `${t2} perfekte Tage im Monat`),
     C("m_tonnage", "Schwerlast", "weight", "tonnage", (p2) => Math.round((p2.weightKg || 75) * 500 / 5e3) * 5e3, 200, (t2) => `${t2.toLocaleString("de-DE")} kg im Monat bewegen`),
     C("m_active", "Zwanzig aktive Tage", "flame", "activeDays", () => 20, 220, (t2) => `An ${t2} Tagen im Monat aktiv`),
-    C("m_checkins", "Achtsam", "sun", "checkins", () => 20, 150, (t2) => `${t2} Check-ins im Monat`)
+    C("m_checkins", "Achtsam", "sun", "checkins", () => 20, 150, (t2) => `${t2} Check-ins im Monat`),
+    C("m_routine", "Gewohnheitsmonat", "check", "routineDone", (p2) => Math.max(40, (p2.routineCount || 1) * 20), 200, (t2) => `${t2} Gewohnheiten im Monat abhaken`, (p2) => (p2.routineCount || 0) > 0),
+    C("m_routine_perfect", "F\xFCnfzehn runde Tage", "star", "routinePerfect", () => 15, 220, (t2) => `An ${t2} Tagen im Monat die ganze Routine schaffen`, (p2) => (p2.routineCount || 0) > 0)
   ];
   function hash(str) {
     let h2 = 2166136261;
@@ -9566,16 +9985,21 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const value = Math.min(target, metrics[c.metric] || 0);
     return { id: c.id, name: c.name, icon: c.icon, desc: c.desc(target), target, value, xp: c.xp, done: value >= target, progress: target ? value / target : 0 };
   }
+  function challengeProfile(s) {
+    return { ...s.profile || {}, routineCount: activeRoutines(s).length };
+  }
   function weeklyChallenges(s, weekStart = startOfWeek(toISODate())) {
     const m = periodMetrics(s, weekStart, addDays(weekStart, 6));
-    return pick(WEEKLY_POOL, s.profile || {}, `w:${weekStart}:${s.meta?.createdAt || ""}`, 3).map((c) => materialize(c, s.profile || {}, m));
+    const p2 = challengeProfile(s);
+    return pick(WEEKLY_POOL, p2, `w:${weekStart}:${s.meta?.createdAt || ""}`, 3).map((c) => materialize(c, p2, m));
   }
   function monthlyChallenge(s, monthKey = toISODate().slice(0, 7)) {
     const from = `${monthKey}-01`;
     const d = new Date(Number(monthKey.slice(0, 4)), Number(monthKey.slice(5, 7)), 0);
     const to2 = toISODate(d);
     const m = periodMetrics(s, from, to2);
-    return materialize(pick(MONTHLY_POOL, s.profile || {}, `m:${monthKey}:${s.meta?.createdAt || ""}`, 1)[0], s.profile || {}, m);
+    const p2 = challengeProfile(s);
+    return materialize(pick(MONTHLY_POOL, p2, `m:${monthKey}:${s.meta?.createdAt || ""}`, 1)[0], p2, m);
   }
   function challengeXP(s, today = toISODate()) {
     const first = s.meta?.createdAt || today;
@@ -9645,7 +10069,8 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     for (const ml2 of Object.values(s.waterLog || {})) if (ml2 >= 1500) xp += XP.water;
     xp += s.bodyLogs.length * XP.weight;
     xp += (s.mobilityLogs || []).length * XP.mobility;
-    const days = /* @__PURE__ */ new Set([...s.workouts.map((w) => w.date), ...(s.checkins || []).map((c) => c.date)]);
+    xp += routineXP(s);
+    const days = /* @__PURE__ */ new Set([...s.workouts.map((w) => w.date), ...(s.checkins || []).map((c) => c.date), ...Object.keys(s.routineLog || {})]);
     for (const d of days) if (isPerfectDay(s, d)) xp += XP.perfectDay;
     return xp;
   }
@@ -9668,7 +10093,8 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       foodLog: { [today]: s.foodLog?.[today] || [] },
       waterLog: { [today]: s.waterLog?.[today] || 0 },
       bodyLogs: s.bodyLogs.filter((b2) => b2.date === today),
-      mobilityLogs: (s.mobilityLogs || []).filter((d) => d === today)
+      mobilityLogs: (s.mobilityLogs || []).filter((d) => d === today),
+      routineLog: { [today]: s.routineLog?.[today] || [] }
     };
     return baseXP(sub);
   }
@@ -9676,6 +10102,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const done = goals.filter((g2) => !g2.optional && g2.done).length;
     const total = goals.filter((g2) => !g2.optional).length;
     const hour = (/* @__PURE__ */ new Date()).getHours();
+    if (!total) return "Heute ist nichts Pflicht \u2013 jedes H\xE4kchen ist trotzdem ein Plus.";
     if (done === total) return "Perfekter Tag. Alles erledigt \u2013 mehr geht nicht.";
     if (streak >= 7 && done === 0 && hour >= 18) return `${streak} Tage Serie \u2013 ein kleiner Schritt heute reicht, um sie zu halten.`;
     if (streak >= 3 && done === 0) return `${streak} Tage in Folge. Heute weitermachen?`;
@@ -9850,6 +10277,12 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       </div>`;
     }).join("")}</div>`;
   }
+  function ring(value, max, { label = "", cls = "" } = {}) {
+    const r = 36;
+    const c = 2 * Math.PI * r;
+    const p2 = max ? Math.min(1, value / max) : 0;
+    return `<div class="ring ${cls} ${p2 >= 1 ? "ok" : ""}"><svg viewBox="0 0 84 84"><circle class="track" cx="42" cy="42" r="${r}"/><circle class="fill" cx="42" cy="42" r="${r}" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${(c * (1 - p2)).toFixed(1)}"/></svg><div class="ring-label"><strong>${value}<span style="font-size:.7em;color:var(--muted)">/${max}</span></strong><span>${label}</span></div></div>`;
+  }
 
   // src/ui/bodymap.js
   var FRONT = [
@@ -9886,6 +10319,158 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
   }
   function bodyMap(primary = [], secondary = []) {
     return `<div class="bodymap-wrap">${view(FRONT, primary, secondary, "vorn")}${view(BACK, primary, secondary, "hinten")}</div>`;
+  }
+
+  // src/ui/quicklog.js
+  var SUGGESTIONS = ["liegestuetze", "liegestuetze_breit", "liegestuetze_eng", "klimmzuege", "kniebeuge_bw", "plank", "crunches", "dips"];
+  var REP_CHIPS = [5, 10, 15, 20, 25, 30];
+  var TIME_CHIPS = [20, 30, 45, 60, 90, 120];
+  var isTime = (ex2) => ex2?.load === "time";
+  var needsWeight = (ex2) => !["bw", "band", "time"].includes(ex2?.load);
+  var unitLabel = (ex2) => isTime(ex2) ? "Sekunden" : "Wiederholungen";
+  function isNewRecord(s, exId, set) {
+    const best = bestSet({ sets: [set] });
+    if (!best) return false;
+    const prev = personalRecords(s.workouts).find((r) => r.exId === exId);
+    if (!prev) return true;
+    return best.e1rm > 0 ? best.e1rm > prev.e1rm + 0.05 : prev.e1rm === 0 && best.reps > prev.reps;
+  }
+  function openQuickLog({ exId = null, date = toISODate(), after = () => {
+  } } = {}) {
+    const view3 = { exId, date, q: "" };
+    const m = openModal('<div id="ql-body"></div>', { title: "Schnell eintragen" });
+    const render = () => {
+      m.querySelector("#ql-body").innerHTML = view3.exId ? formHTML(view3) : pickerHTML(view3);
+      bind2();
+      if (view3.exId) m.querySelector("#ql-reps")?.focus();
+    };
+    const bind2 = () => {
+      m.querySelector("#ql-q")?.addEventListener("input", (e) => {
+        view3.q = e.target.value;
+        const v = e.target.value;
+        render();
+        const inp = m.querySelector("#ql-q");
+        inp.focus();
+        inp.setSelectionRange(v.length, v.length);
+      });
+      m.querySelectorAll("[data-pick]").forEach((b2) => b2.addEventListener("click", () => {
+        view3.exId = b2.dataset.pick;
+        render();
+      }));
+      m.querySelector('[data-act="change"]')?.addEventListener("click", () => {
+        view3.exId = null;
+        view3.q = "";
+        render();
+      });
+      m.querySelectorAll("[data-reps]").forEach((b2) => b2.addEventListener("click", () => {
+        m.querySelector("#ql-reps").value = b2.dataset.reps;
+        updateXpHint();
+      }));
+      m.querySelectorAll("[data-sets]").forEach((b2) => b2.addEventListener("click", () => {
+        m.querySelector("#ql-sets").value = b2.dataset.sets;
+        updateXpHint();
+      }));
+      m.querySelector("#ql-sets")?.addEventListener("input", updateXpHint);
+      m.querySelector("#ql-form")?.addEventListener("submit", submit);
+    };
+    const updateXpHint = () => {
+      const sets2 = Math.max(1, Math.min(20, num(m.querySelector("#ql-sets")?.value, 1)));
+      const el2 = m.querySelector("#ql-xp");
+      if (el2) el2.textContent = `+${sets2 * XP.perSet}`;
+    };
+    const submit = (e) => {
+      e.preventDefault();
+      const s = get();
+      const ex2 = getExercise(view3.exId);
+      const reps = num(m.querySelector("#ql-reps").value);
+      const sets2 = Math.max(1, Math.min(20, num(m.querySelector("#ql-sets").value, 1)));
+      const weight = num(m.querySelector("#ql-weight")?.value);
+      const day = m.querySelector("#ql-date").value || toISODate();
+      if (!reps || reps < 1) return toast(`Bitte ${unitLabel(ex2)} eintragen.`, "warn");
+      if (needsWeight(ex2) && !weight) return toast("Bitte das Gewicht eintragen.", "warn");
+      const record = day === toISODate() && isNewRecord(s, view3.exId, { weight, reps });
+      update((st2) => addQuickSets(st2, { exId: view3.exId, reps, weight, sets: sets2, date: day, records: record ? 1 : 0 }));
+      saveNow();
+      closeModal();
+      const what = `${sets2 > 1 ? `${sets2} \xD7 ` : ""}${reps}${weight ? ` \xD7 ${fmtKg(weight)}` : ""} ${ex2.name}`;
+      if (record) {
+        confetti({ count: 90 });
+        toast(`Bestleistung! ${what} \xB7 +${sets2 * XP.perSet + XP.pr} XP`, "ok");
+      } else {
+        toast(`${what} eingetragen \xB7 +${sets2 * XP.perSet} XP`, "ok");
+      }
+      after();
+    };
+    render();
+    return m;
+  }
+  function pickerHTML(view3) {
+    const s = get();
+    const q2 = view3.q.trim().toLowerCase();
+    const recent = recentQuickExercises(s, 6).map((id) => getExercise(id)).filter(Boolean);
+    const quick = [...recent, ...SUGGESTIONS.map((id) => getExercise(id)).filter(Boolean)].filter((e, i, arr) => arr.findIndex((x) => x.id === e.id) === i).slice(0, 8);
+    const results = q2 ? EXERCISES.filter((e) => e.name.toLowerCase().includes(q2) || e.en.toLowerCase().includes(q2)).sort((a2, b2) => Number(isAvailable(b2, s.profile)) - Number(isAvailable(a2, s.profile))).slice(0, 25) : [];
+    return `<p class="muted small">Einzelne S\xE4tze festhalten, ohne ein Training zu starten. Z\xE4hlt f\xFCr Volumen, Bestleistungen, XP und deine Serie.</p>
+    <div class="chips">${quick.map((e) => `<button class="chip-btn" data-pick="${e.id}">${icon("bolt", { size: 15 })} ${esc(e.name)}</button>`).join("")}</div>
+    <label class="field"><span>Andere \xDCbung suchen</span><input id="ql-q" class="search" placeholder="z. B. Liegest\xFCtze, Kniebeuge \u2026" value="${esc(view3.q)}" autocomplete="off"></label>
+    ${q2 ? results.length ? `<ul class="list tappable">${results.map((e) => `<li><button class="link" data-pick="${e.id}"><strong>${esc(e.name)}</strong><div class="muted small">${esc(e.en)}${e.load === "bw" ? " \xB7 K\xF6rpergewicht" : ""}</div></button></li>`).join("")}</ul>` : '<p class="muted">Nichts gefunden.</p>' : ""}`;
+  }
+  function formHTML(view3) {
+    const s = get();
+    const ex2 = getExercise(view3.exId);
+    const today = toISODate();
+    const chips = isTime(ex2) ? TIME_CHIPS : REP_CHIPS;
+    const pr2 = personalRecords(s.workouts).find((r) => r.exId === view3.exId);
+    const lastEntry = quickLogSummary(s, view3.date).find((e) => e.exId === view3.exId);
+    const week = repsInPeriod(s, view3.exId, addDays(today, -6), today);
+    return `<div class="ql-head">
+      <div><strong>${esc(ex2.name)}</strong><div class="muted small">${esc(ex2.en)}${pr2 ? ` \xB7 Bestleistung ${pr2.e1rm ? `${fmtKg(pr2.weight)} \xD7 ${pr2.reps}` : `${pr2.reps} ${isTime(ex2) ? "Sekunden" : "Wdh."}`}` : ""}</div></div>
+      <button class="btn btn-small btn-ghost" type="button" data-act="change">\xC4ndern</button>
+    </div>
+    <form id="ql-form" class="form">
+      <label class="field"><span>${unitLabel(ex2)}</span><input id="ql-reps" type="number" inputmode="numeric" min="1" max="999" required value="${lastEntry?.reps || ""}" placeholder="z. B. 10"></label>
+      <div class="chips">${chips.map((n) => `<button type="button" class="chip-btn" data-reps="${n}">${n}</button>`).join("")}</div>
+      <div class="grid2">
+        <label class="field"><span>S\xE4tze</span><input id="ql-sets" type="number" inputmode="numeric" min="1" max="20" value="1"></label>
+        ${needsWeight(ex2) ? `<label class="field"><span>Gewicht (kg)</span><input id="ql-weight" type="number" inputmode="decimal" step="0.5" min="0" value="${lastEntry?.weight || ""}"></label>` : isTime(ex2) ? "" : `<label class="field"><span>Zusatzgewicht (kg, optional)</span><input id="ql-weight" type="number" inputmode="decimal" step="0.5" min="0" value="${lastEntry?.weight || ""}"></label>`}
+      </div>
+      <div class="chips">${[1, 2, 3, 4].map((n) => `<button type="button" class="chip-btn" data-sets="${n}">${n} ${n > 1 ? "S\xE4tze" : "Satz"}</button>`).join("")}</div>
+      <label class="field"><span>Datum</span><input id="ql-date" type="date" value="${view3.date}" max="${today}"></label>
+      <div class="row end"><button class="btn btn-primary btn-big" type="submit">${icon("check", { size: 18 })} Eintragen \xB7 <span id="ql-xp">+${XP.perSet}</span> XP</button></div>
+      ${lastEntry ? `<p class="hint">Heute schon eingetragen: ${lastEntry.sets} \xD7 ${lastEntry.reps}${lastEntry.weight ? ` \xD7 ${fmtKg(lastEntry.weight)}` : ""} (${lastEntry.totalReps} gesamt).</p>` : ""}
+      ${week ? `<p class="hint">Letzte 7 Tage: ${week} ${isTime(ex2) ? "Sekunden" : "Wiederholungen"} insgesamt.</p>` : ""}
+    </form>`;
+  }
+  function quickLogCardHTML(s, date = toISODate()) {
+    const items = quickLogSummary(s, date);
+    if (!items.length) return "";
+    const total = items.reduce((a2, e) => a2 + e.totalReps, 0);
+    return `<div class="card">
+    <div class="row between"><div class="card-title">${icon("bolt", { size: 16 })} Heute eingetragen</div><button class="btn btn-small btn-ghost" data-act="quicklog">${icon("plus", { size: 16 })} Mehr</button></div>
+    <ul class="ql-list">
+      ${items.map((e) => {
+      const ex2 = getExercise(e.exId);
+      const time = ex2?.load === "time";
+      return `<li>
+          <span class="ql-name"><strong>${esc(ex2?.name || e.exId)}</strong><span class="muted small">${e.equal ? `${e.sets} \xD7 ${e.reps}` : `${e.sets} S\xE4tze`}${e.weight ? ` \xD7 ${fmtKg(e.weight)}` : ""} \xB7 ${e.totalReps} ${time ? "Sekunden" : "Wdh."} gesamt</span></span>
+          <button class="btn-icon" data-ql-del="${esc(e.exId)}" aria-label="${esc(ex2?.name || e.exId)} l\xF6schen">${icon("trash", { size: 16 })}</button>
+        </li>`;
+    }).join("")}
+    </ul>
+    <p class="muted small">${total} Wiederholungen gesamt \xB7 z\xE4hlt f\xFCr Volumen, Bestleistungen und XP.</p>
+  </div>`;
+  }
+  function bindQuickLogCard(root2, { date = toISODate(), after = () => {
+  } } = {}) {
+    root2.querySelectorAll('[data-act="quicklog"]').forEach((b2) => b2.addEventListener("click", () => openQuickLog({ date, after })));
+    root2.querySelectorAll("[data-ql-del]").forEach((b2) => b2.addEventListener("click", async () => {
+      const ex2 = getExercise(b2.dataset.qlDel);
+      if (!await confirmDialog(`\u201E${ex2?.name || b2.dataset.qlDel}\u201C aus dem heutigen Schnelleintrag entfernen?`, { ok: "Entfernen", danger: true })) return;
+      update((st2) => removeQuickEntry(st2, date, b2.dataset.qlDel));
+      saveNow();
+      toast("Eintrag entfernt.");
+      after();
+    }));
   }
 
   // src/ui/uebungen.js
@@ -9964,7 +10549,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
      <p class="small"><strong>${ex2.primary.map((x) => MUSCLE_BY_ID[x].name).join(", ")}</strong>${ex2.secondary.length ? `<span class="muted"> \xB7 Nebenmuskeln: ${ex2.secondary.map((x) => MUSCLE_BY_ID[x].name).join(", ")}</span>` : ""}</p>
      ${ex2.cue ? `<p class="cue">${esc(ex2.cue)}</p>` : ""}
      ${ex2.contra.length ? `<p class="muted small">Vorsicht bei: ${ex2.contra.map((c) => ({ knie: "Knie", schulter: "Schulter", ruecken_unten: "unterer R\xFCcken", handgelenk: "Handgelenk", huefte: "H\xFCfte" })[c] || c).join(", ")}</p>` : ""}
-     <a class="btn btn-small" href="${videoSearchUrl(ex2)}" target="_blank" rel="noopener">Technik-Videos ansehen \u2197</a>
+     <div class="row gap wrap"><button class="btn btn-small btn-primary" data-act="log">${icon("bolt", { size: 16 })} S\xE4tze eintragen</button><a class="btn btn-small" href="${videoSearchUrl(ex2)}" target="_blank" rel="noopener">Technik-Videos ansehen \u2197</a></div>
      ${pr2 ? `<h3>Deine Bestleistung</h3><div class="record-hint">${medal(rec?.rank || null, { size: "s" })}<span>${pr2.e1rm ? `${fmtKg(pr2.weight)} \xD7 ${pr2.reps} \xB7 e1RM ${String(pr2.e1rm).replace(".", ",")} kg` : `${pr2.reps} Wiederholungen`} \xB7 ${formatDate(pr2.date)}${rec?.rank ? `<br><span class="muted">Rang ${esc(rec.rank.name)} \xB7 ${rec.score} Punkte${rec.rank.next ? ` \xB7 noch ${rec.rank.toNext} bis ${esc(rec.rank.next.name)}` : ""}${rec.improvements ? ` \xB7 ${rec.improvements}\xD7 gesteigert` : ""}</span>` : rec ? `<br><span class="muted">${rec.improvements ? `${rec.improvements}\xD7 gesteigert` : "Erster Eintrag"}</span>` : ""}</span></div>` : ""}
      ${hist.length ? `<h3>Letzte Einheiten</h3><ul class="bullets small">${hist.slice().reverse().map((h2) => `<li>${formatDate(h2.date)}: ${h2.sets.map((x) => `${x.weight ? `${x.weight} kg \xD7 ` : ""}${x.reps}${x.rir != null ? ` @${x.rir}` : ""}`).join(", ")}</li>`).join("")}</ul>` : ""}
      ${e1.length > 1 ? `<p class="muted small">Entwicklung gesch\xE4tztes 1RM: ${e1[0].e1rm} \u2192 ${e1[e1.length - 1].e1rm} kg</p>` : ""}
@@ -9972,6 +10557,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
      ${alts.length ? `<ul class="list tappable">${alts.map((a2) => `<li><button class="link" data-alt="${a2.id}"><strong>${esc(a2.name)}</strong><div class="muted small">${esc(a2.en)} \xB7 ${LOAD_NAMES[a2.load]}</div></button></li>`).join("")}</ul>` : '<p class="muted">Keine passende Alternative mit deiner Ausr\xFCstung.</p>'}`,
       { title: ex2.name }
     );
+    m.querySelector('[data-act="log"]')?.addEventListener("click", () => openQuickLog({ exId }));
     m.querySelectorAll("[data-alt]").forEach((b2) => b2.addEventListener("click", () => {
       if (onPick) onPick(b2.dataset.alt);
       else openExerciseInfo(b2.dataset.alt);
@@ -10117,6 +10703,330 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     return `Noch keine Steigerung diese Woche \xB7 ${serie}`;
   }
 
+  // src/ui/routine.js
+  var ICON_CHOICES = ["check", "tooth", "drop", "bed", "pill", "sun", "moon", "food", "run", "stretch", "book", "note", "leaf", "phone", "home", "chat", "heart", "target", "smile", "star", "calendar", "timer", "bolt", "repeat", "dumbbell", "trophy"];
+  var HISTORY_DAYS = 14;
+  var selected = null;
+  function currentDate() {
+    const today = toISODate();
+    if (!selected || selected > today) selected = today;
+    return selected;
+  }
+  function toggleQuest(id, date, { silent = true } = {}) {
+    const s = get();
+    const r = (s.routines || []).find((x) => x.id === id);
+    let nowDone = false;
+    update((st2) => nowDone = toggleRoutine(st2, id, date), { silent });
+    saveNow();
+    if (nowDone) toast(`${r?.name || "Erledigt"} \xB7 +${r?.xp || 0} XP`, "ok");
+    return nowDone;
+  }
+  function celebrateRoutineDay(s, date) {
+    const st2 = routineDayStatus(s, date);
+    if (!st2.all || date !== toISODate()) return;
+    if (s.meta?.celebrated?.routineDay === date) return;
+    update((x) => {
+      var _a2;
+      (_a2 = x.meta).celebrated || (_a2.celebrated = {});
+      x.meta.celebrated.routineDay = date;
+    }, { silent: true });
+    saveNow();
+    confetti({ count: 90 });
+    toast("Routine komplett \u2013 alles abgehakt!", "ok");
+  }
+  function questRow(r, { date, showStreak = true } = {}) {
+    const s = get();
+    const streak = showStreak ? routineStreak(s, r, date) : 0;
+    return `<button class="quest ${r.done ? "done" : ""}" data-quest="${esc(r.id)}" aria-pressed="${r.done}">
+    <span class="quest-check">${icon("check", { size: 20 })}</span>
+    <span class="quest-icon">${icon(r.icon, { size: 20 })}</span>
+    <span class="quest-text"><strong>${esc(r.name)}</strong><span>${esc(r.weekTarget ? `${r.weekDone}/${r.weekTarget} diese Woche` : scheduleLabel(r))}${r.reminder ? ` \xB7 ${esc(r.reminder)} Uhr` : ""}${r.counts ? "" : " \xB7 z\xE4hlt nicht f\xFCr den perfekten Tag"}</span></span>
+    <span class="quest-right">${streak >= 2 ? `<span class="quest-streak">${icon("flame", { size: 14 })}${streak}</span>` : ""}<span class="xp-chip">+${r.xp}</span></span>
+  </button>`;
+  }
+  function renderRoutine(root2) {
+    const s = get();
+    const today = toISODate();
+    const date = currentDate();
+    const ws2 = startOfWeek(date);
+    const routines = activeRoutines(s);
+    const day = routineDayStatus(s, date);
+    const byPart = DAYPARTS.map((p2) => ({ ...p2, items: day.items.filter((r) => r.daypart === p2.id) })).filter((p2) => p2.items.length);
+    const focusRoutine = s.settings?.focus === "routine";
+    const bestStreak = Math.max(0, ...routines.map((r) => routineStreak(s, r, today)), 0);
+    const doneTotal = Object.values(s.routineLog || {}).reduce((a2, l2) => a2 + (l2?.length || 0), 0);
+    root2.innerHTML = String(html`
+    <section class="page">
+      <header class="page-head">
+        <div><h1>Routine</h1><p class="muted">${routines.length ? `${routines.length} Gewohnheit${routines.length === 1 ? "" : "en"} \xB7 ${doneTotal} mal erledigt${bestStreak >= 2 ? ` \xB7 l\xE4ngste Serie aktuell ${bestStreak} Tage` : ""}` : "Deine Quests f\xFCr den Alltag \u2013 Z\xE4hne putzen, lesen, trinken \u2026"}</p></div>
+        <button class="btn btn-primary" data-act="add">${raw(icon("plus", { size: 18 }))} Gewohnheit</button>
+      </header>
+
+      ${routines.length ? html`
+      <div class="card card-hero routine-hero">
+        <div class="routine-hero-main">
+          ${raw(ring(day.done, Math.max(1, day.total), { label: date === today ? "heute" : formatDate(date, { weekday: false }) }))}
+          <div>
+            <h2>${day.total === 0 ? "Heute frei" : day.all ? "Alles abgehakt" : `${day.total - day.done} offen`}</h2>
+            <p class="small">${date === today ? WEEKDAYS_LONG[weekdayIndex(date)] : formatDate(date)} · ${day.done} von ${day.total} erledigt</p>
+            <p class="muted small">${focusRoutine ? "Fokus: Routine \u2013 deine Gewohnheiten z\xE4hlen f\xFCr den perfekten Tag, Training ist optional." : "Fokus: Training & Routine \u2013 beides z\xE4hlt f\xFCr den perfekten Tag."}</p>
+          </div>
+        </div>
+        <div class="week-picker" role="group" aria-label="Woche">
+          <button class="btn-icon" data-week="-1" aria-label="Woche zurück">${raw(icon("left", { size: 18 }))}</button>
+          ${WEEKDAYS.map((n, i) => {
+      const d = addDays(ws2, i);
+      const st2 = routineDayStatus(s, d);
+      const future = d > today;
+      return html`<button class="wp-day ${d === date ? "sel" : ""} ${d === today ? "today" : ""} ${future ? "future" : ""} ${st2.total && st2.all ? "all" : st2.done ? "part" : ""}" data-date="${d}" ${future ? "disabled" : ""}>
+              <span>${n}</span><i style="--p:${Math.round(st2.progress * 100)}%"></i><span class="wp-num">${st2.total ? `${st2.done}/${st2.total}` : "\u2013"}</span>
+            </button>`;
+    })}
+          <button class="btn-icon" data-week="1" aria-label="Woche vor" ${addDays(ws2, 7) > today ? "disabled" : ""}>${raw(icon("right", { size: 18 }))}</button>
+        </div>
+        ${date !== today ? html`<p class="small"><button class="btn btn-small btn-ghost" data-act="today">Zurück zu heute</button> Du trägst gerade für ${formatDate(date)} nach.</p>` : ""}
+      </div>
+
+      ${byPart.map((p2) => html`<div class="card">
+        <div class="row between"><div class="card-title">${raw(icon(p2.icon, { size: 18 }))} ${p2.name}</div><span class="muted small">${p2.items.filter((r) => r.done).length}/${p2.items.length}</span></div>
+        <div class="quests">${raw(p2.items.map((r) => questRow(r, { date })).join(""))}</div>
+      </div>`)}
+
+      ${day.total === 0 ? html`<div class="card"><p class="muted">Für diesen Tag ist nichts geplant. Genieß die Pause – oder plane eine Gewohnheit für heute ein.</p></div>` : ""}
+
+      <div class="card">
+        <div class="row between"><div class="card-title">Letzte ${HISTORY_DAYS} Tage</div><span class="muted small">Tippen zum Nachtragen</span></div>
+        <div class="habit-grid" style="--cols:${HISTORY_DAYS}">
+          ${routines.map((r) => html`<div class="habit-row">
+            <span class="habit-name">${raw(icon(r.icon, { size: 16 }))} ${r.name}</span>
+            <span class="habit-cells">${Array.from({ length: HISTORY_DAYS }, (_, k) => {
+      const d = addDays(today, -(HISTORY_DAYS - 1 - k));
+      const planned = routinesForDay(s, d).some((x) => x.id === r.id);
+      const done = (s.routineLog?.[d] || []).includes(r.id);
+      return html`<button class="habit-cell ${done ? "done" : planned ? "open" : "off"}" data-cell="${r.id}" data-cell-date="${d}" title="${formatDate(d)} · ${r.name}" aria-label="${r.name} am ${formatDate(d)}"></button>`;
+    })}</span>
+          </div>`)}
+        </div>
+        <div class="habit-legend"><span><i class="done"></i> erledigt</span><span><i class="open"></i> geplant, offen</span><span><i class="off"></i> nicht geplant</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Meine Gewohnheiten</div>
+        <ul class="routine-manage">
+          ${routines.map((r, i) => {
+      const st2 = routineStats(s, r, today);
+      return html`<li>
+              <span class="rm-icon">${raw(icon(r.icon, { size: 18 }))}</span>
+              <span class="rm-text"><strong>${r.name}</strong><span class="muted small">${scheduleLabel(r)} · ${DAYPART_BY_ID[r.daypart]?.name} · +${r.xp} XP${r.reminder ? ` \xB7 ${r.reminder} Uhr` : ""}</span>
+                <span class="rm-stats">${raw(icon("flame", { size: 13 }))} ${st2.streak} · ${Math.round(st2.rate * 100)} % (30 T.) · ${st2.total}× gesamt</span></span>
+              <span class="rm-actions">
+                <button class="btn-icon" data-move="${r.id}" data-dir="-1" aria-label="Nach oben" ${i === 0 ? "disabled" : ""}>${raw(icon("up", { size: 16 }))}</button>
+                <button class="btn-icon" data-move="${r.id}" data-dir="1" aria-label="Nach unten" ${i === routines.length - 1 ? "disabled" : ""}>${raw(icon("down", { size: 16 }))}</button>
+                <button class="btn-icon" data-edit="${r.id}" aria-label="Bearbeiten">${raw(icon("note", { size: 16 }))}</button>
+              </span>
+            </li>`;
+    })}
+        </ul>
+        <div class="row gap wrap"><button class="btn" data-act="add">${raw(icon("plus", { size: 16 }))} Gewohnheit hinzufügen</button><button class="btn btn-ghost" data-act="focus">${raw(icon("settings", { size: 16 }))} Fokus: ${focusRoutine ? "nur Routine" : "Training & Routine"}</button></div>
+      </div>` : html`
+      <div class="card card-accent">
+        <div class="card-title">Mach LMCI zu deiner Routine-App</div>
+        <p>Lege Gewohnheiten an – Zähne putzen, Wasser trinken, lesen, früh ins Bett. Sie erscheinen als Quests auf „Heute“, geben XP, zählen für Serien, Abzeichen und den perfekten Tag.</p>
+        <div class="row gap wrap"><button class="btn btn-primary btn-big" data-act="add">${raw(icon("plus", { size: 18 }))} Erste Gewohnheit</button><button class="btn" data-act="starter">Starter-Set übernehmen</button></div>
+        <p class="muted small">Starter-Set: Zähne putzen (morgens & abends), Glas Wasser nach dem Aufstehen, 20 Minuten lesen, pünktlich ins Bett.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Beliebte Vorlagen</div>
+        <div class="chips">${ROUTINE_TEMPLATES.slice(0, 12).map((t2) => html`<button class="chip-btn" data-tpl="${t2.name}">${raw(icon(t2.icon, { size: 16 }))} ${t2.name}</button>`)}</div>
+      </div>`}
+    </section>`);
+    const refresh = () => {
+      const y2 = window.scrollY;
+      renderRoutine(root2);
+      window.scrollTo({ top: y2 });
+    };
+    root2.querySelectorAll("[data-quest]").forEach((b2) => b2.addEventListener("click", () => {
+      toggleQuest(b2.dataset.quest, date);
+      celebrateRoutineDay(get(), date);
+      refresh();
+    }));
+    root2.querySelectorAll("[data-cell]").forEach((b2) => b2.addEventListener("click", () => {
+      toggleQuest(b2.dataset.cell, b2.dataset.cellDate);
+      celebrateRoutineDay(get(), b2.dataset.cellDate);
+      refresh();
+    }));
+    root2.querySelectorAll("[data-date]").forEach((b2) => b2.addEventListener("click", () => {
+      selected = b2.dataset.date;
+      refresh();
+    }));
+    root2.querySelectorAll("[data-week]").forEach((b2) => b2.addEventListener("click", () => {
+      const next = addDays(date, Number(b2.dataset.week) * 7);
+      selected = next > today ? today : next;
+      refresh();
+    }));
+    root2.querySelector('[data-act="today"]')?.addEventListener("click", () => {
+      selected = today;
+      refresh();
+    });
+    root2.querySelectorAll('[data-act="add"]').forEach((b2) => b2.addEventListener("click", () => openQuestPicker(refresh)));
+    root2.querySelector('[data-act="starter"]')?.addEventListener("click", () => {
+      const names = ["Z\xE4hne putzen (morgens)", "Glas Wasser nach dem Aufstehen", "20 Minuten lesen", "Z\xE4hne putzen (abends)", "P\xFCnktlich ins Bett"];
+      addRoutines(ROUTINE_TEMPLATES.filter((t2) => names.includes(t2.name)));
+      toast("Starter-Set angelegt. Jederzeit anpassbar.", "ok");
+      refresh();
+    });
+    root2.querySelectorAll("[data-tpl]").forEach((b2) => b2.addEventListener("click", () => {
+      const tpl = ROUTINE_TEMPLATES.find((t2) => t2.name === b2.dataset.tpl);
+      if (tpl) {
+        addRoutines([tpl]);
+        toast(`\u201E${tpl.name}\u201C hinzugef\xFCgt.`, "ok");
+        refresh();
+      }
+    }));
+    root2.querySelectorAll("[data-edit]").forEach((b2) => b2.addEventListener("click", () => openQuestForm(get().routines.find((r) => r.id === b2.dataset.edit), refresh)));
+    root2.querySelectorAll("[data-move]").forEach((b2) => b2.addEventListener("click", () => {
+      moveRoutine(b2.dataset.move, Number(b2.dataset.dir));
+      refresh();
+    }));
+    root2.querySelector('[data-act="focus"]')?.addEventListener("click", () => openFocusDialog(refresh));
+    animateAll(root2);
+  }
+  function addRoutines(list) {
+    update((st2) => {
+      st2.routines || (st2.routines = []);
+      for (const t2 of list) {
+        if (st2.routines.filter((r) => !r.archived).length >= MAX_ROUTINES) break;
+        st2.routines.push(makeRoutine(t2));
+      }
+    });
+  }
+  function moveRoutine(id, dir) {
+    update((st2) => {
+      const i = st2.routines.findIndex((r) => r.id === id);
+      const j = i + dir;
+      if (i < 0 || j < 0 || j >= st2.routines.length) return;
+      [st2.routines[i], st2.routines[j]] = [st2.routines[j], st2.routines[i]];
+    });
+  }
+  function openQuestPicker(after = () => {
+  }) {
+    const m = openModal(
+      `<p class="muted small">Vorlage antippen \u2013 oder unten eine eigene Gewohnheit anlegen. Alles l\xE4sst sich danach anpassen.</p>
+     ${DAYPARTS.map((p2) => `<h3 class="tpl-head">${icon(p2.icon, { size: 16 })} ${p2.name}</h3>
+       <div class="chips">${ROUTINE_TEMPLATES.filter((t2) => t2.daypart === p2.id).map((t2) => `<button class="chip-btn" data-tpl="${esc(t2.name)}">${icon(t2.icon, { size: 16 })} ${esc(t2.name)}</button>`).join("")}</div>`).join("")}
+     <div class="row end gap" style="margin-top:14px"><button class="btn btn-primary" data-act="custom">${icon("plus", { size: 16 })} Eigene Gewohnheit</button></div>`,
+      { title: "Gewohnheit hinzuf\xFCgen" }
+    );
+    m.querySelectorAll("[data-tpl]").forEach((b2) => b2.addEventListener("click", () => {
+      const tpl = ROUTINE_TEMPLATES.find((t2) => t2.name === b2.dataset.tpl);
+      closeModal();
+      openQuestForm(makeRoutine(tpl), after, { isNew: true });
+    }));
+    m.querySelector('[data-act="custom"]').addEventListener("click", () => {
+      closeModal();
+      openQuestForm(makeRoutine({ name: "" }), after, { isNew: true });
+    });
+  }
+  function openQuestForm(routine, after = () => {
+  }, { isNew = false } = {}) {
+    const r = makeRoutine(routine || {});
+    const sc2 = r.schedule;
+    const m = openModal(
+      `<form id="q-form" class="form">
+      <label class="field"><span>Name</span><input id="q-name" value="${esc(r.name === "Neue Gewohnheit" ? "" : r.name)}" placeholder="z. B. Z\xE4hne putzen" maxlength="60" required></label>
+      <fieldset class="field"><legend>Symbol</legend>
+        <div class="icon-picker">${ICON_CHOICES.map((n) => `<label class="icon-choice"><input type="radio" name="icon" value="${n}" ${n === r.icon ? "checked" : ""}><span>${icon(n, { size: 20 })}</span></label>`).join("")}</div>
+      </fieldset>
+      <fieldset class="field"><legend>Wann am Tag?</legend>
+        <div class="chips">${DAYPARTS.map((p2) => `<label class="chip"><input type="radio" name="daypart" value="${p2.id}" ${p2.id === r.daypart ? "checked" : ""}><span>${p2.name}</span></label>`).join("")}</div>
+      </fieldset>
+      <label class="field"><span>Rhythmus</span>
+        <select id="q-type">
+          <option value="daily" ${sc2.type === "daily" ? "selected" : ""}>jeden Tag</option>
+          <option value="weekdays" ${sc2.type === "weekdays" ? "selected" : ""}>an bestimmten Wochentagen</option>
+          <option value="times" ${sc2.type === "times" ? "selected" : ""}>x-mal pro Woche</option>
+        </select></label>
+      <fieldset class="field" id="q-days" ${sc2.type === "weekdays" ? "" : "hidden"}><legend>Wochentage</legend>
+        <div class="chips">${WEEKDAYS.map((n, i) => `<label class="chip"><input type="checkbox" name="days[]" value="${i}" ${sc2.days?.includes(i) ? "checked" : ""}><span>${n}</span></label>`).join("")}</div>
+      </fieldset>
+      <label class="field" id="q-times" ${sc2.type === "times" ? "" : "hidden"}><span>Wie oft pro Woche?</span><input id="q-times-val" type="number" min="1" max="7" value="${sc2.times || 3}"></label>
+      <div class="grid2">
+        <label class="field"><span>Belohnung</span><select id="q-xp">${ROUTINE_XP_CHOICES.map((x) => `<option value="${x}" ${x === r.xp ? "selected" : ""}>+${x} XP</option>`).join("")}</select></label>
+        <label class="field"><span>Erinnerung (optional)</span><input id="q-rem" type="time" value="${r.reminder || ""}"></label>
+      </div>
+      <label class="chip"><input type="checkbox" id="q-counts" ${r.counts ? "checked" : ""}><span>Z\xE4hlt f\xFCr den perfekten Tag</span></label>
+      <div class="row between gap wrap">
+        ${isNew ? "<span></span>" : '<button class="btn btn-danger btn-small" type="button" data-act="del">L\xF6schen</button>'}
+        <button class="btn btn-primary" type="submit">${isNew ? "Hinzuf\xFCgen" : "Speichern"}</button>
+      </div>
+      <p class="hint">Erinnerungen erscheinen nur, wenn Benachrichtigungen unter \u201EMehr\u201C aktiviert sind und die App im Hintergrund l\xE4uft.</p>
+    </form>`,
+      { title: isNew ? "Neue Gewohnheit" : "Gewohnheit bearbeiten" }
+    );
+    const type = m.querySelector("#q-type");
+    const sync = () => {
+      m.querySelector("#q-days").hidden = type.value !== "weekdays";
+      m.querySelector("#q-times").hidden = type.value !== "times";
+    };
+    type.addEventListener("change", sync);
+    sync();
+    m.querySelector('[data-act="del"]')?.addEventListener("click", async () => {
+      closeModal();
+      if (await confirmDialog(`\u201E${r.name}\u201C wirklich l\xF6schen? Die bisherigen Haken bleiben in deiner Statistik erhalten.`, { ok: "L\xF6schen", danger: true })) {
+        update((st2) => st2.routines = st2.routines.filter((x) => x.id !== r.id));
+        toast("Gewohnheit gel\xF6scht.");
+        after();
+      }
+    });
+    m.querySelector("#q-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = m.querySelector("#q-name").value.trim();
+      if (!name) return toast("Bitte einen Namen angeben.", "warn");
+      const t2 = type.value;
+      const days = [...m.querySelectorAll('input[name="days[]"]:checked')].map((x) => Number(x.value));
+      if (t2 === "weekdays" && !days.length) return toast("Bitte mindestens einen Wochentag w\xE4hlen.", "warn");
+      const next = makeRoutine({
+        ...r,
+        name,
+        icon: m.querySelector('input[name="icon"]:checked')?.value || r.icon,
+        daypart: m.querySelector('input[name="daypart"]:checked')?.value || r.daypart,
+        xp: num(m.querySelector("#q-xp").value, 10),
+        reminder: m.querySelector("#q-rem").value || null,
+        counts: m.querySelector("#q-counts").checked,
+        schedule: t2 === "weekdays" ? { type: "weekdays", days } : t2 === "times" ? { type: "times", times: num(m.querySelector("#q-times-val").value, 3) } : { type: "daily" }
+      });
+      update((st2) => {
+        st2.routines || (st2.routines = []);
+        const i = st2.routines.findIndex((x) => x.id === next.id);
+        if (i >= 0) st2.routines[i] = next;
+        else if (st2.routines.filter((x) => !x.archived).length < MAX_ROUTINES) st2.routines.push(next);
+        else toast(`Mehr als ${MAX_ROUTINES} Gewohnheiten sind zu viel des Guten.`, "warn");
+      });
+      closeModal();
+      toast(isNew ? `\u201E${next.name}\u201C ist jetzt Teil deiner Routine.` : "Gespeichert.", "ok");
+      after();
+    });
+  }
+  function openFocusDialog(after = () => {
+  }) {
+    const cur = get().settings?.focus === "routine" ? "routine" : "training";
+    const m = openModal(
+      `<div class="choices">
+      <label class="choice ${cur === "training" ? "selected" : ""}"><input type="radio" name="focus" value="training" ${cur === "training" ? "checked" : ""}><span><strong>Training & Routine</strong><span class="muted small">Standard: Trainingsplan, Ern\xE4hrung und deine Gewohnheiten z\xE4hlen gemeinsam f\xFCr den perfekten Tag.</span></span></label>
+      <label class="choice ${cur === "routine" ? "selected" : ""}"><input type="radio" name="focus" value="routine" ${cur === "routine" ? "checked" : ""}><span><strong>Nur Routine</strong><span class="muted small">LMCI wird zur Routine-App: Nur deine Gewohnheiten sind Pflicht, Training und Ern\xE4hrung bleiben optional verf\xFCgbar.</span></span></label>
+    </div>
+    <div class="row end"><button class="btn btn-primary" data-act="save">\xDCbernehmen</button></div>`,
+      { title: "Fokus w\xE4hlen" }
+    );
+    m.querySelector('[data-act="save"]').addEventListener("click", () => {
+      const v = m.querySelector('input[name="focus"]:checked')?.value === "routine" ? "routine" : "training";
+      update((st2) => st2.settings.focus = v);
+      closeModal();
+      toast(v === "routine" ? "Fokus: nur Routine." : "Fokus: Training & Routine.", "ok");
+      after();
+    });
+  }
+
   // src/ui/heute.js
   var STREAK_MILESTONES = [3, 7, 14, 30, 60, 100, 365];
   function challengeRow(c, { monthly = false } = {}) {
@@ -10138,12 +11048,6 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       }, { silent: true });
     }
     return fresh;
-  }
-  function ring(value, max, { label = "", cls = "" } = {}) {
-    const r = 36;
-    const c = 2 * Math.PI * r;
-    const p2 = max ? Math.min(1, value / max) : 0;
-    return `<div class="ring ${cls} ${p2 >= 1 ? "ok" : ""}"><svg viewBox="0 0 84 84"><circle class="track" cx="42" cy="42" r="${r}"/><circle class="fill" cx="42" cy="42" r="${r}" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${(c * (1 - p2)).toFixed(1)}"/></svg><div class="ring-label"><strong>${value}<span style="font-size:.7em;color:var(--muted)">/${max}</span></strong><span>${label}</span></div></div>`;
   }
   function renderHeute(root2) {
     const s = get();
@@ -10167,10 +11071,18 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const activeToday = streak > 0 && [...s.workouts, ...s.cardioLogs, ...s.checkins].some((x) => x.date === today);
     const xp = totalXP(s);
     const lvl = levelInfo(xp);
-    const goals = dailyGoals(s, today);
-    const required = goals.filter((g2) => !g2.optional);
+    const goalsAll = dailyGoals(s, today);
+    const goals = goalsAll.filter((g2) => !g2.routineId);
+    const required = goalsAll.filter((g2) => !g2.optional);
     const doneCount = required.filter((g2) => g2.done).length;
-    const perfect = doneCount === required.length;
+    const perfect = required.length > 0 && doneCount === required.length;
+    const cardRequired = goals.filter((g2) => !g2.optional);
+    const cardGoals = cardRequired.length ? cardRequired : goals;
+    const cardDone = cardGoals.filter((g2) => g2.done).length;
+    const routineDay = routineDayStatus(s, today);
+    const focusRoutine = s.settings?.focus === "routine";
+    const routineCard = routineCardHTML(s, today, routineDay);
+    const motivationText = perfect ? motivation(s, { streak, goals: goalsAll, today }) : cardGoals.every((g2) => g2.done) && routineDay.total > routineDay.done ? `Tagesziele erledigt \u2013 jetzt noch ${routineDay.total - routineDay.done} aus deiner Routine.` : motivation(s, { streak, goals, today });
     const todayXp = xpToday(s, today);
     const hour = (/* @__PURE__ */ new Date()).getHours();
     const greet = hour < 11 ? "Guten Morgen" : hour < 18 ? "Hallo" : "Guten Abend";
@@ -10206,18 +11118,22 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         <button class="btn btn-primary" data-act="new-meso">Neuen Block starten</button>
       </div>` : ""}
 
+      ${focusRoutine ? raw(routineCard) : ""}
+
       <div class="card">
         <div class="row between"><div class="card-title">Tagesziele</div><span class="xp-chip">${raw(icon("bolt", { size: 14 }))} +${XP.perfectDay} XP für alle</span></div>
-        <div class="goals-progress"><div class="xp-bar"><div style="width:${(doneCount / required.length * 100).toFixed(0)}%"></div></div><strong>${doneCount}/${required.length}</strong></div>
+        <div class="goals-progress"><div class="xp-bar"><div style="width:${(cardDone / Math.max(1, cardGoals.length) * 100).toFixed(0)}%"></div></div><strong>${cardDone}/${cardGoals.length}</strong></div>
         <ul class="goals">
-          ${goals.map((g2) => html`<li><button class="goal ${g2.done ? "done" : ""} ${g2.optional ? "optional" : ""}" data-goal="${g2.id}" data-href="${g2.href}" data-goal-act="${g2.act || ""}">
+          ${goals.map((g2) => html`<li><button class="goal ${g2.done ? "done" : ""} ${g2.optional ? "optional" : ""}" data-goal="${g2.id}" data-href="${g2.href}" data-goal-act="${g2.act || ""}" data-routine-id="${g2.routineId || ""}">
             <span class="goal-check">${raw(icon("check", { size: 20 }))}</span>
             <span class="goal-text"><strong>${g2.label}</strong><span>${g2.hint}${g2.optional ? " \xB7 optional" : ""}</span></span>
             <span class="xp-chip">+${g2.xp}</span>
           </button></li>`)}
         </ul>
-        <p class="small ${perfect ? "" : "muted"}">${perfect ? raw(`${icon("star", { size: 16 })} `) : ""}${motivation(s, { streak, goals, today })}</p>
+        <p class="small ${perfect ? "" : "muted"}">${perfect ? raw(`${icon("star", { size: 16 })} `) : ""}${motivationText}</p>
       </div>
+
+      ${focusRoutine ? "" : raw(routineCard)}
 
       <div class="card">
         <div class="row between"><div class="card-title">Herausforderungen der Woche</div><a class="btn btn-small btn-ghost" href="#/fortschritt">${raw(icon("trophy", { size: 16 }))} Alle</a></div>
@@ -10248,11 +11164,14 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       </div>`}
 
       <div class="actions">
+        <button class="action xp" data-act="quicklog">${raw(icon("bolt", { size: 26 }))}Satz eintragen</button>
         <a class="action" href="#/schnell">${raw(icon("zap", { size: 26 }))}Schnell­training</a>
         <button class="action flame" data-act="log-cardio">${raw(icon("run", { size: 26 }))}Cardio</button>
         <button class="action ok" data-act="mobility">${raw(icon("stretch", { size: 26 }))}Mobilität</button>
-        <a class="action xp" href="#/coach">${raw(icon("chat", { size: 26 }))}Coach</a>
+        <a class="action" href="#/coach">${raw(icon("chat", { size: 26 }))}Coach</a>
       </div>
+
+      ${raw(quickLogCardHTML(s, today))}
 
       <div class="card">
         <div class="row between"><div class="card-title">Diese Woche</div><a class="btn btn-small btn-ghost" href="#/kalender">${raw(icon("calendar", { size: 16 }))} Kalender</a></div>
@@ -10270,7 +11189,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
           <span class="small">${raw(icon("run", { size: 16 }))} Cardio ${cardioThisWeek.length}/${plan.cardio.sessionsPerWeek}${plan.cardio.sessions.length ? html` · nächste: ${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length]?.name} ${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length]?.minutesByWeek[week - 1]} min` : ""}</span>
           ${plan.cardio.sessions.length ? html`<button class="btn btn-small" data-timer="${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length].id}">${raw(icon("timer", { size: 16 }))} Timer</button>` : ""}
         </div>
-        <p class="muted small">${streakWeeks(plan, s.workouts, today)} Woche${streakWeeks(plan, s.workouts, today) === 1 ? "" : "n"} in Folge dran · ${s.workouts.length} Trainings gesamt</p>
+        <p class="muted small">${streakWeeks(plan, s.workouts, today)} Woche${streakWeeks(plan, s.workouts, today) === 1 ? "" : "n"} in Folge dran · ${sessionWorkouts(s.workouts).length} Trainings gesamt</p>
         ${recordLine ? html`<a class="record-line ${board.streak.atRisk ? "risk" : board.thisWeek ? "hot" : ""}" href="#/fortschritt">${raw(icon("trophy", { size: 18 }))}<span>${recordLine}</span>${raw(icon("right", { size: 16 }))}</a>` : ""}
       </div>
 
@@ -10312,6 +11231,11 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       if (act === "checkin") return openCheckin(checkin);
       if (act === "mobility") return openMobility(plan, next.kind === "heute" || next.kind === "nachholen" ? next.day : null);
       if (act === "weight") return root2.querySelector("#weight-input")?.focus();
+      if (act === "routine" && b2.dataset.routineId) {
+        toggleQuest(b2.dataset.routineId, today);
+        celebrateRoutineDay(get(), today);
+        return refreshHeute(root2);
+      }
       location.hash = b2.dataset.href;
     }));
     root2.querySelector("#weight-form").addEventListener("submit", (e) => {
@@ -10325,6 +11249,23 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       });
       toast(`Gewicht gespeichert \xB7 +${XP.weight} XP`, "ok");
     });
+    root2.querySelectorAll('[data-act="quicklog"]').forEach((b2) => b2.addEventListener("click", () => openQuickLog({ after: () => refreshHeute(root2) })));
+    bindQuickLogCard(root2, { date: today, after: () => refreshHeute(root2) });
+    root2.querySelectorAll("[data-quest]").forEach((b2) => b2.addEventListener("click", () => {
+      toggleQuest(b2.dataset.quest, today);
+      celebrateRoutineDay(get(), today);
+      refreshHeute(root2);
+    }));
+    root2.querySelector('[data-act="routine-start"]')?.addEventListener("click", () => openQuestPicker(() => refreshHeute(root2)));
+    root2.querySelector('[data-act="routine-starter"]')?.addEventListener("click", () => {
+      const names = ["Z\xE4hne putzen (morgens)", "Glas Wasser nach dem Aufstehen", "20 Minuten lesen", "Z\xE4hne putzen (abends)", "P\xFCnktlich ins Bett"];
+      addRoutines(ROUTINE_TEMPLATES.filter((t2) => names.includes(t2.name)));
+      toast("Starter-Set angelegt \u2013 unter \u201ERoutine\u201C anpassbar.", "ok");
+      refreshHeute(root2);
+    });
+    root2.querySelector('[data-act="routine-hide"]')?.addEventListener("click", () => {
+      update((st2) => st2.meta.routineHintHidden = true);
+    });
     celebrateIfPerfect(s, today, perfect);
     celebrateChallenges(s, ws2, challenges);
     celebrateStreak(s, streak);
@@ -10335,6 +11276,33 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     } catch {
     }
     animateAll(root2);
+  }
+  function refreshHeute(root2) {
+    const y2 = window.scrollY;
+    renderHeute(root2);
+    window.scrollTo({ top: y2 });
+  }
+  function routineCardHTML(s, today, day) {
+    const hasRoutines = activeRoutines(s).length > 0;
+    if (!hasRoutines) {
+      if (s.meta?.routineHintHidden) return "";
+      return `<div class="card card-accent">
+      <div class="card-title">${icon("check", { size: 18 })} Routine & Quests</div>
+      <p>Z\xE4hne putzen, Wasser trinken, lesen, fr\xFCh ins Bett: eigene Gewohnheiten als t\xE4gliche Quests \u2013 mit XP, Serie und Abzeichen. LMCI wird damit auch zur Routine-App.</p>
+      <div class="row gap wrap">
+        <button class="btn btn-primary" data-act="routine-start">${icon("plus", { size: 16 })} Routine einrichten</button>
+        <button class="btn" data-act="routine-starter">Starter-Set</button>
+        <button class="btn btn-ghost btn-small" data-act="routine-hide">Sp\xE4ter</button>
+      </div>
+    </div>`;
+    }
+    const parts = DAYPARTS.map((p2) => ({ ...p2, items: day.items.filter((r) => r.daypart === p2.id) })).filter((p2) => p2.items.length);
+    return `<div class="card">
+    <div class="row between"><div class="card-title">Deine Routine</div><a class="btn btn-small btn-ghost" href="#/routine">${icon("list", { size: 16 })} Alle</a></div>
+    ${day.total ? `<div class="goals-progress"><div class="xp-bar"><div style="width:${(day.progress * 100).toFixed(0)}%"></div></div><strong>${day.done}/${day.total}</strong></div>` : ""}
+    ${parts.map((p2) => `<div class="quest-group"><div class="quest-group-head">${icon(p2.icon, { size: 15 })} ${p2.name}</div><div class="quests">${p2.items.map((r) => questRow(r, { date: today })).join("")}</div></div>`).join("")}
+    ${day.total === 0 ? '<p class="muted small">Heute ist in deiner Routine nichts geplant.</p>' : day.all ? '<p class="small">Routine komplett \u2013 stark.</p>' : ""}
+  </div>`;
   }
   function celebrateChallenges(s, ws2, challenges) {
     const done = challenges.filter((c) => c.done).map((c) => `${ws2}:${c.id}`);
@@ -11349,7 +12317,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
 
       <div class="card">
         <div class="card-title">Letzte Trainings</div>
-        ${recent.length ? html`<ul class="list tappable">${recent.map((w) => html`<li><button class="link" data-w="${w.id}"><strong>${w.dayId === "frei" ? "Freies Training" : w.dayId === "schnell" ? "Schnelltraining" : plan.days.find((d) => d.id === w.dayId)?.name || s.planHistory.flatMap((p2) => p2.days).find((d) => d.id === w.dayId && p.id === w.planId)?.name || "Training"}</strong><div class="muted small">${formatDate(w.date)} · ${totalSets(w)} Sätze · ${totalTonnage(w).toLocaleString("de-DE")} kg${w.feedback ? ` \xB7 RPE ${w.feedback.rpe}` : ""}</div></button></li>`)}</ul>` : html`<p class="muted">Noch nichts geloggt – starte auf „Heute“.</p>`}
+        ${recent.length ? html`<ul class="list tappable">${recent.map((w) => html`<li><button class="link" data-w="${w.id}"><strong>${w.dayId === "frei" ? "Freies Training" : w.dayId === "schnell" ? "Schnelltraining" : isQuickLog(w) ? LOG_DAY_NAME : plan.days.find((d) => d.id === w.dayId)?.name || s.planHistory.flatMap((p2) => p2.days).find((d) => d.id === w.dayId && p.id === w.planId)?.name || "Training"}</strong><div class="muted small">${formatDate(w.date)} · ${totalSets(w)} Sätze${totalTonnage(w) ? ` \xB7 ${totalTonnage(w).toLocaleString("de-DE")} kg` : ""}${w.feedback ? ` \xB7 RPE ${w.feedback.rpe}` : ""}</div></button></li>`)}</ul>` : html`<p class="muted">Noch nichts geloggt – starte auf „Heute“.</p>`}
       </div>
     </section>`);
     animateAll(root2);
@@ -11432,23 +12400,36 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     if (s.workouts.some((w) => w.date === today)) return null;
     return { day, text: `Heute steht \u201E${day.name}\u201C an \u2013 ${day.exercises.length} \xDCbungen, ca. ${day.minutes} min.` };
   }
+  function notify(title, body, tag, hash2) {
+    try {
+      if (!("Notification" in window) || Notification.permission !== "granted") return;
+      const n = new Notification(title, { body, tag });
+      n.onclick = () => {
+        window.focus();
+        location.hash = hash2;
+      };
+    } catch {
+    }
+  }
   function startReminderLoop(store) {
     if (typeof window === "undefined") return;
     const tick = () => {
       const s = store.get();
+      const today = toISODate();
+      const routines = s.settings?.reminders?.enabled ? routineRemindersDue(s) : [];
+      if (routines.length) {
+        store.update((st2) => {
+          var _a2;
+          (_a2 = st2.settings.reminders).routineFired || (_a2.routineFired = {});
+          for (const r of routines) st2.settings.reminders.routineFired[r.id] = today;
+          for (const [id, d] of Object.entries(st2.settings.reminders.routineFired)) if (d !== today) delete st2.settings.reminders.routineFired[id];
+        }, { silent: true });
+        for (const r of routines) notify("LMCI \u2013 Routine", `${r.name} steht noch offen.`, `lmci-routine-${r.id}`, "#/routine");
+      }
       const due = reminderDue(s);
       if (!due) return;
-      store.update((st2) => st2.settings.reminders.lastFired = toISODate(), { silent: true });
-      try {
-        if ("Notification" in window && Notification.permission === "granted") {
-          const n = new Notification("LMCI \u2013 Training heute", { body: due.text, tag: "lmci-training" });
-          n.onclick = () => {
-            window.focus();
-            location.hash = `#/workout/${due.day.id}`;
-          };
-        }
-      } catch {
-      }
+      store.update((st2) => st2.settings.reminders.lastFired = today, { silent: true });
+      notify("LMCI \u2013 Training heute", due.text, "lmci-training", `#/workout/${due.day.id}`);
     };
     tick();
     setInterval(tick, 60 * 1e3);
@@ -11659,7 +12640,7 @@ ${buildContext(get())}` }
   }
 
   // src/ui/mehr.js
-  var APP_VERSION = "1.4.1";
+  var APP_VERSION = "1.7.0";
   function renderMehr(root2) {
     const s = get();
     const p2 = s.profile;
@@ -11684,10 +12665,17 @@ ${buildContext(get())}` }
       </div>
 
       <div class="card">
+        <div class="card-title">Routine & Fokus</div>
+        <p class="muted small">${activeRoutines(s).length ? `${activeRoutines(s).length} eigene Gewohnheit${activeRoutines(s).length === 1 ? "" : "en"} in deiner Routine.` : "Noch keine eigenen Gewohnheiten \u2013 z. B. Z\xE4hne putzen, Wasser trinken, lesen."} Aktueller Fokus: <strong>${s.settings?.focus === "routine" ? "nur Routine" : "Training & Routine"}</strong>.</p>
+        <p class="muted small">Im Fokus „nur Routine“ sind deine Gewohnheiten die Pflichtziele des Tages; Trainingsplan und Ernährung bleiben erhalten, zählen aber als optional.</p>
+        <div class="row gap wrap"><a class="btn" href="#/routine">${raw(icon("check", { size: 16 }))} Routine öffnen</a><button class="btn" data-act="focus">Fokus ändern</button><button class="btn btn-ghost" data-act="add-quest">Gewohnheit hinzufügen</button><a class="btn btn-ghost" href="#/plan">Trainingsplan</a></div>
+      </div>
+
+      <div class="card">
         <div class="card-title">Erinnerungen</div>
-        <p class="muted small">Die App kann dich an Trainingstagen erinnern, solange sie geöffnet oder im Hintergrund aktiv ist. Für zuverlässige Erinnerungen: Trainingstage in deinen Kalender exportieren.</p>
+        <p class="muted small">Die App kann dich an Trainingstagen und an Gewohnheiten mit Uhrzeit erinnern, solange sie geöffnet oder im Hintergrund aktiv ist. Für zuverlässige Erinnerungen: Trainingstage in deinen Kalender exportieren.</p>
         <div class="row gap wrap">
-          <label class="chip"><input type="checkbox" id="rem-enabled" ${s.settings.reminders?.enabled ? "checked" : ""}><span>Erinnerung an Trainingstagen</span></label>
+          <label class="chip"><input type="checkbox" id="rem-enabled" ${s.settings.reminders?.enabled ? "checked" : ""}><span>Erinnerungen an Training & Routine</span></label>
           <label class="field"><span>Uhrzeit</span><input id="rem-time" type="time" value="${s.settings.reminders?.time || "18:00"}"></label>
         </div>
         <p class="muted small" id="rem-status">${typeof Notification === "undefined" ? "Benachrichtigungen werden hier nicht unterst\xFCtzt." : Notification.permission === "granted" ? "Benachrichtigungen erlaubt." : Notification.permission === "denied" ? "Benachrichtigungen im Browser blockiert." : "Beim Aktivieren fragt der Browser nach Erlaubnis."}</p>
@@ -11744,6 +12732,8 @@ ${buildContext(get())}` }
     root2.querySelector("#set-sound").addEventListener("change", (e) => update((st2) => st2.settings.sound = e.target.checked));
     root2.querySelector('[data-act="export"]').addEventListener("click", exportBackup);
     root2.querySelector('[data-act="coach-settings"]').addEventListener("click", openCoachSettings);
+    root2.querySelector('[data-act="focus"]').addEventListener("click", () => openFocusDialog(() => renderMehr(root2)));
+    root2.querySelector('[data-act="add-quest"]').addEventListener("click", () => openQuestPicker(() => renderMehr(root2)));
     root2.querySelector("#rem-enabled").addEventListener("change", async (e) => {
       let ok = true;
       if (e.target.checked && typeof Notification !== "undefined" && Notification.permission === "default") {
@@ -11859,7 +12849,8 @@ ${buildContext(get())}` }
       const d = byDay(iso);
       const planned = plannedWeekdays.has((fromISODate(iso).getDay() + 6) % 7) && iso >= s.plan.startDate;
       const any = d.workouts.length || d.cardio.length || d.checkin || d.food || d.weight;
-      return html`<button class="cal-cell ${iso === today ? "today" : ""} ${iso > today ? "future" : ""} ${planned && !d.workouts.length && iso < today ? "missed" : ""}" data-day="${iso}" ${any ? "" : 'data-empty="1"'}>
+      const trained = d.workouts.some((w) => !isQuickLog(w));
+      return html`<button class="cal-cell ${iso === today ? "today" : ""} ${iso > today ? "future" : ""} ${planned && !trained && iso < today ? "missed" : ""}" data-day="${iso}" ${any ? "" : 'data-empty="1"'}>
               <span class="cal-num">${Number(iso.slice(8))}</span>
               <span class="cal-dots">${d.workouts.length ? html`<i class="d-strength" title="Krafttraining"></i>` : ""}${d.cardio.length ? html`<i class="d-cardio" title="Cardio"></i>` : ""}${d.food ? html`<i class="d-food" title="Ernährung"></i>` : ""}${d.checkin ? html`<i class="d-checkin" title="Check-in"></i>` : ""}${d.prs.length ? html`<i class="d-pr" title="Bestleistung"></i>` : ""}</span>
             </button>`;
@@ -11883,10 +12874,10 @@ ${buildContext(get())}` }
     root2.querySelectorAll("[data-day]").forEach((b2) => b2.addEventListener("click", () => openDay(b2.dataset.day, byDay(b2.dataset.day), s)));
   }
   function openDay(iso, d, s) {
-    const dayName2 = (w) => w.dayId === "frei" ? "Freies Training" : w.dayId === "schnell" ? "Schnelltraining" : s.plan.days.find((x) => x.id === w.dayId)?.name || s.planHistory.flatMap((p2) => p2.days).find((x) => x.id === w.dayId)?.name || "Training";
+    const dayName2 = (w) => w.dayId === "frei" ? "Freies Training" : w.dayId === "schnell" ? "Schnelltraining" : isQuickLog(w) ? LOG_DAY_NAME : s.plan.days.find((x) => x.id === w.dayId)?.name || s.planHistory.flatMap((p2) => p2.days).find((x) => x.id === w.dayId)?.name || "Training";
     const food = dayTotals(s.foodLog?.[iso] || []);
     openModal(
-      `${d.workouts.length ? `<h3>Krafttraining</h3>${d.workouts.map((w) => `<p><strong>${esc(dayName2(w))}</strong> \xB7 ${totalSets(w)} S\xE4tze \xB7 ${totalTonnage(w).toLocaleString("de-DE")} kg${w.feedback ? ` \xB7 RPE ${w.feedback.rpe}` : ""}</p><ul class="bullets small">${w.entries.map((e) => `<li>${esc(getExercise(e.exId)?.name || e.exId)}: ${e.sets.map((x) => `${x.weight ? `${x.weight}\xD7` : ""}${x.reps}`).join(", ")}</li>`).join("")}</ul>`).join("")}` : ""}
+      `${d.workouts.length ? `<h3>${d.workouts.every((w) => isQuickLog(w)) ? LOG_DAY_NAME : "Krafttraining"}</h3>${d.workouts.map((w) => `<p><strong>${esc(dayName2(w))}</strong> \xB7 ${totalSets(w)} S\xE4tze${totalTonnage(w) ? ` \xB7 ${totalTonnage(w).toLocaleString("de-DE")} kg` : ""}${w.feedback ? ` \xB7 RPE ${w.feedback.rpe}` : ""}</p><ul class="bullets small">${w.entries.map((e) => `<li>${esc(getExercise(e.exId)?.name || e.exId)}: ${e.sets.map((x) => `${x.weight ? `${x.weight}\xD7` : ""}${x.reps}`).join(", ")}</li>`).join("")}</ul>`).join("")}` : ""}
      ${d.prs.length ? `<h3>Bestleistungen</h3><ul class="bullets small">${d.prs.map((ev) => `<li>${esc(ev.name)}: ${ev.mode === "kg" ? `e1RM ${String(ev.e1rm).replace(".", ",")} kg (+${String(ev.delta).replace(".", ",")} kg)` : `${ev.reps} Wdh. (+${ev.delta})`}${ev.rankUp ? ` \xB7 Aufstieg auf ${esc(ev.rank.name)}` : ""}</li>`).join("")}</ul>` : ""}
      ${d.cardio.length ? `<h3>Cardio</h3><ul class="bullets small">${d.cardio.map((c) => `<li>${esc(ACTIVITY_BY_ID[c.activity]?.name || c.activity)} \xB7 ${c.minutes} min${c.km ? ` \xB7 ${c.km} km` : ""}${c.avgHr ? ` \xB7 \xD8 ${c.avgHr} bpm` : ""}</li>`).join("")}</ul>` : ""}
      ${d.checkin ? `<h3>Check-in</h3><p class="small">Schlaf ${d.checkin.sleep} h \xB7 Qualit\xE4t ${d.checkin.sleepQuality}/5 \xB7 Stress ${d.checkin.stress}/5 \xB7 Energie ${d.checkin.energy}/5</p>` : ""}
@@ -12150,13 +13141,17 @@ ${buildContext(get())}` }
   // src/app.js
   var afterRoute = null;
   window.__lmci = { generatePlan, availableExercises, afterRoute: (fn2) => afterRoute = fn2 };
-  var NAV = [
-    ["#/heute", "Heute", "home"],
-    ["#/plan", "Plan", "plan"],
-    ["#/fortschritt", "Erfolge", "trophy"],
-    ["#/ernaehrung", "Ern\xE4hrung", "food"],
-    ["#/mehr", "Mehr", "more"]
-  ];
+  function navItems(s) {
+    const routineFocus = s.settings?.focus === "routine";
+    return [
+      ["#/heute", "Heute", "home"],
+      ...routineFocus ? [] : [["#/plan", "Plan", "plan"]],
+      ["#/routine", "Routine", "check"],
+      ["#/fortschritt", "Erfolge", "trophy"],
+      ["#/ernaehrung", "Essen", "food"],
+      ["#/mehr", "Mehr", "more"]
+    ];
+  }
   var root = document.getElementById("app");
   var nav = document.getElementById("nav");
   function route() {
@@ -12170,6 +13165,7 @@ ${buildContext(get())}` }
       return;
     }
     nav.hidden = false;
+    renderNav(s);
     switch (path) {
       case "onboarding":
         nav.hidden = true;
@@ -12202,6 +13198,9 @@ ${buildContext(get())}` }
       case "schnell":
         renderSchnell(root);
         break;
+      case "routine":
+        renderRoutine(root);
+        break;
       default:
         renderHeute(root);
     }
@@ -12213,8 +13212,14 @@ ${buildContext(get())}` }
       fn2();
     }
   }
-  function renderNav() {
-    nav.innerHTML = NAV.map(([href, label, name]) => `<a href="${href}" aria-label="${label}">${icon(name, { size: 24 })}<span>${label}</span></a>`).join("");
+  var navMarkup = "";
+  function renderNav(s = get()) {
+    const items = navItems(s);
+    const markup = items.map(([href, label, name]) => `<a href="${href}" aria-label="${label}">${icon(name, { size: 24 })}<span>${label}</span></a>`).join("");
+    if (markup === navMarkup) return;
+    navMarkup = markup;
+    nav.innerHTML = markup;
+    nav.classList.toggle("compact", items.length > 5);
   }
   document.addEventListener("change", (e) => {
     const input = e.target;

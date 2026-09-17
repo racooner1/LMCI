@@ -53,6 +53,13 @@ export function fmtMin(sec) {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
+// Kurzes haptisches Feedback, wo das Gerät es kann (Android). iOS ignoriert es still.
+export function haptic(ms = 8) {
+  try {
+    if (navigator.vibrate && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) navigator.vibrate(ms);
+  } catch { /* nicht verfügbar */ }
+}
+
 let toastTimer = null;
 export function toast(msg, kind = 'info') {
   let el = document.getElementById('toast');
@@ -86,9 +93,54 @@ export function openModal(content, { title = '', onClose } = {}) {
   });
   document.body.appendChild(wrap);
   document.body.classList.add('modal-open');
+  enableSheetDrag(wrap, onClose);
   const first = wrap.querySelector('input, select, button:not([data-close-modal])');
   first?.focus?.();
   return wrap;
+}
+
+// Blatt nach unten wischen schließt es – wie in nativen Apps.
+function enableSheetDrag(wrap, onClose) {
+  const sheet = wrap.querySelector('.modal');
+  if (!sheet || typeof window === 'undefined' || !('ontouchstart' in window)) return;
+  let startY = 0;
+  let dy = 0;
+  let dragging = false;
+
+  sheet.addEventListener('touchstart', (e) => {
+    // Nur von oben ziehen, und nicht auf Eingaben (Schieberegler, Felder).
+    if (sheet.scrollTop > 0 || e.touches.length !== 1) return;
+    if (e.target.closest('input, select, textarea, .slider, .chips, .icon-picker')) return;
+    startY = e.touches[0].clientY;
+    dy = 0;
+    dragging = true;
+  }, { passive: true });
+
+  sheet.addEventListener('touchmove', (e) => {
+    if (!dragging) return;
+    dy = e.touches[0].clientY - startY;
+    if (dy <= 0) {
+      sheet.style.transform = '';
+      return;
+    }
+    sheet.classList.add('dragging');
+    sheet.style.transform = `translateY(${dy}px)`;
+    wrap.style.opacity = String(Math.max(0.4, 1 - dy / 420));
+  }, { passive: true });
+
+  const release = () => {
+    if (!dragging) return;
+    dragging = false;
+    sheet.classList.remove('dragging');
+    sheet.style.transform = '';
+    wrap.style.opacity = '';
+    if (dy > 110) {
+      closeModal();
+      onClose?.();
+    }
+  };
+  sheet.addEventListener('touchend', release);
+  sheet.addEventListener('touchcancel', release);
 }
 
 export function closeModal() {

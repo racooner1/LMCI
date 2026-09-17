@@ -4,14 +4,22 @@
   "description": "Individueller Kraft-, Cardio-, Mobilitäts- und Ernährungsplan – ohne Abo, komplett offline.",
   "start_url": "./",
   "scope": "./",
+  "id": "./",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "categories": ["health", "fitness", "lifestyle"],
   "orientation": "portrait",
   "background_color": "#F2F5FB",
-  "theme_color": "#2F6BFF",
+  "theme_color": "#F2F5FB",
   "lang": "de",
   "icons": [
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
     { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Training starten", "short_name": "Training", "url": "./#/heute", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Satz eintragen", "short_name": "Eintragen", "url": "./#/eintragen", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Routine", "short_name": "Routine", "url": "./#/routine", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }

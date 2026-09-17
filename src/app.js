@@ -15,6 +15,7 @@ import { renderRoutine } from './ui/routine.js';
 import { startReminderLoop } from './engine/reminders.js';
 import { generatePlan, availableExercises } from './engine/plan.js';
 import { closeModal } from './ui/dom.js';
+import { openQuickLog } from './ui/quicklog.js';
 import { icon } from './ui/icons.js';
 
 // Für Views, die Engine-Funktionen ohne zyklische Importe brauchen.
@@ -36,11 +37,20 @@ function navItems(s) {
 
 const root = document.getElementById('app');
 const nav = document.getElementById('nav');
+const topbar = document.getElementById('topbar');
+const topbarTitle = document.getElementById('topbar-title');
+
+// Titel für die eingeblendete Kopfzeile (wie bei nativen Apps beim Scrollen).
+const TITLES = { plan: 'Plan', workout: 'Training', fortschritt: 'Erfolge', ernaehrung: 'Ernährung', mehr: 'Mehr', uebungen: 'Übungen', kalender: 'Kalender', coach: 'Coach', schnell: 'Schnelltraining', routine: 'Routine', heute: 'Heute' };
+
+let lastRoute = null;
 
 function route() {
   const s = store.get();
   const hash = location.hash || '#/heute';
   const [path, arg] = hash.replace(/^#\/?/, '').split('/');
+  const changed = `${path}/${arg || ''}` !== lastRoute;
+  lastRoute = `${path}/${arg || ''}`;
   closeModal();
   if (!s.profile || !s.plan) {
     nav.hidden = true;
@@ -84,17 +94,54 @@ function route() {
     case 'routine':
       renderRoutine(root);
       break;
+    case 'eintragen':
+      // Startbildschirm-Kurzbefehl: „Satz eintragen“ öffnet direkt den Dialog.
+      renderHeute(root);
+      openQuickLog({ after: () => (location.hash = '#/heute') });
+      break;
     default:
       renderHeute(root);
   }
-  nav.querySelectorAll('a').forEach((a) => a.classList.toggle('active', a.getAttribute('href') === `#/${path}` || (path === '' && a.getAttribute('href') === '#/heute')));
-  window.scrollTo({ top: 0 });
+  const navPath = path === 'eintragen' ? 'heute' : path;
+  nav.querySelectorAll('a').forEach((a) => a.classList.toggle('active', a.getAttribute('href') === `#/${navPath}` || (navPath === '' && a.getAttribute('href') === '#/heute')));
+  if (changed) {
+    // Nur beim echten Seitenwechsel nach oben springen und die Seite einblenden –
+    // ein Neuzeichnen nach einer Eingabe soll die Scrollposition behalten.
+    window.scrollTo({ top: 0 });
+    root.classList.remove('route-enter');
+    void root.offsetWidth;
+    root.classList.add('route-enter');
+  }
+  updateTopbar(navPath);
   if (afterRoute) {
     const fn = afterRoute;
     afterRoute = null;
     fn();
   }
 }
+
+// Kopfzeile: Titel setzen und beim Scrollen einblenden.
+function updateTopbar(path) {
+  // Auf „Heute“ steht in der großen Überschrift eine Begrüßung – in der Leiste ist der Seitenname klarer.
+  const heading = path === 'heute' || path === '' ? '' : (root.querySelector('h1')?.textContent || '').trim();
+  const title = heading || TITLES[path] || 'LMCI';
+  topbarTitle.textContent = title;
+  syncTopbar();
+}
+
+function syncTopbar() {
+  topbar.classList.toggle('show', !nav.hidden && window.scrollY > 24);
+}
+
+let topbarTicking = false;
+window.addEventListener('scroll', () => {
+  if (topbarTicking) return;
+  topbarTicking = true;
+  requestAnimationFrame(() => {
+    syncTopbar();
+    topbarTicking = false;
+  });
+}, { passive: true });
 
 let navMarkup = '';
 function renderNav(s = store.get()) {

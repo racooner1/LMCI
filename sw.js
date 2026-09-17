@@ -1,7 +1,7 @@
 // Service Worker: App-Shell offline verfügbar machen.
 // Wichtig: Alle App-Dateien einer Version werden gemeinsam vorgeladen und ausschließlich aus diesem Versions-Cache
 // bedient. Es werden nie einzelne Dateien im Hintergrund ausgetauscht – sonst passen die Module nicht mehr zusammen.
-const VERSION = 'lmci-v1.7.0';
+const VERSION = 'lmci-v1.7.1';
 const RUNTIME = 'lmci-runtime';
 const SHELL = [
   './', './index.html', './styles.css', './manifest.webmanifest',

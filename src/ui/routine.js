@@ -1,5 +1,5 @@
 // Routine: eigene Quests/Gewohnheiten planen, abhaken und Serien verfolgen.
-import { html, raw, esc, toast, openModal, closeModal, confirmDialog, num } from './dom.js';
+import { html, raw, esc, toast, openModal, closeModal, confirmDialog, num, haptic } from './dom.js';
 import * as store from '../state.js';
 import { toISODate, addDays, startOfWeek, weekdayIndex, formatDate, WEEKDAYS, WEEKDAYS_LONG } from '../engine/util.js';
 import {
@@ -27,6 +27,7 @@ export function toggleQuest(id, date, { silent = true } = {}) {
   const s = store.get();
   const r = (s.routines || []).find((x) => x.id === id);
   let nowDone = false;
+  haptic();
   store.update((st) => (nowDone = toggleRoutine(st, id, date)), { silent });
   store.saveNow();
   if (nowDone) toast(`${r?.name || 'Erledigt'} · +${r?.xp || 0} XP`, 'ok');

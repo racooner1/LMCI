@@ -1,5 +1,5 @@
 // Dashboard „Heute“: Hero mit Streak & Level, Tagesziele, Wochenring, Training, Schnellaktionen.
-import { html, raw, toast, openModal, closeModal, num, fmtKg } from './dom.js';
+import { html, raw, toast, openModal, closeModal, num, fmtKg, haptic } from './dom.js';
 import * as store from '../state.js';
 import { planWeek, isMesoFinished, effectiveSets, rirForWeek, generatePlan, nextSession, dayDuration } from '../engine/plan.js';
 import { adherence, streakWeeks } from '../engine/analytics.js';
@@ -250,6 +250,7 @@ export function renderHeute(root) {
   }));
   root.querySelector('#weight-form').addEventListener('submit', (e) => {
     e.preventDefault();
+    haptic();
     const v = num(root.querySelector('#weight-input').value);
     if (v < 30 || v > 250) return toast('Bitte ein plausibles Gewicht eingeben.', 'warn');
     store.update((st) => {

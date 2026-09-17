@@ -53,6 +53,12 @@ Alle Regeln sind bewusst einfach, nachvollziehbar und aus der Trainingswissensch
 - Auf „Heute“ erscheinen die fälligen Gewohnheiten als abhakbare Karte, geben XP, halten die Streak am Leben, zählen für den perfekten Tag (pro Gewohnheit abschaltbar), für Herausforderungen und für elf eigene Abzeichen.
 - Fokus umstellbar: **Training & Routine** (Standard) oder **nur Routine** – dann sind die eigenen Gewohnheiten die Pflichtziele des Tages, Trainingsplan und Ernährung bleiben erhalten, zählen aber als optional. LMCI wird damit auf Wunsch zur reinen Routine-App.
 
+**Wie eine App, nicht wie eine Webseite**
+- Statusleiste und Notch bleiben frei und nehmen die App-Farbe an (kein blauer Balken mehr), unten hält die Navigation Abstand zum Home-Indikator.
+- Mattierte Titelleiste, die beim Scrollen mit dem Seitennamen einblendet, mattierte Tab-Leiste, weiche Seitenwechsel – und die Scrollposition bleibt erhalten, wenn nach einer Eingabe neu gezeichnet wird.
+- Blätter (Dialoge) lassen sich nach unten wegwischen, Tippen gibt kurzes haptisches Feedback (wo das Gerät es unterstützt), kein blauer Tap-Blitz, kein Doppeltipp-Zoom, kein Überscrollen der Seite.
+- Startbildschirm-Kurzbefehle (Android): Training starten, Satz eintragen, Routine.
+
 **Fortschritt**
 - Wochenvolumen je Muskel gegen Ziel, Sätze und Cardio-Minuten pro Woche, geschätztes 1RM je Übung, Körpergewicht mit 7-Tage-Schnitt, Körpermaße, Bestleistungen mit Rangleiter und 1RM-Verlauf je Übung, Trainingshistorie.
 - Kalender mit Training, Cardio, Ernährung und Check-ins.

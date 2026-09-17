@@ -8,7 +8,7 @@ import { activeRoutines } from '../engine/routines.js';
 import { openFocusDialog, openQuestPicker } from './routine.js';
 import { icon } from './icons.js';
 
-export const APP_VERSION = '1.7.0';
+export const APP_VERSION = '1.7.1';
 
 export function renderMehr(root) {
   const s = store.get();

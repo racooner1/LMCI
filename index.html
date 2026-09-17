@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>LMCI</title>
   <meta name="description" content="LMCI – deine eigene, abofreie Trainings-App: individueller Kraft-, Cardio-, Mobilitäts- und Ernährungsplan, komplett offline auf deinem Gerät.">
-  <meta name="theme-color" content="#2F6BFF" media="(prefers-color-scheme: light)">
+  <!-- Statusleiste/Notch nimmt die App-Hintergrundfarbe an – sonst klebt oben ein blauer Balken. -->
+  <meta name="theme-color" content="#F2F5FB" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0D1220" media="(prefers-color-scheme: dark)">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -19,6 +20,7 @@
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
+  <div id="topbar" class="topbar" aria-hidden="true"><span id="topbar-title" class="topbar-title"></span></div>
   <main id="app" class="app" aria-live="polite"><p class="boot-hint">Lädt …</p></main>
   <nav id="nav" class="nav" hidden aria-label="Hauptnavigation"></nav>
   <noscript><p class="page">LMCI braucht JavaScript.</p></noscript>

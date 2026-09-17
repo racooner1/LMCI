@@ -1,5 +1,5 @@
 // Schnelleintrag: „eben 10 Liegestütze gemacht“ – Sätze festhalten, ohne ein Training zu starten.
-import { esc, toast, openModal, closeModal, confirmDialog, num, fmtKg } from './dom.js';
+import { esc, toast, openModal, closeModal, confirmDialog, num, fmtKg, haptic } from './dom.js';
 import * as store from '../state.js';
 import { EXERCISES, getExercise } from '../data/exercises.js';
 import { isAvailable } from '../engine/plan.js';
@@ -88,6 +88,7 @@ export function openQuickLog({ exId = null, date = toISODate(), after = () => {}
     const record = day === toISODate() && isNewRecord(s, view.exId, { weight, reps });
     store.update((st) => addQuickSets(st, { exId: view.exId, reps, weight, sets, date: day, records: record ? 1 : 0 }));
     store.saveNow();
+    haptic(record ? 24 : 10);
     closeModal();
     const what = `${sets > 1 ? `${sets} × ` : ''}${reps}${weight ? ` × ${fmtKg(weight)}` : ''} ${ex.name}`;
     if (record) {

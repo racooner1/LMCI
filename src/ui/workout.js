@@ -1,5 +1,5 @@
 // Trainings-Logging: Sätze eintragen, Aufwärmsätze, Pausentimer, Kurz-/Leichtversion, Feedback, Autoregulation.
-import { html, raw, esc, toast, openModal, closeModal, confirmDialog, num, fmtMin } from './dom.js';
+import { html, raw, esc, toast, openModal, closeModal, confirmDialog, num, fmtMin, haptic } from './dom.js';
 import * as store from '../state.js';
 import { planWeek, effectiveSets, rirForWeek, alternativesFor, shortenDay, warmupSets, availableExercises } from '../engine/plan.js';
 import { suggestNext, muscleDeltasFromFeedback, plates, incrementFor } from '../engine/progression.js';
@@ -131,6 +131,7 @@ function bind(root, dayId, recs = {}) {
       btn.closest('.set-row').classList.toggle('done', !!set.done);
       btn.setAttribute('aria-pressed', String(!!set.done));
       if (set.done) {
+        haptic();
         pop(btn);
         checkRecord(ei, si, recs, btn);
       }

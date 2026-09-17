@@ -4,6 +4,7 @@ import { MUSCLES } from '../data/muscles.js';
 import { bestE1RM } from './progression.js';
 import { bestSet } from './records.js';
 import { startOfWeek, addDays, toISODate } from './util.js';
+import { isQuickLog } from './quicklog.js';
 
 export function workoutsInWeek(workouts, weekStart) {
   const end = addDays(weekStart, 7);
@@ -114,7 +115,7 @@ export function weeklySeries(workouts, cardioLogs, weeks = 8, today = toISODate(
     const end = addDays(ws, 7);
     const wk = workouts.filter((w) => w.date >= ws && w.date < end);
     const cl = cardioLogs.filter((c) => c.date >= ws && c.date < end);
-    out.push({ weekStart: ws, sessions: wk.length, sets: wk.reduce((a, w) => a + totalSets(w), 0), tonnage: wk.reduce((a, w) => a + totalTonnage(w), 0), cardioMin: cl.reduce((a, c) => a + (c.minutes || 0), 0) });
+    out.push({ weekStart: ws, sessions: wk.filter((w) => !isQuickLog(w)).length, sets: wk.reduce((a, w) => a + totalSets(w), 0), tonnage: wk.reduce((a, w) => a + totalTonnage(w), 0), cardioMin: cl.reduce((a, c) => a + (c.minutes || 0), 0) });
     ws = end;
   }
   return out;

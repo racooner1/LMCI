@@ -3,8 +3,10 @@ import { toISODate } from './util.js';
 import { nextSession } from './plan.js';
 import { dayTotals } from './food.js';
 import { routinesForDay, DAYPART_BY_ID } from './routines.js';
+import { isQuickLog } from './quicklog.js';
+import { XP } from './xp.js';
 
-export const XP = { workoutBase: 50, perSet: 8, pr: 25, rankUp: 40, cardioPerMin: 2, checkin: 10, food: 15, water: 5, weight: 5, mobility: 15, perfectDay: 40 };
+export { XP };
 
 // Tagesziele für ein Datum. Rückgabe: [{ id, label, hint, xp, done, href, act?, optional?, routineId? }]
 // Im Fokus „routine“ zählen nur die eigenen Gewohnheiten als Pflicht – Training und Ernährung werden optional.
@@ -12,7 +14,9 @@ export function dailyGoals(s, today = toISODate()) {
   const goals = [];
   const routineOnly = s.settings?.focus === 'routine';
   const plan = s.plan;
-  const workoutToday = s.workouts.some((w) => w.date === today);
+  // Ein Schnelleintrag (einzelne Sätze) ist Bewegung, ersetzt aber keine geplante Einheit.
+  const workoutToday = s.workouts.some((w) => w.date === today && !isQuickLog(w));
+  const quickToday = s.workouts.some((w) => w.date === today && isQuickLog(w));
   const cardioToday = s.cardioLogs.some((c) => c.date === today);
   const mobilityToday = (s.mobilityLogs || []).includes(today);
   const checkin = (s.checkins || []).some((c) => c.date === today);
@@ -26,7 +30,7 @@ export function dailyGoals(s, today = toISODate()) {
   if (next && (next.kind === 'heute' || next.kind === 'nachholen')) {
     goals.push({ id: 'training', label: `Training: ${next.day.name}`, hint: `${next.day.exercises.length} Übungen`, xp: XP.workoutBase, done: workoutToday, href: `#/workout/${next.day.id}`, optional: routineOnly });
   } else {
-    goals.push({ id: 'bewegung', label: 'Bewegung heute', hint: 'Cardio, Mobilität oder Schnelltraining', xp: XP.mobility, done: workoutToday || cardioToday || mobilityToday, href: '#/schnell', optional: routineOnly });
+    goals.push({ id: 'bewegung', label: 'Bewegung heute', hint: 'Cardio, Mobilität, Schnelltraining oder ein paar Sätze', xp: XP.mobility, done: workoutToday || cardioToday || mobilityToday || quickToday, href: '#/schnell', optional: routineOnly });
   }
   goals.push({ id: 'food', label: 'Ernährung erfassen', hint: 'mindestens 3 Einträge', xp: XP.food, done: entries >= 3 || food.kcal >= 800, href: '#/ernaehrung', optional: routineOnly });
   goals.push({ id: 'water', label: 'Genug trinken', hint: '6 Gläser (1,5 l)', xp: XP.water, done: water >= 1500, href: '#/ernaehrung', optional: routineOnly });

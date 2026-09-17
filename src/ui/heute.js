@@ -24,6 +24,8 @@ import { recordsWeekLine } from './records.js';
 import { ring } from './charts.js';
 import { routineDayStatus, DAYPARTS, ROUTINE_TEMPLATES, activeRoutines } from '../engine/routines.js';
 import { questRow, toggleQuest, celebrateRoutineDay, openQuestPicker, addRoutines } from './routine.js';
+import { openQuickLog, quickLogCardHTML, bindQuickLogCard } from './quicklog.js';
+import { sessionWorkouts } from '../engine/quicklog.js';
 
 export { ring };
 
@@ -171,11 +173,14 @@ export function renderHeute(root) {
       </div>`}
 
       <div class="actions">
+        <button class="action xp" data-act="quicklog">${raw(icon('bolt', { size: 26 }))}Satz eintragen</button>
         <a class="action" href="#/schnell">${raw(icon('zap', { size: 26 }))}Schnell­training</a>
         <button class="action flame" data-act="log-cardio">${raw(icon('run', { size: 26 }))}Cardio</button>
         <button class="action ok" data-act="mobility">${raw(icon('stretch', { size: 26 }))}Mobilität</button>
-        <a class="action xp" href="#/coach">${raw(icon('chat', { size: 26 }))}Coach</a>
+        <a class="action" href="#/coach">${raw(icon('chat', { size: 26 }))}Coach</a>
       </div>
+
+      ${raw(quickLogCardHTML(s, today))}
 
       <div class="card">
         <div class="row between"><div class="card-title">Diese Woche</div><a class="btn btn-small btn-ghost" href="#/kalender">${raw(icon('calendar', { size: 16 }))} Kalender</a></div>
@@ -193,7 +198,7 @@ export function renderHeute(root) {
           <span class="small">${raw(icon('run', { size: 16 }))} Cardio ${cardioThisWeek.length}/${plan.cardio.sessionsPerWeek}${plan.cardio.sessions.length ? html` · nächste: ${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length]?.name} ${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length]?.minutesByWeek[week - 1]} min` : ''}</span>
           ${plan.cardio.sessions.length ? html`<button class="btn btn-small" data-timer="${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length].id}">${raw(icon('timer', { size: 16 }))} Timer</button>` : ''}
         </div>
-        <p class="muted small">${streakWeeks(plan, s.workouts, today)} Woche${streakWeeks(plan, s.workouts, today) === 1 ? '' : 'n'} in Folge dran · ${s.workouts.length} Trainings gesamt</p>
+        <p class="muted small">${streakWeeks(plan, s.workouts, today)} Woche${streakWeeks(plan, s.workouts, today) === 1 ? '' : 'n'} in Folge dran · ${sessionWorkouts(s.workouts).length} Trainings gesamt</p>
         ${recordLine ? html`<a class="record-line ${board.streak.atRisk ? 'risk' : board.thisWeek ? 'hot' : ''}" href="#/fortschritt">${raw(icon('trophy', { size: 18 }))}<span>${recordLine}</span>${raw(icon('right', { size: 16 }))}</a>` : ''}
       </div>
 
@@ -254,6 +259,8 @@ export function renderHeute(root) {
     });
     toast(`Gewicht gespeichert · +${XP.weight} XP`, 'ok');
   });
+  root.querySelectorAll('[data-act="quicklog"]').forEach((b) => b.addEventListener('click', () => openQuickLog({ after: () => refreshHeute(root) })));
+  bindQuickLogCard(root, { date: today, after: () => refreshHeute(root) });
   root.querySelectorAll('[data-quest]').forEach((b) => b.addEventListener('click', () => {
     toggleQuest(b.dataset.quest, today);
     celebrateRoutineDay(store.get(), today);

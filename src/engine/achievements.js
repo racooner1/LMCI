@@ -3,6 +3,7 @@ import { addDays, toISODate } from './util.js';
 import { personalRecords, totalSets } from './analytics.js';
 import { recordBoard } from './records.js';
 import { routineActiveDays, activeRoutines, routineStreak, routineDayStatus } from './routines.js';
+import { sessionWorkouts } from './quicklog.js';
 
 // Tage mit irgendeiner Aktivität (Training, Cardio, Check-in, Ernährung, Gewicht).
 export function activeDays(s) {
@@ -58,17 +59,17 @@ const allMusclesInWeek = (s) => {
   return Object.values(byWeek).some((set) => MUSCLES.every((m) => set.has(m.id)));
 };
 const weekendWarrior = (s) => {
-  const days = new Set(s.workouts.map((w) => w.date));
+  const days = new Set(sessionWorkouts(s.workouts).map((w) => w.date));
   return [...days].some((d) => new Date(d).getDay() === 6 && days.has(addDays(d, 1)));
 };
 const comeback = (s) => {
-  const dates = [...new Set(s.workouts.map((w) => w.date))].sort();
+  const dates = [...new Set(sessionWorkouts(s.workouts).map((w) => w.date))].sort();
   for (let i = 1; i < dates.length; i++) if ((new Date(dates[i]) - new Date(dates[i - 1])) / 86400000 >= 14) return true;
   return false;
 };
 const doubleDay = (s) => {
   const counts = {};
-  for (const w of s.workouts) counts[w.date] = (counts[w.date] || 0) + 1;
+  for (const w of sessionWorkouts(s.workouts)) counts[w.date] = (counts[w.date] || 0) + 1;
   return Object.values(counts).some((c) => c >= 2);
 };
 const perfectDays = (s, ctx) => ctx.perfectDays;
@@ -82,21 +83,21 @@ const B = (id, group, name, desc, icon, check) => ({ id, group, name, desc, icon
 
 export const BADGES = [
   // Training
-  B('erstes_training', 'training', 'Erster Schritt', 'Erstes Training gespeichert', '🏁', (s) => s.workouts.length >= 1),
-  B('zehn_trainings', 'training', 'Zehn im Kasten', '10 Trainings', '🔟', (s) => s.workouts.length >= 10),
-  B('25_trainings', 'training', 'Viertelhundert', '25 Trainings', '🎯', (s) => s.workouts.length >= 25),
-  B('fuenfzig_trainings', 'training', 'Halbes Hundert', '50 Trainings', '🏋️', (s) => s.workouts.length >= 50),
-  B('hundert_trainings', 'training', 'Hundert', '100 Trainings', '💯', (s) => s.workouts.length >= 100),
-  B('250_trainings', 'training', 'Eisenroutine', '250 Trainings', '🛡️', (s) => s.workouts.length >= 250),
-  B('500_trainings', 'training', 'Unaufhaltsam', '500 Trainings', '👑', (s) => s.workouts.length >= 500),
-  B('meso_fertig', 'training', 'Block abgeschlossen', 'Ersten Mesozyklus beendet', '📦', (s) => (s.planHistory || []).length >= 1 && s.workouts.length >= 8),
-  B('meso_3', 'training', 'Drei Blöcke', 'Drei Mesozyklen beendet', '📚', (s) => (s.planHistory || []).length >= 3 && s.workouts.length >= 24),
+  B('erstes_training', 'training', 'Erster Schritt', 'Erstes Training gespeichert', '🏁', (s) => sessionWorkouts(s.workouts).length >= 1),
+  B('zehn_trainings', 'training', 'Zehn im Kasten', '10 Trainings', '🔟', (s) => sessionWorkouts(s.workouts).length >= 10),
+  B('25_trainings', 'training', 'Viertelhundert', '25 Trainings', '🎯', (s) => sessionWorkouts(s.workouts).length >= 25),
+  B('fuenfzig_trainings', 'training', 'Halbes Hundert', '50 Trainings', '🏋️', (s) => sessionWorkouts(s.workouts).length >= 50),
+  B('hundert_trainings', 'training', 'Hundert', '100 Trainings', '💯', (s) => sessionWorkouts(s.workouts).length >= 100),
+  B('250_trainings', 'training', 'Eisenroutine', '250 Trainings', '🛡️', (s) => sessionWorkouts(s.workouts).length >= 250),
+  B('500_trainings', 'training', 'Unaufhaltsam', '500 Trainings', '👑', (s) => sessionWorkouts(s.workouts).length >= 500),
+  B('meso_fertig', 'training', 'Block abgeschlossen', 'Ersten Mesozyklus beendet', '📦', (s) => (s.planHistory || []).length >= 1 && sessionWorkouts(s.workouts).length >= 8),
+  B('meso_3', 'training', 'Drei Blöcke', 'Drei Mesozyklen beendet', '📚', (s) => (s.planHistory || []).length >= 3 && sessionWorkouts(s.workouts).length >= 24),
   B('quick_5', 'training', 'Improvisiert', '5 Schnelltrainings', '⚡', (s) => s.workouts.filter((w) => w.dayId === 'schnell').length >= 5),
   B('variety_25', 'training', 'Vielseitig', '25 verschiedene Übungen', '🧩', (s) => distinctExercises(s) >= 25),
   B('variety_60', 'training', 'Bewegungsbibliothek', '60 verschiedene Übungen', '📖', (s) => distinctExercises(s) >= 60),
   B('alle_muskeln', 'training', 'Ganzkörper', 'Alle 10 Muskelgruppen in einer Woche', '🫀', (s) => allMusclesInWeek(s)),
   // Kraft & Volumen
-  B('erster_rekord', 'kraft', 'Neue Bestleistung', 'Erste persönliche Bestleistung', '🥇', (s) => s.workouts.length >= 2 && personalRecords(s.workouts).length >= 1),
+  B('erster_rekord', 'kraft', 'Neue Bestleistung', 'Erste persönliche Bestleistung', '🥇', (s) => sessionWorkouts(s.workouts).length >= 2 && personalRecords(s.workouts).length >= 1),
   B('pr_10', 'kraft', 'Rekordjäger', '10 Steigerungen der Bestleistung', '🏆', (s, ctx) => prCount(s, ctx) >= 10),
   B('pr_50', 'kraft', 'Stärker als gestern', '50 Steigerungen der Bestleistung', '🚀', (s, ctx) => prCount(s, ctx) >= 50),
   B('pr_day_3', 'kraft', 'Rekordtag', '3 Steigerungen in einem Training', '🎆', (s, ctx) => ctx.board.bestDay >= 3),
@@ -164,8 +165,8 @@ export const BADGES = [
   B('routine_five', 'routine', 'Fünf Gewohnheiten', 'Fünf aktive Gewohnheiten in der Routine', '🖐️', (s) => activeRoutines(s).length >= 5),
   B('masse_5', 'alltag', 'Maßband', '5 Messungen der Körpermaße', '📏', (s) => (s.measurements || []).length >= 5),
   // Besondere Momente
-  B('frueh', 'special', 'Frühaufsteher', 'Training vor 8 Uhr beendet', '🌅', (s) => s.workouts.some((w) => w.finishedAt && new Date(w.finishedAt).getHours() < 8)),
-  B('nachteule', 'special', 'Nachteule', 'Training nach 21 Uhr beendet', '🦉', (s) => s.workouts.some((w) => w.finishedAt && new Date(w.finishedAt).getHours() >= 21)),
+  B('frueh', 'special', 'Frühaufsteher', 'Training vor 8 Uhr beendet', '🌅', (s) => sessionWorkouts(s.workouts).some((w) => w.finishedAt && new Date(w.finishedAt).getHours() < 8)),
+  B('nachteule', 'special', 'Nachteule', 'Training nach 21 Uhr beendet', '🦉', (s) => sessionWorkouts(s.workouts).some((w) => w.finishedAt && new Date(w.finishedAt).getHours() >= 21)),
   B('wochenende', 'special', 'Wochenendkrieger', 'Samstag und Sonntag trainiert', '🛡️', (s) => weekendWarrior(s)),
   B('comeback', 'special', 'Comeback', 'Nach 2 Wochen Pause zurück', '🔁', (s) => comeback(s)),
   B('doppelschicht', 'special', 'Doppelschicht', 'Zwei Trainings an einem Tag', '⚡⚡', (s) => doubleDay(s)),

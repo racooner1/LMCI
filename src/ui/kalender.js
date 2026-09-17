@@ -8,6 +8,7 @@ import { ACTIVITY_BY_ID } from '../engine/cardio.js';
 import { dailyStreak } from '../engine/achievements.js';
 import { getExercise } from '../data/exercises.js';
 import { recordEvents } from '../engine/records.js';
+import { isQuickLog, LOG_DAY_NAME } from '../engine/quicklog.js';
 
 const MONTHS = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
 let view = null; // { y, m }
@@ -56,7 +57,8 @@ export function renderKalender(root) {
             const d = byDay(iso);
             const planned = plannedWeekdays.has((fromISODate(iso).getDay() + 6) % 7) && iso >= s.plan.startDate;
             const any = d.workouts.length || d.cardio.length || d.checkin || d.food || d.weight;
-            return html`<button class="cal-cell ${iso === today ? 'today' : ''} ${iso > today ? 'future' : ''} ${planned && !d.workouts.length && iso < today ? 'missed' : ''}" data-day="${iso}" ${any ? '' : 'data-empty="1"'}>
+            const trained = d.workouts.some((w) => !isQuickLog(w));
+            return html`<button class="cal-cell ${iso === today ? 'today' : ''} ${iso > today ? 'future' : ''} ${planned && !trained && iso < today ? 'missed' : ''}" data-day="${iso}" ${any ? '' : 'data-empty="1"'}>
               <span class="cal-num">${Number(iso.slice(8))}</span>
               <span class="cal-dots">${d.workouts.length ? html`<i class="d-strength" title="Krafttraining"></i>` : ''}${d.cardio.length ? html`<i class="d-cardio" title="Cardio"></i>` : ''}${d.food ? html`<i class="d-food" title="Ernährung"></i>` : ''}${d.checkin ? html`<i class="d-checkin" title="Check-in"></i>` : ''}${d.prs.length ? html`<i class="d-pr" title="Bestleistung"></i>` : ''}</span>
             </button>`;
@@ -82,10 +84,10 @@ export function renderKalender(root) {
 }
 
 function openDay(iso, d, s) {
-  const dayName = (w) => (w.dayId === 'frei' ? 'Freies Training' : w.dayId === 'schnell' ? 'Schnelltraining' : s.plan.days.find((x) => x.id === w.dayId)?.name || s.planHistory.flatMap((p) => p.days).find((x) => x.id === w.dayId)?.name || 'Training');
+  const dayName = (w) => (w.dayId === 'frei' ? 'Freies Training' : w.dayId === 'schnell' ? 'Schnelltraining' : isQuickLog(w) ? LOG_DAY_NAME : s.plan.days.find((x) => x.id === w.dayId)?.name || s.planHistory.flatMap((p) => p.days).find((x) => x.id === w.dayId)?.name || 'Training');
   const food = dayTotals(s.foodLog?.[iso] || []);
   openModal(
-    `${d.workouts.length ? `<h3>Krafttraining</h3>${d.workouts.map((w) => `<p><strong>${esc(dayName(w))}</strong> · ${totalSets(w)} Sätze · ${totalTonnage(w).toLocaleString('de-DE')} kg${w.feedback ? ` · RPE ${w.feedback.rpe}` : ''}</p><ul class="bullets small">${w.entries.map((e) => `<li>${esc(getExercise(e.exId)?.name || e.exId)}: ${e.sets.map((x) => `${x.weight ? `${x.weight}×` : ''}${x.reps}`).join(', ')}</li>`).join('')}</ul>`).join('')}` : ''}
+    `${d.workouts.length ? `<h3>${d.workouts.every((w) => isQuickLog(w)) ? LOG_DAY_NAME : 'Krafttraining'}</h3>${d.workouts.map((w) => `<p><strong>${esc(dayName(w))}</strong> · ${totalSets(w)} Sätze${totalTonnage(w) ? ` · ${totalTonnage(w).toLocaleString('de-DE')} kg` : ''}${w.feedback ? ` · RPE ${w.feedback.rpe}` : ''}</p><ul class="bullets small">${w.entries.map((e) => `<li>${esc(getExercise(e.exId)?.name || e.exId)}: ${e.sets.map((x) => `${x.weight ? `${x.weight}×` : ''}${x.reps}`).join(', ')}</li>`).join('')}</ul>`).join('')}` : ''}
      ${d.prs.length ? `<h3>Bestleistungen</h3><ul class="bullets small">${d.prs.map((ev) => `<li>${esc(ev.name)}: ${ev.mode === 'kg' ? `e1RM ${String(ev.e1rm).replace('.', ',')} kg (+${String(ev.delta).replace('.', ',')} kg)` : `${ev.reps} Wdh. (+${ev.delta})`}${ev.rankUp ? ` · Aufstieg auf ${esc(ev.rank.name)}` : ''}</li>`).join('')}</ul>` : ''}
      ${d.cardio.length ? `<h3>Cardio</h3><ul class="bullets small">${d.cardio.map((c) => `<li>${esc(ACTIVITY_BY_ID[c.activity]?.name || c.activity)} · ${c.minutes} min${c.km ? ` · ${c.km} km` : ''}${c.avgHr ? ` · Ø ${c.avgHr} bpm` : ''}</li>`).join('')}</ul>` : ''}
      ${d.checkin ? `<h3>Check-in</h3><p class="small">Schlaf ${d.checkin.sleep} h · Qualität ${d.checkin.sleepQuality}/5 · Stress ${d.checkin.stress}/5 · Energie ${d.checkin.energy}/5</p>` : ''}

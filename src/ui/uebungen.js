@@ -9,6 +9,8 @@ import { bodyMap } from './bodymap.js';
 import { formatDate } from '../engine/util.js';
 import { recordBoard } from '../engine/records.js';
 import { medal } from './celebrate.js';
+import { openQuickLog } from './quicklog.js';
+import { icon } from './icons.js';
 
 const LOAD_NAMES = { barbell: 'Langhantel', dumbbell: 'Kurzhantel', machine: 'Maschine', cable: 'Kabelzug', bw: 'Körpergewicht', band: 'Band', time: 'Zeit', kettlebell: 'Kettlebell' };
 const TIER_NAMES = { 1: 'Grundübung', 2: 'Mehrgelenkig', 3: 'Isolation' };
@@ -90,7 +92,7 @@ export function openExerciseInfo(exId, { onPick = null, pickLabel = 'Alternative
      <p class="small"><strong>${ex.primary.map((x) => MUSCLE_BY_ID[x].name).join(', ')}</strong>${ex.secondary.length ? `<span class="muted"> · Nebenmuskeln: ${ex.secondary.map((x) => MUSCLE_BY_ID[x].name).join(', ')}</span>` : ''}</p>
      ${ex.cue ? `<p class="cue">${esc(ex.cue)}</p>` : ''}
      ${ex.contra.length ? `<p class="muted small">Vorsicht bei: ${ex.contra.map((c) => ({ knie: 'Knie', schulter: 'Schulter', ruecken_unten: 'unterer Rücken', handgelenk: 'Handgelenk', huefte: 'Hüfte' })[c] || c).join(', ')}</p>` : ''}
-     <a class="btn btn-small" href="${videoSearchUrl(ex)}" target="_blank" rel="noopener">Technik-Videos ansehen ↗</a>
+     <div class="row gap wrap"><button class="btn btn-small btn-primary" data-act="log">${icon('bolt', { size: 16 })} Sätze eintragen</button><a class="btn btn-small" href="${videoSearchUrl(ex)}" target="_blank" rel="noopener">Technik-Videos ansehen ↗</a></div>
      ${pr ? `<h3>Deine Bestleistung</h3><div class="record-hint">${medal(rec?.rank || null, { size: 's' })}<span>${pr.e1rm ? `${fmtKg(pr.weight)} × ${pr.reps} · e1RM ${String(pr.e1rm).replace('.', ',')} kg` : `${pr.reps} Wiederholungen`} · ${formatDate(pr.date)}${rec?.rank ? `<br><span class="muted">Rang ${esc(rec.rank.name)} · ${rec.score} Punkte${rec.rank.next ? ` · noch ${rec.rank.toNext} bis ${esc(rec.rank.next.name)}` : ''}${rec.improvements ? ` · ${rec.improvements}× gesteigert` : ''}</span>` : rec ? `<br><span class="muted">${rec.improvements ? `${rec.improvements}× gesteigert` : 'Erster Eintrag'}</span>` : ''}</span></div>` : ''}
      ${hist.length ? `<h3>Letzte Einheiten</h3><ul class="bullets small">${hist.slice().reverse().map((h) => `<li>${formatDate(h.date)}: ${h.sets.map((x) => `${x.weight ? `${x.weight} kg × ` : ''}${x.reps}${x.rir != null ? ` @${x.rir}` : ''}`).join(', ')}</li>`).join('')}</ul>` : ''}
      ${e1.length > 1 ? `<p class="muted small">Entwicklung geschätztes 1RM: ${e1[0].e1rm} → ${e1[e1.length - 1].e1rm} kg</p>` : ''}
@@ -98,6 +100,7 @@ export function openExerciseInfo(exId, { onPick = null, pickLabel = 'Alternative
      ${alts.length ? `<ul class="list tappable">${alts.map((a) => `<li><button class="link" data-alt="${a.id}"><strong>${esc(a.name)}</strong><div class="muted small">${esc(a.en)} · ${LOAD_NAMES[a.load]}</div></button></li>`).join('')}</ul>` : '<p class="muted">Keine passende Alternative mit deiner Ausrüstung.</p>'}`,
     { title: ex.name },
   );
+  m.querySelector('[data-act="log"]')?.addEventListener('click', () => openQuickLog({ exId }));
   m.querySelectorAll('[data-alt]').forEach((b) => b.addEventListener('click', () => {
     if (onPick) onPick(b.dataset.alt);
     else openExerciseInfo(b.dataset.alt);

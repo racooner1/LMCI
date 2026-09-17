@@ -14,7 +14,7 @@ Alle Regeln sind bewusst einfach, nachvollziehbar und aus der Trainingswissensch
 **Training mit Plan**
 - Onboarding in 5 Schritten: Ziel (Muskelaufbau, Fettabbau, Kraft, Ausdauer, Fitness), Erfahrung, Zielgewicht, Trainingstage, Dauer, Ausrüstung (Studio oder Zuhause mit Kurzhanteln, Langhantel, Kettlebell, Bank, Klimmzugstange, Bändern, Schlingentrainer), Beschwerden, Cardio-Vorlieben aus 65 Aktivitäten, Muskel-Schwerpunkte.
 - Kraftplan als Mesozyklus (4 Aufbauwochen + Deload): Split je nach Tagen, Volumen pro Muskel nach Erfahrung und Trainingsfrequenz, Wiederholungsbereiche nach Ziel, RIR-Steuerung pro Woche, Zeitbudget pro Einheit, Übungsrotation pro Block.
-- 233 Übungen mit Technik-Hinweisen, Körperkarte, Alternativen und Technik-Videolinks; Bibliothek mit Suche und Filtern.
+- 235 Übungen mit Technik-Hinweisen (Liegestütze z. B. schulterbreit, breit, eng und als Diamant-Variante), Körperkarte, Alternativen und Technik-Videolinks; Bibliothek mit Suche und Filtern.
 - Startgewichte werden aus Körpergewicht, Erfahrung, Geschlecht und Alter geschätzt; Aufwärmsätze werden automatisch berechnet.
 - Trainings-Logging: Sätze mit Gewicht, Wiederholungen und RIR, Pausentimer mit Ton und Vibration, Scheibenrechner, Übungen tauschen, ergänzen und verschieben, freies Training ohne Plan.
 - Kurzversion (20/30/45 min) und leichte Version, wenn Zeit oder Bereitschaft fehlen; verpasste Einheiten werden nachgeholt.
@@ -40,6 +40,11 @@ Alle Regeln sind bewusst einfach, nachvollziehbar und aus der Trainingswissensch
 - Herausforderungen: jede Woche drei neue (z. B. alle Krafteinheiten, Cardio-Minuten, perfekte Tage, Bestleistung, Beintag) und eine im Monat, mit Fortschrittsbalken und XP. Abgeschlossene werden gefeiert und zählen für Abzeichen.
 - Tägliche Ziel-Checkliste auf der Startseite (Check-in, Training oder Bewegung, Ernährung, Trinken, Mobilität, optional Wiegen) mit Bonus für den perfekten Tag.
 - Feier nach jedem Training mit Konfetti, XP-Zähler, neuen Bestleistungen, Abzeichen und Level-ups.
+
+**Schnell eintragen (einzelne Sätze)**
+- „Eben 10 Liegestütze gemacht“: Auf „Heute“ (Aktion *Satz eintragen*) oder direkt aus der Übungsbibliothek einen oder mehrere Sätze festhalten – Übung suchen oder aus Vorschlägen antippen, Wiederholungen und Sätze per Chip wählen, fertig.
+- Solche Einträge zählen für Wochenvolumen, Bestleistungen (inkl. Rekord-Feier), XP (pro Satz, ohne Grundbetrag), Tages-Streak, Herausforderungen und das Tagesziel „Bewegung heute“ – sie ersetzen aber keine geplante Einheit und zählen nicht als Training in Statistik und Abzeichen.
+- Alles eines Tages landet in einem Eintrag: Die Karte „Heute eingetragen“ zeigt Sätze, Wiederholungen und Summe und lässt Einträge wieder löschen. Nachtragen für vergangene Tage ist möglich.
 
 **Routine & Quests (eigene Gewohnheiten)**
 - Eigene Quests für den Alltag: Zähne putzen, Glas Wasser nach dem Aufstehen, Vitamin D, Spaziergang, 20 Minuten lesen, Handy weg vor dem Schlafen, pünktlich ins Bett … 21 Vorlagen zum Antippen oder frei selbst anlegen (Name, Symbol, Tagesabschnitt, XP).
@@ -143,7 +148,7 @@ index.html, styles.css        App-Shell und Gestaltung (hell/dunkel)
 manifest.webmanifest, sw.js   PWA (Installation, Offline-Cache)
 src/app.js                    Router, Start, Erinnerungsschleife
 src/state.js                  Zustand, Speicherung, Export/Import
-src/data/exercises.js         233 Übungen (Muskeln, Ausrüstung, Kontraindikationen, 1RM-Verhältnis, Technik)
+src/data/exercises.js         235 Übungen (Muskeln, Ausrüstung, Kontraindikationen, 1RM-Verhältnis, Technik)
 src/data/mobility.js          Mobilitätsübungen
 src/data/foods.js             254 Basis-Lebensmittel
 src/engine/plan.js            Plangenerator, Startgewichte, Aufwärmsätze, Kurzversion, nächste Einheit
@@ -158,12 +163,15 @@ src/engine/reminders.js       Erinnerungen, iCalendar-Export
 src/engine/quick.js           Schnelltraining: Ausrüstung + Fokus + Zeit → Aufgabenliste
 src/engine/goals.js           Tagesziele, XP-Werte
 src/engine/routines.js        Eigene Gewohnheiten: Vorlagen, Rhythmus, Serien, Quoten, XP
+src/engine/quicklog.js        Schnelleintrag: einzelne Sätze ohne Training festhalten
+src/engine/xp.js              XP-Werte an einer Stelle
 src/engine/challenges.js      Wochen- und Monats-Herausforderungen
 src/engine/gamification.js    XP, Level, perfekte Tage
 src/engine/records.js         Bestleistungen: Chronik, Rekord-Serie, Ränge (Bronze–Diamant), Kraft-Rang, nächste Ziele
 src/ui/*.js                   Ansichten: Onboarding, Heute, Schnelltraining, Plan, Training, Übungen, Fortschritt, Kalender, Ernährung, Routine, Coach, Mehr
 src/ui/records.js             Bestleistungen-Karte, Detail mit Rangleiter, Kurzzeile für „Heute“
 src/ui/routine.js             Routine-Seite: Quests abhaken, anlegen, bearbeiten, Verlauf, Fokus
+src/ui/quicklog.js            Schnelleintrag-Dialog und Karte „Heute eingetragen“
 src/ui/foodpicker.js          Lebensmittel-Auswahl, Portionen, eigene Lebensmittel, Rezepte, Barcode
 src/ui/bodymap.js, timer.js   Körperkarte, Intervall-Timer
 src/ui/icons.js, celebrate.js Icon-Set, Konfetti und Feier-Dialog

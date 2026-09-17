@@ -298,14 +298,15 @@ details.group .chips { margin-top: 10px; }
 .dot-sum { font-weight: 800; font-size: 1.15rem; padding-left: 6px; }
 
 /* Schnellaktionen */
-.actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.actions { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
 .action { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px; border-radius: var(--radius-s); background: var(--surface); border: 1px solid var(--line); border-bottom-width: 4px; text-decoration: none; color: var(--ink); font-size: 0.78rem; font-weight: 700; text-align: center; transition: transform 0.08s; box-shadow: var(--shadow-card); }
 .action:active { transform: translateY(3px); border-bottom-width: 1px; }
 .action .ico { width: 26px; height: 26px; color: var(--accent); }
 .action.flame .ico { color: var(--flame); }
 .action.ok .ico { color: var(--ok); }
 .action.xp .ico { color: var(--xp); }
-@media (max-width: 380px) { .actions { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .actions { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 340px) { .actions { grid-template-columns: repeat(2, 1fr); } }
 
 .week-chip { display: flex; flex-direction: column; align-items: flex-end; background: var(--accent-soft); border-radius: 12px; padding: 6px 12px; line-height: 1.15; }
 .week-chip.deload { background: var(--deload-soft); }
@@ -837,6 +838,14 @@ details.group .chips { margin-top: 10px; }
 .chip-btn:active { transform: scale(0.97); }
 .chip-btn .ico { color: var(--accent); }
 .tpl-head { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); display: flex; align-items: center; gap: 6px; margin: 14px 0 6px; }
+
+/* ---- Schnelleintrag ---- */
+.ql-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+.ql-head strong { display: block; line-height: 1.25; }
+.ql-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ql-list li { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border-radius: var(--radius-s); background: var(--surface-2); }
+.ql-name { display: flex; flex-direction: column; min-width: 0; line-height: 1.3; }
+.ql-name strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 </style>
 </head>
@@ -6472,7 +6481,9 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     ex({ id: "dips", name: "Dips", en: "Dips", pattern: "hpush", tier: 1, primary: ["brust", "trizeps"], ctx: ["gym"], load: "bw", inc: 0, bwReps: [3, 8, 12], contra: ["schulter"], cue: "Oberk\xF6rper leicht nach vorn, bis der Oberarm parallel ist. Zusatzgewicht als Steigerung." }),
     ex({ id: "dips_maschine", name: "Dips (Maschine / unterst\xFCtzt)", en: "Assisted Dip Machine", pattern: "hpush", tier: 1, primary: ["brust", "trizeps"], load: "machine", inc: 5, ratio: 0.9, contra: ["schulter"], cue: "Unterst\xFCtzung so w\xE4hlen, dass 8\u201312 saubere Wiederholungen m\xF6glich sind." }),
     ex({ id: "brustpresse_kabel", name: "Brustpresse stehend am Kabel", en: "Standing Cable Press", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["trizeps", "bauch"], load: "cable", inc: 2.5, ratio: 0.5, cue: "Schrittstellung, Rumpf fest, Griffe nach vorn dr\xFCcken." }),
-    ex({ id: "liegestuetze", name: "Liegest\xFCtze", en: "Push-ups", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["trizeps", "schultern"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [8, 15, 25], contra: ["handgelenk"], cue: "K\xF6rper als Linie, Ellbogen ca. 45\xB0, Brust bis kurz \xFCber den Boden. Zu leicht? F\xFC\xDFe erh\xF6hen oder Rucksack." }),
+    ex({ id: "liegestuetze", name: "Liegest\xFCtze (schulterbreit)", en: "Push-ups", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["trizeps", "schultern"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [8, 15, 25], contra: ["handgelenk"], cue: "H\xE4nde etwa schulterbreit, K\xF6rper als Linie, Ellbogen ca. 45\xB0, Brust bis kurz \xFCber den Boden. Zu leicht? F\xFC\xDFe erh\xF6hen oder Rucksack." }),
+    ex({ id: "liegestuetze_breit", name: "Liegest\xFCtze breit", en: "Wide Push-ups", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["schultern", "trizeps"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [8, 15, 24], contra: ["handgelenk", "schulter"], cue: "H\xE4nde deutlich weiter als schulterbreit, Ellbogen zeigen nach au\xDFen \u2013 mehr Brust, weniger Trizeps. Nicht tiefer als angenehm f\xFCr die Schulter." }),
+    ex({ id: "liegestuetze_eng", name: "Liegest\xFCtze eng (H\xE4nde zusammen)", en: "Close-grip Push-ups", pattern: "hpush", tier: 2, primary: ["brust", "trizeps"], secondary: ["schultern"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [6, 12, 20], contra: ["handgelenk"], cue: "H\xE4nde eng unter den Schultern, Ellbogen dicht am K\xF6rper \u2013 deutlich mehr Trizeps. Noch enger: Diamant-Liegest\xFCtze." }),
     ex({ id: "liegestuetze_knie", name: "Liegest\xFCtze auf den Knien", en: "Knee Push-ups", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["trizeps", "schultern"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [10, 18, 25], contra: ["handgelenk"], cue: "Leichtere Variante \u2013 H\xFCfte gestreckt lassen, nicht durchh\xE4ngen." }),
     ex({ id: "liegestuetze_erhoeht", name: "Liegest\xFCtze mit erh\xF6hten F\xFC\xDFen", en: "Decline Push-ups", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["schultern", "trizeps"], ctx: HOME, gear: [], load: "bw", inc: 0, bwReps: [6, 12, 20], contra: ["handgelenk"], cue: "F\xFC\xDFe auf Stuhl/Bank \u2013 mehr Last und mehr obere Brust." }),
     ex({ id: "liegestuetze_kh", name: "Liegest\xFCtze auf Kurzhanteln (F\xFC\xDFe erh\xF6ht)", en: "Deficit Push-ups", pattern: "hpush", tier: 2, primary: ["brust"], secondary: ["trizeps", "schultern"], ctx: HOME, gear: ["kurzhantel"], load: "bw", inc: 0, bwReps: [6, 12, 20], cue: "Griffe erlauben mehr Tiefe, F\xFC\xDFe auf Stuhl/Bank erh\xF6hen f\xFCr mehr Last." }),
@@ -7795,7 +7806,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const last = history.length ? history[history.length - 1] : null;
     const sets2 = workingSets(last);
     const isLoadable = !["bw", "time", "band"].includes(ex2.load);
-    const unitLabel = ex2.load === "time" ? "Sekunden" : "Wdh.";
+    const unitLabel2 = ex2.load === "time" ? "Sekunden" : "Wdh.";
     if (!sets2.length) {
       const est = ctx.profile ? estimateStartWeight(ex2, ctx.profile, pe.repMin, rirTarget, ctx.settings || {}) : null;
       const estReps = ctx.profile ? estimateStartReps(ex2, ctx.profile) : null;
@@ -7805,7 +7816,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
           weight: est,
           reps: pe.repMin,
           estimated: true,
-          note: `Startgewicht gesch\xE4tzt: ${est} kg f\xFCr ${pe.repMin}\u2013${pe.repMax} ${unitLabel} mit ${rirTarget} in Reserve. Zu leicht oder zu schwer? Einfach anpassen \u2013 ab dem 2. Mal z\xE4hlt nur noch dein Log.`,
+          note: `Startgewicht gesch\xE4tzt: ${est} kg f\xFCr ${pe.repMin}\u2013${pe.repMax} ${unitLabel2} mit ${rirTarget} in Reserve. Zu leicht oder zu schwer? Einfach anpassen \u2013 ab dem 2. Mal z\xE4hlt nur noch dein Log.`,
           prev: ""
         };
       }
@@ -7816,7 +7827,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
           weight: ex2.load === "bw" ? 0 : null,
           reps: r,
           estimated: true,
-          note: `Sch\xE4tzung: ca. ${estReps} ${unitLabel} schaffst du vermutlich. Ziel ${pe.repMin}\u2013${pe.repMax} bei ${rirTarget} in Reserve${estReps > pe.repMax ? " \u2013 w\xE4hle eine schwerere Variante oder Zusatzgewicht" : estReps < pe.repMin ? " \u2013 notfalls leichtere Variante" : ""}.`,
+          note: `Sch\xE4tzung: ca. ${estReps} ${unitLabel2} schaffst du vermutlich. Ziel ${pe.repMin}\u2013${pe.repMax} bei ${rirTarget} in Reserve${estReps > pe.repMax ? " \u2013 w\xE4hle eine schwerere Variante oder Zusatzgewicht" : estReps < pe.repMin ? " \u2013 notfalls leichtere Variante" : ""}.`,
           prev: ""
         };
       }
@@ -7824,7 +7835,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
         kind: "start",
         weight: null,
         reps: pe.repMin,
-        note: isLoadable ? `Erste Einheit: W\xE4hle ein Gewicht, mit dem du ${pe.repMin}\u2013${pe.repMax} saubere ${unitLabel} mit ${rirTarget} Wiederholungen Reserve schaffst.` : `Erste Einheit: So viele saubere ${unitLabel} wie m\xF6glich bei ${rirTarget} in Reserve \u2013 Ziel ${pe.repMin}\u2013${pe.repMax}.`,
+        note: isLoadable ? `Erste Einheit: W\xE4hle ein Gewicht, mit dem du ${pe.repMin}\u2013${pe.repMax} saubere ${unitLabel2} mit ${rirTarget} Wiederholungen Reserve schaffst.` : `Erste Einheit: So viele saubere ${unitLabel2} wie m\xF6glich bei ${rirTarget} in Reserve \u2013 Ziel ${pe.repMin}\u2013${pe.repMax}.`,
         prev: ""
       };
     }
@@ -7845,7 +7856,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     if (hitTop) {
       if (isLoadable) {
         const nw = roundToInc(w + inc, inc);
-        return { kind: "up", weight: nw, reps: pe.repMin, note: `Alle S\xE4tze am oberen Ende \u2013 Gewicht erh\xF6hen auf ${nw} kg, zur\xFCck auf ${pe.repMin} ${unitLabel}.`, prev };
+        return { kind: "up", weight: nw, reps: pe.repMin, note: `Alle S\xE4tze am oberen Ende \u2013 Gewicht erh\xF6hen auf ${nw} kg, zur\xFCck auf ${pe.repMin} ${unitLabel2}.`, prev };
       }
       return {
         kind: "up",
@@ -7859,10 +7870,10 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const failedTwice = minReps < pe.repMin && before.length && Math.min(...before.map((s) => s.reps)) < pe.repMin && (before[0].weight || 0) === w;
     if (failedTwice && isLoadable) {
       const nw = roundToInc(w * 0.92, inc);
-      return { kind: "down", weight: nw, reps: pe.repMin, note: `Zweimal unter ${pe.repMin} ${unitLabel} \u2013 Gewicht auf ${nw} kg reduzieren und neu aufbauen.`, prev };
+      return { kind: "down", weight: nw, reps: pe.repMin, note: `Zweimal unter ${pe.repMin} ${unitLabel2} \u2013 Gewicht auf ${nw} kg reduzieren und neu aufbauen.`, prev };
     }
     if (minReps < pe.repMin) {
-      return { kind: "hold", weight: w, reps: pe.repMin, note: `Letztes Mal unter ${pe.repMin} ${unitLabel} \u2013 Gewicht halten, Technik und Pausen pr\xFCfen.`, prev };
+      return { kind: "hold", weight: w, reps: pe.repMin, note: `Letztes Mal unter ${pe.repMin} ${unitLabel2} \u2013 Gewicht halten, Technik und Pausen pr\xFCfen.`, prev };
     }
     return { kind: "reps", weight: w, reps: Math.min(pe.repMax, minReps + 1), note: `Gewicht halten, pro Satz eine Wiederholung mehr anpeilen (Ziel ${pe.repMax}).`, prev };
   }
@@ -8158,6 +8169,95 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     return RANKS.map((r) => ({ ...r, threshold: isReps ? Math.ceil(r.min / 100 * ref) : round1(r.min / 100 * ref), unit: isReps ? ex2.load === "time" ? "s" : "Wdh." : "kg" }));
   }
 
+  // src/engine/xp.js
+  var XP = { workoutBase: 50, perSet: 8, pr: 25, rankUp: 40, cardioPerMin: 2, checkin: 10, food: 15, water: 5, weight: 5, mobility: 15, perfectDay: 40 };
+
+  // src/engine/quicklog.js
+  var LOG_DAY_ID = "log";
+  var LOG_DAY_NAME = "Schnelleintrag";
+  var MAX_SETS_PER_LOG = 20;
+  var MAX_REPS = 999;
+  var isQuickLog = (w) => w?.dayId === LOG_DAY_ID;
+  var toNum = (v) => {
+    const n = Number(String(v ?? "").replace(",", "."));
+    return Number.isFinite(n) ? n : 0;
+  };
+  var sessionWorkouts = (workouts) => (workouts || []).filter((w) => !isQuickLog(w));
+  var quickLogWorkouts = (workouts) => (workouts || []).filter(isQuickLog);
+  var quickLogFor = (s, date = toISODate()) => (s.workouts || []).find((w) => isQuickLog(w) && w.date === date) || null;
+  var countSets = (w) => (w?.entries || []).reduce((a2, e) => a2 + e.sets.filter((x) => x.reps > 0).length, 0);
+  var quickLogXP = (w) => countSets(w) * XP.perSet + (w.prs || 0) * XP.pr;
+  function addQuickSets(st2, { exId, reps, weight = 0, sets: sets2 = 1, date = toISODate(), rir = null, records = 0 }) {
+    const n = clamp(Math.round(toNum(sets2) || 1), 1, MAX_SETS_PER_LOG);
+    const r = clamp(Math.round(toNum(reps)), 1, MAX_REPS);
+    const kg = Math.max(0, toNum(weight));
+    st2.workouts || (st2.workouts = []);
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    let w = st2.workouts.find((x) => isQuickLog(x) && x.date === date);
+    if (!w) {
+      w = { id: uid(), planId: null, dayId: LOG_DAY_ID, date, startedAt: now, finishedAt: now, entries: [], prs: 0 };
+      st2.workouts.push(w);
+    }
+    w.finishedAt = now;
+    let entry = w.entries.find((e) => e.exId === exId);
+    if (!entry) {
+      entry = { exId, sets: [] };
+      w.entries.push(entry);
+    }
+    for (let i = 0; i < n; i++) entry.sets.push({ weight: kg, reps: r, rir });
+    w.prs = (w.prs || 0) + Math.max(0, Math.round(records));
+    w.xp = quickLogXP(w);
+    return w;
+  }
+  function removeQuickEntry(st2, date, exId) {
+    const w = (st2.workouts || []).find((x) => isQuickLog(x) && x.date === date);
+    const entry = w?.entries.find((e) => e.exId === exId);
+    if (!entry) return false;
+    entry.sets = [];
+    cleanup(st2, w, entry);
+    return true;
+  }
+  function cleanup(st2, w, entry) {
+    if (!entry.sets.length) w.entries = w.entries.filter((e) => e !== entry);
+    if (!w.entries.length) {
+      st2.workouts = st2.workouts.filter((x) => x !== w);
+      return;
+    }
+    w.prs = Math.min(w.prs || 0, countSets(w));
+    w.xp = quickLogXP(w);
+  }
+  function quickLogSummary(s, date = toISODate()) {
+    const w = quickLogFor(s, date);
+    if (!w) return [];
+    return w.entries.map((e) => {
+      const sets2 = e.sets.filter((x) => x.reps > 0);
+      return {
+        exId: e.exId,
+        sets: sets2.length,
+        reps: Math.max(0, ...sets2.map((x) => x.reps)),
+        weight: Math.max(0, ...sets2.map((x) => x.weight || 0)),
+        totalReps: sets2.reduce((a2, x) => a2 + x.reps, 0),
+        equal: sets2.every((x) => x.reps === sets2[0]?.reps && (x.weight || 0) === (sets2[0]?.weight || 0))
+      };
+    });
+  }
+  function repsInPeriod(s, exId, from, to2 = toISODate()) {
+    let reps = 0;
+    for (const w of s.workouts || []) {
+      if (w.date < from || w.date > to2) continue;
+      for (const e of w.entries) if (e.exId === exId) for (const x of e.sets) reps += x.reps > 0 ? x.reps : 0;
+    }
+    return reps;
+  }
+  function recentQuickExercises(s, limit = 6) {
+    const seen = [];
+    for (const w of quickLogWorkouts(s.workouts).sort((a2, b2) => a2.date < b2.date ? 1 : -1)) {
+      for (const e of w.entries) if (!seen.includes(e.exId)) seen.push(e.exId);
+      if (seen.length >= limit) break;
+    }
+    return seen.slice(0, limit);
+  }
+
   // src/engine/analytics.js
   function workoutsInWeek(workouts, weekStart) {
     const end = addDays(weekStart, 7);
@@ -8238,7 +8338,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       const end = addDays(ws2, 7);
       const wk = workouts.filter((w) => w.date >= ws2 && w.date < end);
       const cl2 = cardioLogs.filter((c) => c.date >= ws2 && c.date < end);
-      out.push({ weekStart: ws2, sessions: wk.length, sets: wk.reduce((a2, w) => a2 + totalSets(w), 0), tonnage: wk.reduce((a2, w) => a2 + totalTonnage(w), 0), cardioMin: cl2.reduce((a2, c) => a2 + (c.minutes || 0), 0) });
+      out.push({ weekStart: ws2, sessions: wk.filter((w) => !isQuickLog(w)).length, sets: wk.reduce((a2, w) => a2 + totalSets(w), 0), tonnage: wk.reduce((a2, w) => a2 + totalTonnage(w), 0), cardioMin: cl2.reduce((a2, c) => a2 + (c.minutes || 0), 0) });
       ws2 = end;
     }
     return out;
@@ -9276,17 +9376,17 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     return Object.values(byWeek).some((set) => MUSCLES.every((m) => set.has(m.id)));
   };
   var weekendWarrior = (s) => {
-    const days = new Set(s.workouts.map((w) => w.date));
+    const days = new Set(sessionWorkouts(s.workouts).map((w) => w.date));
     return [...days].some((d) => new Date(d).getDay() === 6 && days.has(addDays(d, 1)));
   };
   var comeback = (s) => {
-    const dates = [...new Set(s.workouts.map((w) => w.date))].sort();
+    const dates = [...new Set(sessionWorkouts(s.workouts).map((w) => w.date))].sort();
     for (let i = 1; i < dates.length; i++) if ((new Date(dates[i]) - new Date(dates[i - 1])) / 864e5 >= 14) return true;
     return false;
   };
   var doubleDay = (s) => {
     const counts = {};
-    for (const w of s.workouts) counts[w.date] = (counts[w.date] || 0) + 1;
+    for (const w of sessionWorkouts(s.workouts)) counts[w.date] = (counts[w.date] || 0) + 1;
     return Object.values(counts).some((c) => c >= 2);
   };
   var perfectDays = (s, ctx) => ctx.perfectDays;
@@ -9304,21 +9404,21 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
   var B = (id, group, name, desc, icon2, check) => ({ id, group, name, desc, icon: icon2, check });
   var BADGES = [
     // Training
-    B("erstes_training", "training", "Erster Schritt", "Erstes Training gespeichert", "\u{1F3C1}", (s) => s.workouts.length >= 1),
-    B("zehn_trainings", "training", "Zehn im Kasten", "10 Trainings", "\u{1F51F}", (s) => s.workouts.length >= 10),
-    B("25_trainings", "training", "Viertelhundert", "25 Trainings", "\u{1F3AF}", (s) => s.workouts.length >= 25),
-    B("fuenfzig_trainings", "training", "Halbes Hundert", "50 Trainings", "\u{1F3CB}\uFE0F", (s) => s.workouts.length >= 50),
-    B("hundert_trainings", "training", "Hundert", "100 Trainings", "\u{1F4AF}", (s) => s.workouts.length >= 100),
-    B("250_trainings", "training", "Eisenroutine", "250 Trainings", "\u{1F6E1}\uFE0F", (s) => s.workouts.length >= 250),
-    B("500_trainings", "training", "Unaufhaltsam", "500 Trainings", "\u{1F451}", (s) => s.workouts.length >= 500),
-    B("meso_fertig", "training", "Block abgeschlossen", "Ersten Mesozyklus beendet", "\u{1F4E6}", (s) => (s.planHistory || []).length >= 1 && s.workouts.length >= 8),
-    B("meso_3", "training", "Drei Bl\xF6cke", "Drei Mesozyklen beendet", "\u{1F4DA}", (s) => (s.planHistory || []).length >= 3 && s.workouts.length >= 24),
+    B("erstes_training", "training", "Erster Schritt", "Erstes Training gespeichert", "\u{1F3C1}", (s) => sessionWorkouts(s.workouts).length >= 1),
+    B("zehn_trainings", "training", "Zehn im Kasten", "10 Trainings", "\u{1F51F}", (s) => sessionWorkouts(s.workouts).length >= 10),
+    B("25_trainings", "training", "Viertelhundert", "25 Trainings", "\u{1F3AF}", (s) => sessionWorkouts(s.workouts).length >= 25),
+    B("fuenfzig_trainings", "training", "Halbes Hundert", "50 Trainings", "\u{1F3CB}\uFE0F", (s) => sessionWorkouts(s.workouts).length >= 50),
+    B("hundert_trainings", "training", "Hundert", "100 Trainings", "\u{1F4AF}", (s) => sessionWorkouts(s.workouts).length >= 100),
+    B("250_trainings", "training", "Eisenroutine", "250 Trainings", "\u{1F6E1}\uFE0F", (s) => sessionWorkouts(s.workouts).length >= 250),
+    B("500_trainings", "training", "Unaufhaltsam", "500 Trainings", "\u{1F451}", (s) => sessionWorkouts(s.workouts).length >= 500),
+    B("meso_fertig", "training", "Block abgeschlossen", "Ersten Mesozyklus beendet", "\u{1F4E6}", (s) => (s.planHistory || []).length >= 1 && sessionWorkouts(s.workouts).length >= 8),
+    B("meso_3", "training", "Drei Bl\xF6cke", "Drei Mesozyklen beendet", "\u{1F4DA}", (s) => (s.planHistory || []).length >= 3 && sessionWorkouts(s.workouts).length >= 24),
     B("quick_5", "training", "Improvisiert", "5 Schnelltrainings", "\u26A1", (s) => s.workouts.filter((w) => w.dayId === "schnell").length >= 5),
     B("variety_25", "training", "Vielseitig", "25 verschiedene \xDCbungen", "\u{1F9E9}", (s) => distinctExercises(s) >= 25),
     B("variety_60", "training", "Bewegungsbibliothek", "60 verschiedene \xDCbungen", "\u{1F4D6}", (s) => distinctExercises(s) >= 60),
     B("alle_muskeln", "training", "Ganzk\xF6rper", "Alle 10 Muskelgruppen in einer Woche", "\u{1FAC0}", (s) => allMusclesInWeek(s)),
     // Kraft & Volumen
-    B("erster_rekord", "kraft", "Neue Bestleistung", "Erste pers\xF6nliche Bestleistung", "\u{1F947}", (s) => s.workouts.length >= 2 && personalRecords(s.workouts).length >= 1),
+    B("erster_rekord", "kraft", "Neue Bestleistung", "Erste pers\xF6nliche Bestleistung", "\u{1F947}", (s) => sessionWorkouts(s.workouts).length >= 2 && personalRecords(s.workouts).length >= 1),
     B("pr_10", "kraft", "Rekordj\xE4ger", "10 Steigerungen der Bestleistung", "\u{1F3C6}", (s, ctx) => prCount(s, ctx) >= 10),
     B("pr_50", "kraft", "St\xE4rker als gestern", "50 Steigerungen der Bestleistung", "\u{1F680}", (s, ctx) => prCount(s, ctx) >= 50),
     B("pr_day_3", "kraft", "Rekordtag", "3 Steigerungen in einem Training", "\u{1F386}", (s, ctx) => ctx.board.bestDay >= 3),
@@ -9386,8 +9486,8 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     B("routine_five", "routine", "F\xFCnf Gewohnheiten", "F\xFCnf aktive Gewohnheiten in der Routine", "\u{1F590}\uFE0F", (s) => activeRoutines(s).length >= 5),
     B("masse_5", "alltag", "Ma\xDFband", "5 Messungen der K\xF6rperma\xDFe", "\u{1F4CF}", (s) => (s.measurements || []).length >= 5),
     // Besondere Momente
-    B("frueh", "special", "Fr\xFChaufsteher", "Training vor 8 Uhr beendet", "\u{1F305}", (s) => s.workouts.some((w) => w.finishedAt && new Date(w.finishedAt).getHours() < 8)),
-    B("nachteule", "special", "Nachteule", "Training nach 21 Uhr beendet", "\u{1F989}", (s) => s.workouts.some((w) => w.finishedAt && new Date(w.finishedAt).getHours() >= 21)),
+    B("frueh", "special", "Fr\xFChaufsteher", "Training vor 8 Uhr beendet", "\u{1F305}", (s) => sessionWorkouts(s.workouts).some((w) => w.finishedAt && new Date(w.finishedAt).getHours() < 8)),
+    B("nachteule", "special", "Nachteule", "Training nach 21 Uhr beendet", "\u{1F989}", (s) => sessionWorkouts(s.workouts).some((w) => w.finishedAt && new Date(w.finishedAt).getHours() >= 21)),
     B("wochenende", "special", "Wochenendkrieger", "Samstag und Sonntag trainiert", "\u{1F6E1}\uFE0F", (s) => weekendWarrior(s)),
     B("comeback", "special", "Comeback", "Nach 2 Wochen Pause zur\xFCck", "\u{1F501}", (s) => comeback(s)),
     B("doppelschicht", "special", "Doppelschicht", "Zwei Trainings an einem Tag", "\u26A1\u26A1", (s) => doubleDay(s)),
@@ -9737,12 +9837,12 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
   }
 
   // src/engine/goals.js
-  var XP = { workoutBase: 50, perSet: 8, pr: 25, rankUp: 40, cardioPerMin: 2, checkin: 10, food: 15, water: 5, weight: 5, mobility: 15, perfectDay: 40 };
   function dailyGoals(s, today = toISODate()) {
     const goals = [];
     const routineOnly = s.settings?.focus === "routine";
     const plan = s.plan;
-    const workoutToday = s.workouts.some((w) => w.date === today);
+    const workoutToday = s.workouts.some((w) => w.date === today && !isQuickLog(w));
+    const quickToday = s.workouts.some((w) => w.date === today && isQuickLog(w));
     const cardioToday = s.cardioLogs.some((c) => c.date === today);
     const mobilityToday = (s.mobilityLogs || []).includes(today);
     const checkin = (s.checkins || []).some((c) => c.date === today);
@@ -9755,7 +9855,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     if (next && (next.kind === "heute" || next.kind === "nachholen")) {
       goals.push({ id: "training", label: `Training: ${next.day.name}`, hint: `${next.day.exercises.length} \xDCbungen`, xp: XP.workoutBase, done: workoutToday, href: `#/workout/${next.day.id}`, optional: routineOnly });
     } else {
-      goals.push({ id: "bewegung", label: "Bewegung heute", hint: "Cardio, Mobilit\xE4t oder Schnelltraining", xp: XP.mobility, done: workoutToday || cardioToday || mobilityToday, href: "#/schnell", optional: routineOnly });
+      goals.push({ id: "bewegung", label: "Bewegung heute", hint: "Cardio, Mobilit\xE4t, Schnelltraining oder ein paar S\xE4tze", xp: XP.mobility, done: workoutToday || cardioToday || mobilityToday || quickToday, href: "#/schnell", optional: routineOnly });
     }
     goals.push({ id: "food", label: "Ern\xE4hrung erfassen", hint: "mindestens 3 Eintr\xE4ge", xp: XP.food, done: entries >= 3 || food.kcal >= 800, href: "#/ernaehrung", optional: routineOnly });
     goals.push({ id: "water", label: "Genug trinken", hint: "6 Gl\xE4ser (1,5 l)", xp: XP.water, done: water >= 1500, href: "#/ernaehrung", optional: routineOnly });
@@ -9815,7 +9915,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     const days = [];
     for (let d = from; d <= to2; d = addDays(d, 1)) days.push(d);
     return {
-      workouts: workouts.length,
+      workouts: workouts.filter((w) => !isQuickLog(w)).length,
       sets: workouts.reduce((a2, w) => a2 + totalSets(w), 0),
       tonnage: workouts.reduce((a2, w) => a2 + totalTonnage(w), 0),
       cardioMin: cardio.reduce((a2, c) => a2 + (c.minutes || 0), 0),
@@ -9831,7 +9931,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       prs,
       legSets,
       quick: workouts.filter((w) => w.dayId === "schnell").length,
-      early: workouts.filter((w) => w.finishedAt && new Date(w.finishedAt).getHours() < 9).length,
+      early: workouts.filter((w) => !isQuickLog(w) && w.finishedAt && new Date(w.finishedAt).getHours() < 9).length,
       variety: ex2.size,
       activeDays: days.filter((d) => workouts.some((w) => w.date === d) || cardio.some((c) => c.date === d) || (s.mobilityLogs || []).includes(d)).length
     };
@@ -10221,6 +10321,158 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
     return `<div class="bodymap-wrap">${view(FRONT, primary, secondary, "vorn")}${view(BACK, primary, secondary, "hinten")}</div>`;
   }
 
+  // src/ui/quicklog.js
+  var SUGGESTIONS = ["liegestuetze", "liegestuetze_breit", "liegestuetze_eng", "klimmzuege", "kniebeuge_bw", "plank", "crunches", "dips"];
+  var REP_CHIPS = [5, 10, 15, 20, 25, 30];
+  var TIME_CHIPS = [20, 30, 45, 60, 90, 120];
+  var isTime = (ex2) => ex2?.load === "time";
+  var needsWeight = (ex2) => !["bw", "band", "time"].includes(ex2?.load);
+  var unitLabel = (ex2) => isTime(ex2) ? "Sekunden" : "Wiederholungen";
+  function isNewRecord(s, exId, set) {
+    const best = bestSet({ sets: [set] });
+    if (!best) return false;
+    const prev = personalRecords(s.workouts).find((r) => r.exId === exId);
+    if (!prev) return true;
+    return best.e1rm > 0 ? best.e1rm > prev.e1rm + 0.05 : prev.e1rm === 0 && best.reps > prev.reps;
+  }
+  function openQuickLog({ exId = null, date = toISODate(), after = () => {
+  } } = {}) {
+    const view3 = { exId, date, q: "" };
+    const m = openModal('<div id="ql-body"></div>', { title: "Schnell eintragen" });
+    const render = () => {
+      m.querySelector("#ql-body").innerHTML = view3.exId ? formHTML(view3) : pickerHTML(view3);
+      bind2();
+      if (view3.exId) m.querySelector("#ql-reps")?.focus();
+    };
+    const bind2 = () => {
+      m.querySelector("#ql-q")?.addEventListener("input", (e) => {
+        view3.q = e.target.value;
+        const v = e.target.value;
+        render();
+        const inp = m.querySelector("#ql-q");
+        inp.focus();
+        inp.setSelectionRange(v.length, v.length);
+      });
+      m.querySelectorAll("[data-pick]").forEach((b2) => b2.addEventListener("click", () => {
+        view3.exId = b2.dataset.pick;
+        render();
+      }));
+      m.querySelector('[data-act="change"]')?.addEventListener("click", () => {
+        view3.exId = null;
+        view3.q = "";
+        render();
+      });
+      m.querySelectorAll("[data-reps]").forEach((b2) => b2.addEventListener("click", () => {
+        m.querySelector("#ql-reps").value = b2.dataset.reps;
+        updateXpHint();
+      }));
+      m.querySelectorAll("[data-sets]").forEach((b2) => b2.addEventListener("click", () => {
+        m.querySelector("#ql-sets").value = b2.dataset.sets;
+        updateXpHint();
+      }));
+      m.querySelector("#ql-sets")?.addEventListener("input", updateXpHint);
+      m.querySelector("#ql-form")?.addEventListener("submit", submit);
+    };
+    const updateXpHint = () => {
+      const sets2 = Math.max(1, Math.min(20, num(m.querySelector("#ql-sets")?.value, 1)));
+      const el2 = m.querySelector("#ql-xp");
+      if (el2) el2.textContent = `+${sets2 * XP.perSet}`;
+    };
+    const submit = (e) => {
+      e.preventDefault();
+      const s = get();
+      const ex2 = getExercise(view3.exId);
+      const reps = num(m.querySelector("#ql-reps").value);
+      const sets2 = Math.max(1, Math.min(20, num(m.querySelector("#ql-sets").value, 1)));
+      const weight = num(m.querySelector("#ql-weight")?.value);
+      const day = m.querySelector("#ql-date").value || toISODate();
+      if (!reps || reps < 1) return toast(`Bitte ${unitLabel(ex2)} eintragen.`, "warn");
+      if (needsWeight(ex2) && !weight) return toast("Bitte das Gewicht eintragen.", "warn");
+      const record = day === toISODate() && isNewRecord(s, view3.exId, { weight, reps });
+      update((st2) => addQuickSets(st2, { exId: view3.exId, reps, weight, sets: sets2, date: day, records: record ? 1 : 0 }));
+      saveNow();
+      closeModal();
+      const what = `${sets2 > 1 ? `${sets2} \xD7 ` : ""}${reps}${weight ? ` \xD7 ${fmtKg(weight)}` : ""} ${ex2.name}`;
+      if (record) {
+        confetti({ count: 90 });
+        toast(`Bestleistung! ${what} \xB7 +${sets2 * XP.perSet + XP.pr} XP`, "ok");
+      } else {
+        toast(`${what} eingetragen \xB7 +${sets2 * XP.perSet} XP`, "ok");
+      }
+      after();
+    };
+    render();
+    return m;
+  }
+  function pickerHTML(view3) {
+    const s = get();
+    const q2 = view3.q.trim().toLowerCase();
+    const recent = recentQuickExercises(s, 6).map((id) => getExercise(id)).filter(Boolean);
+    const quick = [...recent, ...SUGGESTIONS.map((id) => getExercise(id)).filter(Boolean)].filter((e, i, arr) => arr.findIndex((x) => x.id === e.id) === i).slice(0, 8);
+    const results = q2 ? EXERCISES.filter((e) => e.name.toLowerCase().includes(q2) || e.en.toLowerCase().includes(q2)).sort((a2, b2) => Number(isAvailable(b2, s.profile)) - Number(isAvailable(a2, s.profile))).slice(0, 25) : [];
+    return `<p class="muted small">Einzelne S\xE4tze festhalten, ohne ein Training zu starten. Z\xE4hlt f\xFCr Volumen, Bestleistungen, XP und deine Serie.</p>
+    <div class="chips">${quick.map((e) => `<button class="chip-btn" data-pick="${e.id}">${icon("bolt", { size: 15 })} ${esc(e.name)}</button>`).join("")}</div>
+    <label class="field"><span>Andere \xDCbung suchen</span><input id="ql-q" class="search" placeholder="z. B. Liegest\xFCtze, Kniebeuge \u2026" value="${esc(view3.q)}" autocomplete="off"></label>
+    ${q2 ? results.length ? `<ul class="list tappable">${results.map((e) => `<li><button class="link" data-pick="${e.id}"><strong>${esc(e.name)}</strong><div class="muted small">${esc(e.en)}${e.load === "bw" ? " \xB7 K\xF6rpergewicht" : ""}</div></button></li>`).join("")}</ul>` : '<p class="muted">Nichts gefunden.</p>' : ""}`;
+  }
+  function formHTML(view3) {
+    const s = get();
+    const ex2 = getExercise(view3.exId);
+    const today = toISODate();
+    const chips = isTime(ex2) ? TIME_CHIPS : REP_CHIPS;
+    const pr2 = personalRecords(s.workouts).find((r) => r.exId === view3.exId);
+    const lastEntry = quickLogSummary(s, view3.date).find((e) => e.exId === view3.exId);
+    const week = repsInPeriod(s, view3.exId, addDays(today, -6), today);
+    return `<div class="ql-head">
+      <div><strong>${esc(ex2.name)}</strong><div class="muted small">${esc(ex2.en)}${pr2 ? ` \xB7 Bestleistung ${pr2.e1rm ? `${fmtKg(pr2.weight)} \xD7 ${pr2.reps}` : `${pr2.reps} ${isTime(ex2) ? "Sekunden" : "Wdh."}`}` : ""}</div></div>
+      <button class="btn btn-small btn-ghost" type="button" data-act="change">\xC4ndern</button>
+    </div>
+    <form id="ql-form" class="form">
+      <label class="field"><span>${unitLabel(ex2)}</span><input id="ql-reps" type="number" inputmode="numeric" min="1" max="999" required value="${lastEntry?.reps || ""}" placeholder="z. B. 10"></label>
+      <div class="chips">${chips.map((n) => `<button type="button" class="chip-btn" data-reps="${n}">${n}</button>`).join("")}</div>
+      <div class="grid2">
+        <label class="field"><span>S\xE4tze</span><input id="ql-sets" type="number" inputmode="numeric" min="1" max="20" value="1"></label>
+        ${needsWeight(ex2) ? `<label class="field"><span>Gewicht (kg)</span><input id="ql-weight" type="number" inputmode="decimal" step="0.5" min="0" value="${lastEntry?.weight || ""}"></label>` : isTime(ex2) ? "" : `<label class="field"><span>Zusatzgewicht (kg, optional)</span><input id="ql-weight" type="number" inputmode="decimal" step="0.5" min="0" value="${lastEntry?.weight || ""}"></label>`}
+      </div>
+      <div class="chips">${[1, 2, 3, 4].map((n) => `<button type="button" class="chip-btn" data-sets="${n}">${n} ${n > 1 ? "S\xE4tze" : "Satz"}</button>`).join("")}</div>
+      <label class="field"><span>Datum</span><input id="ql-date" type="date" value="${view3.date}" max="${today}"></label>
+      <div class="row end"><button class="btn btn-primary btn-big" type="submit">${icon("check", { size: 18 })} Eintragen \xB7 <span id="ql-xp">+${XP.perSet}</span> XP</button></div>
+      ${lastEntry ? `<p class="hint">Heute schon eingetragen: ${lastEntry.sets} \xD7 ${lastEntry.reps}${lastEntry.weight ? ` \xD7 ${fmtKg(lastEntry.weight)}` : ""} (${lastEntry.totalReps} gesamt).</p>` : ""}
+      ${week ? `<p class="hint">Letzte 7 Tage: ${week} ${isTime(ex2) ? "Sekunden" : "Wiederholungen"} insgesamt.</p>` : ""}
+    </form>`;
+  }
+  function quickLogCardHTML(s, date = toISODate()) {
+    const items = quickLogSummary(s, date);
+    if (!items.length) return "";
+    const total = items.reduce((a2, e) => a2 + e.totalReps, 0);
+    return `<div class="card">
+    <div class="row between"><div class="card-title">${icon("bolt", { size: 16 })} Heute eingetragen</div><button class="btn btn-small btn-ghost" data-act="quicklog">${icon("plus", { size: 16 })} Mehr</button></div>
+    <ul class="ql-list">
+      ${items.map((e) => {
+      const ex2 = getExercise(e.exId);
+      const time = ex2?.load === "time";
+      return `<li>
+          <span class="ql-name"><strong>${esc(ex2?.name || e.exId)}</strong><span class="muted small">${e.equal ? `${e.sets} \xD7 ${e.reps}` : `${e.sets} S\xE4tze`}${e.weight ? ` \xD7 ${fmtKg(e.weight)}` : ""} \xB7 ${e.totalReps} ${time ? "Sekunden" : "Wdh."} gesamt</span></span>
+          <button class="btn-icon" data-ql-del="${esc(e.exId)}" aria-label="${esc(ex2?.name || e.exId)} l\xF6schen">${icon("trash", { size: 16 })}</button>
+        </li>`;
+    }).join("")}
+    </ul>
+    <p class="muted small">${total} Wiederholungen gesamt \xB7 z\xE4hlt f\xFCr Volumen, Bestleistungen und XP.</p>
+  </div>`;
+  }
+  function bindQuickLogCard(root2, { date = toISODate(), after = () => {
+  } } = {}) {
+    root2.querySelectorAll('[data-act="quicklog"]').forEach((b2) => b2.addEventListener("click", () => openQuickLog({ date, after })));
+    root2.querySelectorAll("[data-ql-del]").forEach((b2) => b2.addEventListener("click", async () => {
+      const ex2 = getExercise(b2.dataset.qlDel);
+      if (!await confirmDialog(`\u201E${ex2?.name || b2.dataset.qlDel}\u201C aus dem heutigen Schnelleintrag entfernen?`, { ok: "Entfernen", danger: true })) return;
+      update((st2) => removeQuickEntry(st2, date, b2.dataset.qlDel));
+      saveNow();
+      toast("Eintrag entfernt.");
+      after();
+    }));
+  }
+
   // src/ui/uebungen.js
   var LOAD_NAMES = { barbell: "Langhantel", dumbbell: "Kurzhantel", machine: "Maschine", cable: "Kabelzug", bw: "K\xF6rpergewicht", band: "Band", time: "Zeit", kettlebell: "Kettlebell" };
   var TIER_NAMES = { 1: "Grund\xFCbung", 2: "Mehrgelenkig", 3: "Isolation" };
@@ -10297,7 +10549,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
      <p class="small"><strong>${ex2.primary.map((x) => MUSCLE_BY_ID[x].name).join(", ")}</strong>${ex2.secondary.length ? `<span class="muted"> \xB7 Nebenmuskeln: ${ex2.secondary.map((x) => MUSCLE_BY_ID[x].name).join(", ")}</span>` : ""}</p>
      ${ex2.cue ? `<p class="cue">${esc(ex2.cue)}</p>` : ""}
      ${ex2.contra.length ? `<p class="muted small">Vorsicht bei: ${ex2.contra.map((c) => ({ knie: "Knie", schulter: "Schulter", ruecken_unten: "unterer R\xFCcken", handgelenk: "Handgelenk", huefte: "H\xFCfte" })[c] || c).join(", ")}</p>` : ""}
-     <a class="btn btn-small" href="${videoSearchUrl(ex2)}" target="_blank" rel="noopener">Technik-Videos ansehen \u2197</a>
+     <div class="row gap wrap"><button class="btn btn-small btn-primary" data-act="log">${icon("bolt", { size: 16 })} S\xE4tze eintragen</button><a class="btn btn-small" href="${videoSearchUrl(ex2)}" target="_blank" rel="noopener">Technik-Videos ansehen \u2197</a></div>
      ${pr2 ? `<h3>Deine Bestleistung</h3><div class="record-hint">${medal(rec?.rank || null, { size: "s" })}<span>${pr2.e1rm ? `${fmtKg(pr2.weight)} \xD7 ${pr2.reps} \xB7 e1RM ${String(pr2.e1rm).replace(".", ",")} kg` : `${pr2.reps} Wiederholungen`} \xB7 ${formatDate(pr2.date)}${rec?.rank ? `<br><span class="muted">Rang ${esc(rec.rank.name)} \xB7 ${rec.score} Punkte${rec.rank.next ? ` \xB7 noch ${rec.rank.toNext} bis ${esc(rec.rank.next.name)}` : ""}${rec.improvements ? ` \xB7 ${rec.improvements}\xD7 gesteigert` : ""}</span>` : rec ? `<br><span class="muted">${rec.improvements ? `${rec.improvements}\xD7 gesteigert` : "Erster Eintrag"}</span>` : ""}</span></div>` : ""}
      ${hist.length ? `<h3>Letzte Einheiten</h3><ul class="bullets small">${hist.slice().reverse().map((h2) => `<li>${formatDate(h2.date)}: ${h2.sets.map((x) => `${x.weight ? `${x.weight} kg \xD7 ` : ""}${x.reps}${x.rir != null ? ` @${x.rir}` : ""}`).join(", ")}</li>`).join("")}</ul>` : ""}
      ${e1.length > 1 ? `<p class="muted small">Entwicklung gesch\xE4tztes 1RM: ${e1[0].e1rm} \u2192 ${e1[e1.length - 1].e1rm} kg</p>` : ""}
@@ -10305,6 +10557,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
      ${alts.length ? `<ul class="list tappable">${alts.map((a2) => `<li><button class="link" data-alt="${a2.id}"><strong>${esc(a2.name)}</strong><div class="muted small">${esc(a2.en)} \xB7 ${LOAD_NAMES[a2.load]}</div></button></li>`).join("")}</ul>` : '<p class="muted">Keine passende Alternative mit deiner Ausr\xFCstung.</p>'}`,
       { title: ex2.name }
     );
+    m.querySelector('[data-act="log"]')?.addEventListener("click", () => openQuickLog({ exId }));
     m.querySelectorAll("[data-alt]").forEach((b2) => b2.addEventListener("click", () => {
       if (onPick) onPick(b2.dataset.alt);
       else openExerciseInfo(b2.dataset.alt);
@@ -10911,11 +11164,14 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       </div>`}
 
       <div class="actions">
+        <button class="action xp" data-act="quicklog">${raw(icon("bolt", { size: 26 }))}Satz eintragen</button>
         <a class="action" href="#/schnell">${raw(icon("zap", { size: 26 }))}Schnell­training</a>
         <button class="action flame" data-act="log-cardio">${raw(icon("run", { size: 26 }))}Cardio</button>
         <button class="action ok" data-act="mobility">${raw(icon("stretch", { size: 26 }))}Mobilität</button>
-        <a class="action xp" href="#/coach">${raw(icon("chat", { size: 26 }))}Coach</a>
+        <a class="action" href="#/coach">${raw(icon("chat", { size: 26 }))}Coach</a>
       </div>
+
+      ${raw(quickLogCardHTML(s, today))}
 
       <div class="card">
         <div class="row between"><div class="card-title">Diese Woche</div><a class="btn btn-small btn-ghost" href="#/kalender">${raw(icon("calendar", { size: 16 }))} Kalender</a></div>
@@ -10933,7 +11189,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
           <span class="small">${raw(icon("run", { size: 16 }))} Cardio ${cardioThisWeek.length}/${plan.cardio.sessionsPerWeek}${plan.cardio.sessions.length ? html` · nächste: ${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length]?.name} ${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length]?.minutesByWeek[week - 1]} min` : ""}</span>
           ${plan.cardio.sessions.length ? html`<button class="btn btn-small" data-timer="${plan.cardio.sessions[cardioThisWeek.length % plan.cardio.sessions.length].id}">${raw(icon("timer", { size: 16 }))} Timer</button>` : ""}
         </div>
-        <p class="muted small">${streakWeeks(plan, s.workouts, today)} Woche${streakWeeks(plan, s.workouts, today) === 1 ? "" : "n"} in Folge dran · ${s.workouts.length} Trainings gesamt</p>
+        <p class="muted small">${streakWeeks(plan, s.workouts, today)} Woche${streakWeeks(plan, s.workouts, today) === 1 ? "" : "n"} in Folge dran · ${sessionWorkouts(s.workouts).length} Trainings gesamt</p>
         ${recordLine ? html`<a class="record-line ${board.streak.atRisk ? "risk" : board.thisWeek ? "hot" : ""}" href="#/fortschritt">${raw(icon("trophy", { size: 18 }))}<span>${recordLine}</span>${raw(icon("right", { size: 16 }))}</a>` : ""}
       </div>
 
@@ -10993,6 +11249,8 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
       });
       toast(`Gewicht gespeichert \xB7 +${XP.weight} XP`, "ok");
     });
+    root2.querySelectorAll('[data-act="quicklog"]').forEach((b2) => b2.addEventListener("click", () => openQuickLog({ after: () => refreshHeute(root2) })));
+    bindQuickLogCard(root2, { date: today, after: () => refreshHeute(root2) });
     root2.querySelectorAll("[data-quest]").forEach((b2) => b2.addEventListener("click", () => {
       toggleQuest(b2.dataset.quest, today);
       celebrateRoutineDay(get(), today);
@@ -12059,7 +12317,7 @@ new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
 
       <div class="card">
         <div class="card-title">Letzte Trainings</div>
-        ${recent.length ? html`<ul class="list tappable">${recent.map((w) => html`<li><button class="link" data-w="${w.id}"><strong>${w.dayId === "frei" ? "Freies Training" : w.dayId === "schnell" ? "Schnelltraining" : plan.days.find((d) => d.id === w.dayId)?.name || s.planHistory.flatMap((p2) => p2.days).find((d) => d.id === w.dayId && p.id === w.planId)?.name || "Training"}</strong><div class="muted small">${formatDate(w.date)} · ${totalSets(w)} Sätze · ${totalTonnage(w).toLocaleString("de-DE")} kg${w.feedback ? ` \xB7 RPE ${w.feedback.rpe}` : ""}</div></button></li>`)}</ul>` : html`<p class="muted">Noch nichts geloggt – starte auf „Heute“.</p>`}
+        ${recent.length ? html`<ul class="list tappable">${recent.map((w) => html`<li><button class="link" data-w="${w.id}"><strong>${w.dayId === "frei" ? "Freies Training" : w.dayId === "schnell" ? "Schnelltraining" : isQuickLog(w) ? LOG_DAY_NAME : plan.days.find((d) => d.id === w.dayId)?.name || s.planHistory.flatMap((p2) => p2.days).find((d) => d.id === w.dayId && p.id === w.planId)?.name || "Training"}</strong><div class="muted small">${formatDate(w.date)} · ${totalSets(w)} Sätze${totalTonnage(w) ? ` \xB7 ${totalTonnage(w).toLocaleString("de-DE")} kg` : ""}${w.feedback ? ` \xB7 RPE ${w.feedback.rpe}` : ""}</div></button></li>`)}</ul>` : html`<p class="muted">Noch nichts geloggt – starte auf „Heute“.</p>`}
       </div>
     </section>`);
     animateAll(root2);
@@ -12382,7 +12640,7 @@ ${buildContext(get())}` }
   }
 
   // src/ui/mehr.js
-  var APP_VERSION = "1.6.0";
+  var APP_VERSION = "1.7.0";
   function renderMehr(root2) {
     const s = get();
     const p2 = s.profile;
@@ -12591,7 +12849,8 @@ ${buildContext(get())}` }
       const d = byDay(iso);
       const planned = plannedWeekdays.has((fromISODate(iso).getDay() + 6) % 7) && iso >= s.plan.startDate;
       const any = d.workouts.length || d.cardio.length || d.checkin || d.food || d.weight;
-      return html`<button class="cal-cell ${iso === today ? "today" : ""} ${iso > today ? "future" : ""} ${planned && !d.workouts.length && iso < today ? "missed" : ""}" data-day="${iso}" ${any ? "" : 'data-empty="1"'}>
+      const trained = d.workouts.some((w) => !isQuickLog(w));
+      return html`<button class="cal-cell ${iso === today ? "today" : ""} ${iso > today ? "future" : ""} ${planned && !trained && iso < today ? "missed" : ""}" data-day="${iso}" ${any ? "" : 'data-empty="1"'}>
               <span class="cal-num">${Number(iso.slice(8))}</span>
               <span class="cal-dots">${d.workouts.length ? html`<i class="d-strength" title="Krafttraining"></i>` : ""}${d.cardio.length ? html`<i class="d-cardio" title="Cardio"></i>` : ""}${d.food ? html`<i class="d-food" title="Ernährung"></i>` : ""}${d.checkin ? html`<i class="d-checkin" title="Check-in"></i>` : ""}${d.prs.length ? html`<i class="d-pr" title="Bestleistung"></i>` : ""}</span>
             </button>`;
@@ -12615,10 +12874,10 @@ ${buildContext(get())}` }
     root2.querySelectorAll("[data-day]").forEach((b2) => b2.addEventListener("click", () => openDay(b2.dataset.day, byDay(b2.dataset.day), s)));
   }
   function openDay(iso, d, s) {
-    const dayName2 = (w) => w.dayId === "frei" ? "Freies Training" : w.dayId === "schnell" ? "Schnelltraining" : s.plan.days.find((x) => x.id === w.dayId)?.name || s.planHistory.flatMap((p2) => p2.days).find((x) => x.id === w.dayId)?.name || "Training";
+    const dayName2 = (w) => w.dayId === "frei" ? "Freies Training" : w.dayId === "schnell" ? "Schnelltraining" : isQuickLog(w) ? LOG_DAY_NAME : s.plan.days.find((x) => x.id === w.dayId)?.name || s.planHistory.flatMap((p2) => p2.days).find((x) => x.id === w.dayId)?.name || "Training";
     const food = dayTotals(s.foodLog?.[iso] || []);
     openModal(
-      `${d.workouts.length ? `<h3>Krafttraining</h3>${d.workouts.map((w) => `<p><strong>${esc(dayName2(w))}</strong> \xB7 ${totalSets(w)} S\xE4tze \xB7 ${totalTonnage(w).toLocaleString("de-DE")} kg${w.feedback ? ` \xB7 RPE ${w.feedback.rpe}` : ""}</p><ul class="bullets small">${w.entries.map((e) => `<li>${esc(getExercise(e.exId)?.name || e.exId)}: ${e.sets.map((x) => `${x.weight ? `${x.weight}\xD7` : ""}${x.reps}`).join(", ")}</li>`).join("")}</ul>`).join("")}` : ""}
+      `${d.workouts.length ? `<h3>${d.workouts.every((w) => isQuickLog(w)) ? LOG_DAY_NAME : "Krafttraining"}</h3>${d.workouts.map((w) => `<p><strong>${esc(dayName2(w))}</strong> \xB7 ${totalSets(w)} S\xE4tze${totalTonnage(w) ? ` \xB7 ${totalTonnage(w).toLocaleString("de-DE")} kg` : ""}${w.feedback ? ` \xB7 RPE ${w.feedback.rpe}` : ""}</p><ul class="bullets small">${w.entries.map((e) => `<li>${esc(getExercise(e.exId)?.name || e.exId)}: ${e.sets.map((x) => `${x.weight ? `${x.weight}\xD7` : ""}${x.reps}`).join(", ")}</li>`).join("")}</ul>`).join("")}` : ""}
      ${d.prs.length ? `<h3>Bestleistungen</h3><ul class="bullets small">${d.prs.map((ev) => `<li>${esc(ev.name)}: ${ev.mode === "kg" ? `e1RM ${String(ev.e1rm).replace(".", ",")} kg (+${String(ev.delta).replace(".", ",")} kg)` : `${ev.reps} Wdh. (+${ev.delta})`}${ev.rankUp ? ` \xB7 Aufstieg auf ${esc(ev.rank.name)}` : ""}</li>`).join("")}</ul>` : ""}
      ${d.cardio.length ? `<h3>Cardio</h3><ul class="bullets small">${d.cardio.map((c) => `<li>${esc(ACTIVITY_BY_ID[c.activity]?.name || c.activity)} \xB7 ${c.minutes} min${c.km ? ` \xB7 ${c.km} km` : ""}${c.avgHr ? ` \xB7 \xD8 ${c.avgHr} bpm` : ""}</li>`).join("")}</ul>` : ""}
      ${d.checkin ? `<h3>Check-in</h3><p class="small">Schlaf ${d.checkin.sleep} h \xB7 Qualit\xE4t ${d.checkin.sleepQuality}/5 \xB7 Stress ${d.checkin.stress}/5 \xB7 Energie ${d.checkin.energy}/5</p>` : ""}

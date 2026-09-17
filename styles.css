@@ -288,14 +288,15 @@ details.group .chips { margin-top: 10px; }
 .dot-sum { font-weight: 800; font-size: 1.15rem; padding-left: 6px; }
 
 /* Schnellaktionen */
-.actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.actions { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
 .action { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px; border-radius: var(--radius-s); background: var(--surface); border: 1px solid var(--line); border-bottom-width: 4px; text-decoration: none; color: var(--ink); font-size: 0.78rem; font-weight: 700; text-align: center; transition: transform 0.08s; box-shadow: var(--shadow-card); }
 .action:active { transform: translateY(3px); border-bottom-width: 1px; }
 .action .ico { width: 26px; height: 26px; color: var(--accent); }
 .action.flame .ico { color: var(--flame); }
 .action.ok .ico { color: var(--ok); }
 .action.xp .ico { color: var(--xp); }
-@media (max-width: 380px) { .actions { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .actions { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 340px) { .actions { grid-template-columns: repeat(2, 1fr); } }
 
 .week-chip { display: flex; flex-direction: column; align-items: flex-end; background: var(--accent-soft); border-radius: 12px; padding: 6px 12px; line-height: 1.15; }
 .week-chip.deload { background: var(--deload-soft); }
@@ -827,3 +828,11 @@ details.group .chips { margin-top: 10px; }
 .chip-btn:active { transform: scale(0.97); }
 .chip-btn .ico { color: var(--accent); }
 .tpl-head { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); display: flex; align-items: center; gap: 6px; margin: 14px 0 6px; }
+
+/* ---- Schnelleintrag ---- */
+.ql-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+.ql-head strong { display: block; line-height: 1.25; }
+.ql-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ql-list li { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border-radius: var(--radius-s); background: var(--surface-2); }
+.ql-name { display: flex; flex-direction: column; min-width: 0; line-height: 1.3; }
+.ql-name strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

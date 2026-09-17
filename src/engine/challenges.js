@@ -4,6 +4,7 @@ import { totalSets, totalTonnage, personalRecords } from './analytics.js';
 import { getExercise } from '../data/exercises.js';
 import { isPerfectDay } from './goals.js';
 import { activeRoutines, routineCompletions, routinePerfectDays } from './routines.js';
+import { isQuickLog } from './quicklog.js';
 
 const LEGS = new Set(['quadrizeps', 'beinbeuger', 'gesaess', 'waden']);
 
@@ -39,7 +40,7 @@ export function periodMetrics(s, from, to) {
   const days = [];
   for (let d = from; d <= to; d = addDays(d, 1)) days.push(d);
   return {
-    workouts: workouts.length,
+    workouts: workouts.filter((w) => !isQuickLog(w)).length,
     sets: workouts.reduce((a, w) => a + totalSets(w), 0),
     tonnage: workouts.reduce((a, w) => a + totalTonnage(w), 0),
     cardioMin: cardio.reduce((a, c) => a + (c.minutes || 0), 0),
@@ -55,7 +56,7 @@ export function periodMetrics(s, from, to) {
     prs,
     legSets,
     quick: workouts.filter((w) => w.dayId === 'schnell').length,
-    early: workouts.filter((w) => w.finishedAt && new Date(w.finishedAt).getHours() < 9).length,
+    early: workouts.filter((w) => !isQuickLog(w) && w.finishedAt && new Date(w.finishedAt).getHours() < 9).length,
     variety: ex.size,
     activeDays: days.filter((d) => workouts.some((w) => w.date === d) || cardio.some((c) => c.date === d) || (s.mobilityLogs || []).includes(d)).length,
   };
